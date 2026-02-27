@@ -95,8 +95,8 @@
 				<!-- Data source properties -->
 				<dataSource.url>jdbc:postgresql://localhost:5432/synapse</dataSource.url>
 				<testDataSource.url>jdbc:postgresql://localhost:5432/synapse_test</testDataSource.url>
-				<dataSource.user>postgres</dataSource.user>
-				<dataSource.password>postgres</dataSource.password>
+				<dataSource.user>synapse</dataSource.user>
+				<dataSource.password>1234</dataSource.password>
 			</properties>
 
 			<dependencies>

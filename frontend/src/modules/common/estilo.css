@@ -1,0 +1,46 @@
+.brojo{
+    background-color: #E63946 !important;
+}
+.bblanco{
+    background-color:#F1FAEE !important;
+}
+.bazul1{
+    background-color: #A8DADC !important;
+}
+.bazul2{
+    background-color: #457B9D !important;
+}
+.bazul3{
+    background-color: #1D3557 !important;
+}
+
+.rojo{
+    color: #E63946;
+}
+.blanco{
+    color:#F1FAEE;
+}
+.azul1{
+    color: #A8DADC;
+}
+.azul2{
+    color: #457B9D;
+}
+.azul3{
+    color: #1D3557;
+}
+
+.bblancoAux{
+    background-color:#FFFFFF !important;
+}
+
+.bgris{
+    background-color:#c7d6e6 !important;
+}
+
+
+.ul2Columnas{ 
+    columns: 2;
+    -webkit-columns: 2;
+    -moz-columns: 2;
+}

@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: waterfantasy-ingress
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /waterfantasy
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /waterfantasy
+            pathType: Prefix
+            backend:
+              service:
+                name: waterfantasy
+                port:
+                  number: 8080

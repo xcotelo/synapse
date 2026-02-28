@@ -19,15 +19,6 @@ const Header = () => {
             <div className="col-8 d-flex align-items-center mx-4 my-4">
                 <h1 className="blanco me-4">Synapse</h1>
                 <ul className="navbar-nav d-flex flex-row align-items-center">
-                    <li className="nav-item mx-2">
-                        <Link
-                            to="/brain/inbox"
-                            className={`text-white text-decoration-none fs-4 ${location.pathname.startsWith('/brain') ? '' : 'text-opacity-75'
-                                }`}
-                        >
-                            Cerebro Digital
-                        </Link>
-                    </li>
                 </ul>
             </div>
             <div className="col-1 d-flex align-items-center justify-content-end mx-4 my-4">

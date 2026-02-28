@@ -14,8 +14,8 @@ import synapse.rest.services.ClaudeAIService;
 import synapse.rest.services.ContentExtractionService;
 
 /**
- * Endpoint que utiliza IA (Claude) para clasificar y analizar contenido.
- * Extrae contenido de URLs y utiliza Claude AI para clasificación inteligente.
+ * Endpoint que utiliza IA (LLaMA 3) para clasificar y analizar contenido.
+ * Extrae contenido de URLs y utiliza LLaMA 3 para clasificación inteligente.
  */
 @RestController
 @RequestMapping("/api/brain")
@@ -62,10 +62,10 @@ public class BrainController {
             }
         }
 
-        // 2. Usar Claude AI para clasificar
+        // 2. Usar LLaMA 3 para clasificar
         ClaudeAIService.ClassificationResult classification = claudeAIService.classifyContent(contentToAnalyze);
 
-        // 3. Si extrajimos contenido de una URL, usar el título extraído si Claude no proporcionó uno mejor
+        // 3. Si extrajimos contenido de una URL, usar el título extraído si LLaMA 3 no proporcionó uno mejor
         String finalTitle = classification.getTitle();
         if (extracted != null && !extracted.getTitle().isEmpty() && 
             (finalTitle == null || finalTitle.isEmpty() || finalTitle.equals("Nota"))) {

@@ -18,7 +18,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * Servicio para interactuar con la API de Claude AI
+ * Servicio para interactuar con la API de LLaMA 3 (Groq)
  */
 @Service
 public class ClaudeAIService {
@@ -27,13 +27,13 @@ public class ClaudeAIService {
     private final OkHttpClient client;
     private final Gson gson;
     
-    @Value("${project.claude.apiKey}")
+    @Value("${project.llama.apiKey}")
     private String apiKey;
     
-    @Value("${project.claude.apiUrl}")
+    @Value("${project.llama.apiUrl}")
     private String apiUrl;
     
-    @Value("${project.claude.model}")
+    @Value("${project.llama.model}")
     private String model;
 
     public ClaudeAIService() {
@@ -42,7 +42,7 @@ public class ClaudeAIService {
     }
 
     /**
-     * Clasifica y analiza contenido usando Claude AI
+     * Clasifica y analiza contenido usando LLaMA 3
      * 
      * @param content El contenido a analizar
      * @return Resultado de la clasificación con sugerencias
@@ -53,7 +53,7 @@ public class ClaudeAIService {
         }
 
         // Si no hay API key configurada, usar reglas básicas
-        if (apiKey == null || apiKey.isEmpty() || apiKey.equals("your-api-key-here")) {
+        if (apiKey == null || apiKey.isEmpty() || apiKey.equals("your-groq-api-key-here")) {
             return createDefaultResult();
         }
 
@@ -68,7 +68,7 @@ public class ClaudeAIService {
     }
 
     /**
-     * Construye el prompt para Claude
+     * Construye el prompt para LLaMA 3
      */
     private String buildClassificationPrompt(String content) {
         // Detectar si es un video basándose en el contenido
@@ -134,12 +134,13 @@ public class ClaudeAIService {
     }
 
     /**
-     * Llama a la API de Claude
+     * Llama a la API de LLaMA 3 (Groq - formato OpenAI compatible)
      */
     private String callClaudeAPI(String prompt) throws IOException {
         JsonObject requestBody = new JsonObject();
         requestBody.addProperty("model", model);
         requestBody.addProperty("max_tokens", 4000);
+        requestBody.addProperty("temperature", 0.7);
         
         JsonArray messages = new JsonArray();
         JsonObject message = new JsonObject();
@@ -152,25 +153,28 @@ public class ClaudeAIService {
         RequestBody body = RequestBody.create(requestBody.toString(), JSON);
         Request request = new Request.Builder()
                 .url(apiUrl)
-                .header("x-api-key", apiKey)
-                .header("anthropic-version", "2023-06-01")
+                .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code: " + response);
+                String errorBody = response.body() != null ? response.body().string() : "";
+                throw new IOException("Unexpected code: " + response.code() + " - " + errorBody);
             }
             
             String responseBody = response.body().string();
             JsonObject jsonResponse = gson.fromJson(responseBody, JsonObject.class);
             
-            // Extraer el contenido de la respuesta
-            JsonArray contentArray = jsonResponse.getAsJsonArray("content");
-            if (contentArray != null && contentArray.size() > 0) {
-                JsonObject contentObj = contentArray.get(0).getAsJsonObject();
-                return contentObj.get("text").getAsString();
+            // Extraer el contenido de la respuesta (formato OpenAI/Groq)
+            JsonArray choices = jsonResponse.getAsJsonArray("choices");
+            if (choices != null && choices.size() > 0) {
+                JsonObject choice = choices.get(0).getAsJsonObject();
+                JsonObject messageObj = choice.getAsJsonObject("message");
+                if (messageObj != null && messageObj.has("content")) {
+                    return messageObj.get("content").getAsString();
+                }
             }
             
             return "";
@@ -178,7 +182,7 @@ public class ClaudeAIService {
     }
 
     /**
-     * Parsea la respuesta de Claude
+     * Parsea la respuesta de LLaMA 3
      */
     private ClassificationResult parseClaudeResponse(String response, String originalContent) {
         try {
@@ -232,7 +236,7 @@ public class ClaudeAIService {
     }
 
     /**
-     * Crea un resultado por defecto cuando no se puede usar Claude
+     * Crea un resultado por defecto cuando no se puede usar LLaMA 3
      */
     private ClassificationResult createDefaultResult() {
         return new ClassificationResult("nota", "Nota", "", "# Nota\n\n## Contenido\n\nContenido sin procesar.", "apunte", new String[]{"general"});

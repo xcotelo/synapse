@@ -220,6 +220,27 @@
 			<artifactId>Java-WebSocket</artifactId>
 			<version>1.5.3</version>
 		</dependency>
+
+		<!-- Jsoup for web scraping -->
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.17.2</version>
+		</dependency>
+
+		<!-- HTTP Client for API calls -->
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>4.12.0</version>
+		</dependency>
+
+		<!-- Gson for JSON parsing -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.10.1</version>
+		</dependency>
 	</dependencies>
 
 	<!-- ********************************************** -->
@@ -314,6 +335,8 @@
 						<include>**/*Test.java</include>
 						<include>**/*Tests.java</include>
 					</includes>
+					<useSystemClassLoader>false</useSystemClassLoader>
+					<failIfNoTests>false</failIfNoTests>
 				</configuration>
 			</plugin>
 
@@ -377,8 +400,7 @@
 							<goal>yarn</goal>
 						</goals>
 						<configuration>
-							<arguments>run test --reporters=jest-standard-reporter --coverage
-								--watchAll=false</arguments>
+							<arguments>run test --coverage --watchAll=false</arguments>
 						</configuration>
 						<phase>generate-resources</phase>
 					</execution>

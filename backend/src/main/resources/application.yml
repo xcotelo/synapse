@@ -45,4 +45,8 @@ project:
   jwt:
     signKey: WzROun12eUiDvko3UrJ74gNeJz2TWEWPMTh6DxyE8HWXIf4hETUrkM4IUGqqHq66PuVS
     expirationMinutes: 1440
+  claude:
+    apiKey: ${CLAUDE_API_KEY:your-api-key-here}
+    apiUrl: https://api.anthropic.com/v1/messages
+    model: claude-3-5-sonnet-20241022
 

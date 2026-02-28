@@ -17,6 +17,7 @@ const DigitalBrainInbox = () => {
   const [previewLoading, setPreviewLoading] = useState({});
   const [previewError, setPreviewError] = useState({});
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const dragCounter = useRef(0);
   const navigate = useNavigate();
 
@@ -94,6 +95,28 @@ const DigitalBrainInbox = () => {
   // Navega a la pantalla de procesado para esa entrada
   const handleProcess = (id) => {
     navigate(`/brain/process/${id}`);
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllFiltered = () => {
+    setSelectedIds(new Set(filteredInbox.map((i) => i.id)));
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleProcessSelected = () => {
+    if (selectedIds.size === 0) return;
+    const ids = filteredInbox.filter((i) => selectedIds.has(i.id)).map((i) => i.id);
+    if (ids.length === 0) return;
+    navigate("/brain/process/batch", { state: { ids } });
   };
 
   const extractFirstUrl = (text) => {
@@ -414,7 +437,36 @@ const DigitalBrainInbox = () => {
                   <span className="badge bg-primary rounded-pill">{inbox.length}</span>
                 )}
               </h2>
-              <div className="d-flex gap-2 flex-wrap">
+              <div className="d-flex gap-2 flex-wrap align-items-center">
+                {filteredInbox.length > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={selectAllFiltered}
+                    >
+                      Seleccionar todo
+                    </button>
+                    {selectedIds.size > 0 && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={clearSelection}
+                        >
+                          Quitar selección
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary"
+                          onClick={handleProcessSelected}
+                        >
+                          <span aria-hidden>🤖</span> Procesar {selectedIds.size} seleccionado{selectedIds.size !== 1 ? "s" : ""}
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-danger"
@@ -495,11 +547,21 @@ const DigitalBrainInbox = () => {
               {filteredInbox.map((item) => (
                 <div
                   key={item.id}
-                  className="inbox-item synapse-inbox-item"
+                  className={`inbox-item synapse-inbox-item ${selectedIds.has(item.id) ? "synapse-inbox-item--selected" : ""}`}
                   style={{ borderLeft: `4px solid var(--bs-${getTypeBadgeColor(item.type)})` }}
                 >
                   <div className="d-flex justify-content-between align-items-start">
-                    <div className="flex-grow-1 me-3">
+                    <div className="d-flex align-items-start gap-2 flex-grow-1 me-3">
+                      <label className="synapse-inbox-item__checkbox-label mb-0 mt-1">
+                        <input
+                          type="checkbox"
+                          className="form-check-input synapse-inbox-item__checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelect(item.id)}
+                          aria-label={`Seleccionar entrada ${item.id}`}
+                        />
+                      </label>
+                      <div className="flex-grow-1" style={{ minWidth: 0 }}>
                       <div className="d-flex align-items-center mb-2">
                         <span className="me-2" style={{ fontSize: "1.2rem" }}>
                           {getTypeIcon(item.type)}
@@ -575,6 +637,7 @@ const DigitalBrainInbox = () => {
                           )}
                         </div>
                       )}
+                      </div>
                     </div>
                     <div className="d-flex flex-column gap-2">
                       <button

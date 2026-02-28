@@ -89,7 +89,7 @@ export const createInboxEntry = (rawContent, source = 'manual') => {
 // Construye una nota procesada a partir de una entrada del inbox
 export const createNoteFromEntry = (
   entry,
-  { title, tags, structuredContent, mediaUrl, mediaContentType, type: noteType }
+  { title, tags, structuredContent, mediaUrl, mediaContentType, type: noteType, reminderAt }
 ) => {
   return {
     id: `note-${Date.now().toString()}`,
@@ -102,7 +102,22 @@ export const createNoteFromEntry = (
     createdAt: nowIso(),
     isRead: false, // Por defecto, las notas no están leídas
     media: mediaUrl ? { url: mediaUrl, contentType: mediaContentType || '' } : undefined,
+    reminderAt: reminderAt || undefined,
   };
+};
+
+// Marca el recordatorio de una nota como disparado (ya notificado)
+export const clearNoteReminder = (noteId) => {
+  const notes = loadNotes();
+  const updatedNotes = notes.map((note) => {
+    if (note.id === noteId && note.reminderAt) {
+      const { reminderAt, ...rest } = note;
+      return rest;
+    }
+    return note;
+  });
+  saveNotes(updatedNotes);
+  return updatedNotes;
 };
 
 // Elimina una nota concreta por id

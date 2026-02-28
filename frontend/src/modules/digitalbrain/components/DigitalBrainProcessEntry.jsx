@@ -10,13 +10,17 @@ import {
   saveInbox,
   defaultTemplate,
 } from "../services/brainService";
+import { useNotifications } from "../../common/components/NotificationContext";
 
-export const DigitalBrainProcessEntry = () => {
-  const { id } = useParams();
+export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAfterSave }) => {
+  const { id: idFromParams } = useParams();
   const navigate = useNavigate();
+  const id = batchMode ? entryIdProp : idFromParams;
+  const { requestNotificationPermission, refreshReminders } = useNotifications();
   const [entry, setEntry] = useState(undefined);
   const [title, setTitle] = useState("");
   const [tags, setTags] = useState("");
+  const [reminderAt, setReminderAt] = useState("");
   const [content, setContent] = useState("");
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
@@ -115,6 +119,7 @@ export const DigitalBrainProcessEntry = () => {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
+      reminderAt: reminderAt ? new Date(reminderAt).toISOString() : undefined,
       structuredContent: content,
       type: aiSuggestion && aiSuggestion.type ? aiSuggestion.type : entry.type,
       mediaUrl: entry.media && entry.media.url ? entry.media.url : undefined,
@@ -129,6 +134,10 @@ export const DigitalBrainProcessEntry = () => {
     // 4. Gardar cambios
     saveNotes(updatedNotes);
     saveInbox(updatedInbox);
+
+    if (note.reminderAt) {
+      refreshReminders();
+    }
 
     // 4.1 Persistir también en formato abierto (Markdown en disco) via backend.
     // Best-effort: si falla, la app sigue funcionando con localStorage.
@@ -166,8 +175,12 @@ export const DigitalBrainProcessEntry = () => {
       }
     );
 
-    // 5. Ir á pantalla de coñecemento
-    navigate("/brain/knowledge");
+    // 5. En modo lote llamamos al callback; si no, ir a conocimiento
+    if (batchMode && onAfterSave) {
+      onAfterSave();
+    } else {
+      navigate("/brain/knowledge");
+    }
   };
 
   const handleFactCheck = () => {
@@ -265,14 +278,20 @@ export const DigitalBrainProcessEntry = () => {
   }
 
   return (
-    <div className="container synapse-brain-page" style={{ maxWidth: "1200px" }}>
+    <div className={`container synapse-brain-page ${batchMode ? "synapse-brain-page--batch" : ""}`} style={{ maxWidth: "1200px" }}>
       <div className="d-flex justify-content-between align-items-center mb-4 synapse-animate-in">
         <h2 className="synapse-brain-title mb-0 d-flex align-items-center gap-2">
           <span aria-hidden>🤖</span> Procesar con IA
         </h2>
-        <Link to="/brain/inbox" className="btn btn-outline-primary synapse-brain-btn">
-          ← Volver al inbox
-        </Link>
+        {batchMode ? (
+          <Link to="/brain/inbox" className="btn btn-outline-secondary synapse-brain-btn">
+            Cancelar y volver al inbox
+          </Link>
+        ) : (
+          <Link to="/brain/inbox" className="btn btn-outline-primary synapse-brain-btn">
+            ← Volver al inbox
+          </Link>
+        )}
       </div>
 
       <div className="row g-4">
@@ -415,6 +434,24 @@ export const DigitalBrainProcessEntry = () => {
                   </small>
                 </div>
 
+                <div className="mb-3">
+                  <label htmlFor="reminder-input" className="form-label fw-semibold">
+                    Recordatorio
+                  </label>
+                  <input
+                    id="reminder-input"
+                    type="datetime-local"
+                    className="form-control"
+                    value={reminderAt}
+                    onChange={(e) => setReminderAt(e.target.value)}
+                    onFocus={requestNotificationPermission}
+                    min={new Date().toISOString().slice(0, 16)}
+                  />
+                  <small className="text-muted">
+                    Te avisaremos en el momento exacto con una notificación del sistema.
+                  </small>
+                </div>
+
                 <div className="mb-4">
                   <label htmlFor="content-textarea" className="form-label fw-semibold">
                     Contenido estructurado (Markdown)
@@ -458,7 +495,7 @@ export const DigitalBrainProcessEntry = () => {
                       Cancelar
                     </Link>
                     <button type="submit" className="btn btn-primary synapse-brain-btn px-4">
-                      <span aria-hidden>💾</span> Guardar nota y sacar del inbox
+                      <span aria-hidden>💾</span> {batchMode ? "Guardar y siguiente" : "Guardar nota y sacar del inbox"}
                     </button>
                   </div>
                 </div>

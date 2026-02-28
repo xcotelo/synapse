@@ -1,0 +1,91 @@
+/* Batch process: viewport y tarjetas con transición */
+.synapse-batch {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 2rem;
+}
+
+.synapse-batch__progress {
+  margin-bottom: 1.5rem;
+  flex-shrink: 0;
+}
+
+.synapse-batch__progress-text {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--synapse-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.synapse-batch__progress-bar {
+  height: 6px;
+  background: var(--synapse-border);
+  border-radius: var(--synapse-radius-full);
+  overflow: hidden;
+}
+
+.synapse-batch__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--synapse-primary), var(--synapse-primary-light));
+  border-radius: var(--synapse-radius-full);
+  transition: width 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.synapse-batch__viewport {
+  flex: 1;
+  min-height: 520px;
+  overflow: hidden;
+  position: relative;
+  border-radius: var(--synapse-radius-lg);
+  box-shadow: var(--synapse-shadow-lg);
+  background: var(--synapse-surface);
+}
+
+.synapse-batch__strip {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  will-change: transform;
+}
+
+.synapse-batch__card {
+  width: 50%;
+  flex-shrink: 0;
+  min-height: 400px;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: var(--synapse-surface);
+  box-sizing: border-box;
+}
+
+.synapse-batch__card--active {
+  animation: synapse-batch-card-in 0.4s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.synapse-batch__card--exiting {
+  pointer-events: none;
+}
+
+.synapse-batch__card--entering {
+  animation: synapse-batch-card-in 0.35s cubic-bezier(0.32, 0.72, 0, 1) 0.05s both;
+}
+
+@keyframes synapse-batch-card-in {
+  from {
+    opacity: 0;
+    transform: translateX(8%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Ajuste del contenido del ProcessEntry en modo batch */
+.synapse-brain-page--batch .container {
+  max-width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}

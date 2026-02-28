@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 
 import {
   buildTrendsReport,
@@ -16,16 +16,59 @@ import { appFetch, fetchConfig } from "../../../backend/appFetch";
 // Pantalla para navegar el conocimiento ya procesado: aquí solo
 // trabajamos con notas que ya han salido del inbox.
 const DigitalBrainKnowledge = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [notes, setNotes] = useState([]);
   const [inboxEntries, setInboxEntries] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedTag, setSelectedTag] = useState(null);
+  const detailPanelRef = useRef(null);
 
   useEffect(() => {
     setNotes(loadNotes());
     setInboxEntries(loadInbox());
   }, []);
+
+  const categorizeNote = useCallback((note) => {
+    const type = note.type || "";
+    const isAudio =
+      note.media &&
+      note.media.contentType &&
+      note.media.contentType.startsWith("audio/");
+    if (type === "link") return "web";
+    if (type === "video") return "videos";
+    if (type === "audio") return "musica";
+    if (isAudio) return "musica";
+    return "otras";
+  }, []);
+
+  // Si viene noteId por URL (ej. desde notificación), seleccionar esa nota y llevar al contenido
+  useEffect(() => {
+    const noteIdFromUrl = searchParams.get("noteId");
+    if (!noteIdFromUrl || notes.length === 0) return;
+    const note = notes.find((n) => n.id === noteIdFromUrl);
+    if (note) {
+      setSelectedCategory(categorizeNote(note));
+      setSelectedId(note.id);
+    } else {
+      const next = new URLSearchParams(searchParams);
+      next.delete("noteId");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, notes, categorizeNote, setSearchParams]);
+
+  // Scroll automático al panel del contenido al seleccionar una nota (desde notificación o desde la lista)
+  useEffect(() => {
+    if (!selectedId || !selectedCategory) return;
+    const scrollToContent = () => {
+      const el = detailPanelRef.current;
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+      }
+    };
+    const t = setTimeout(scrollToContent, 100);
+    return () => clearTimeout(t);
+  }, [selectedId, selectedCategory]);
 
   const handleRefreshLocalData = () => {
     setNotes(loadNotes());
@@ -157,24 +200,10 @@ const DigitalBrainKnowledge = () => {
     }
   }, [notes, selectedId]);
 
-  const categorizeNote = (note) => {
-    const type = note.type || "";
-    const isAudio =
-      note.media &&
-      note.media.contentType &&
-      note.media.contentType.startsWith("audio/");
-
-    if (type === "link") return "web";
-    if (type === "video") return "videos";
-    if (type === "audio") return "musica";
-    if (isAudio) return "musica";
-    return "otras";
-  };
-
   const notesByCategory = useMemo(() => {
     if (!selectedCategory) return [];
     return notes.filter((note) => categorizeNote(note) === selectedCategory);
-  }, [notes, selectedCategory]);
+  }, [notes, selectedCategory, categorizeNote]);
 
   const availableTags = useMemo(() => {
     const tagSet = new Set();
@@ -717,7 +746,7 @@ const DigitalBrainKnowledge = () => {
           )}
 
           {selectedCategory && (
-            <div className="col-12 col-lg-8">
+            <div ref={detailPanelRef} className="col-12 col-lg-8">
               {selectedNote ? (
                 <>
                   <div className="card border-0 shadow-sm mb-3">

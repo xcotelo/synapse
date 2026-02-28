@@ -68,6 +68,11 @@
   opacity: 1;
 }
 
+/* Hover sobre el elemento seleccionado: azul claro */
+.dbk-noteItem.active:hover {
+  background-color: #60a5fa !important;
+}
+
 /* Sin .active: texto siempre oscuro (hover incluido) para leer bien sobre fondo claro */
 .dbk-noteItem:not(.active) .dbk-noteTitle,
 .dbk-noteItem:not(.active).dbk-noteItem--read .dbk-noteTitle {

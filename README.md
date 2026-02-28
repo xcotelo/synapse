@@ -1,116 +1,65 @@
-# 🧠 Synapse
+# Proyecto Synapse - Motor de Conocimiento Digital (Digital Brain)
 
-### Digital Brain System — HackUDC 2026 (Kelea Challenge)
+Este documento detalla la arquitectura, decisiones de diseño, funcionalidades core y especificaciones tecnicas del proyecto Synapse, orientado a la evaluacion del jurado de la Olimpiada de Desarrollo de Software.
 
----
+Synapse es una aplicacion web full-stack de Gestion de Conocimiento Personal (PKM - Personal Knowledge Management) diseñada para actuar como un "Segundo Cerebro". Optimiza los flujos de lectura, organizacion y aprendizaje activo mediante la ingesta rapida de contenido y el procesamiento asincrono habilitado por inteligencia artificial (Llama).
 
-## 🏆 Descripción del proyecto
+## 1. Arquitectura de Software y Stack Tecnologico
 
-**Synapse** es un sistema de *Digital Brain* diseñado para capturar información sin fricción y transformarla en conocimiento estructurado y reutilizable.
+El sistema esta construido sobre un esquema Cliente-Servidor fuertemente desacoplado, asegurando alta mantenibilidad, latencia minima en el front-end y un manejo robusto de la persistencia de datos y procesos en back-end.
 
-El proyecto aborda un problema común: la dificultad de gestionar información mientras estamos concentrados en otras tareas. En lugar de obligar al usuario a organizar en el momento, Synapse separa claramente **captura y procesamiento**, permitiendo mantener el flujo de trabajo.
+### Backend Integrador (API RESTful)
+- **Nucleo**: Java 17 y Spring Boot 3.3.4.
+- **Seguridad**: Autenticacion sin estado (Stateless) basada en Spring Security y JSON Web Tokens (JWT) mediante `jjwt-api` (v0.11.5).
+- **Persistencia y ORM**: Spring Data JPA implementando el patron Repository sobre Hibernate, contra bases de datos relacionales (PostgreSQL en entorno de produccion y memoria H2 para simulaciones de CI/tests).
+- **Extraccion de Contenido Web**: Uso de librerias especializadas en scraping (Jsoup) para derivar arboles DOM y extraer selectores como `og:title`, diccionarios meta y corpus textual eliminando el "ruido" web.
+- **Comunicaciones OOB**: Cliente HTTP `OkHttp3` orquestando las llamadas hacia los endpoints locales o cloud de inferencia LLM (Generacion LLM y Fact-Checking).
 
----
-
-### Synapse introduce un sistema basado en tres fases:
-
-```text
-CAPTURA → PROCESADO → CONOCIMIENTO
-```
-
-### 📥 Captura sin fricción
-
-El usuario puede guardar cualquier tipo de información rápidamente sin necesidad de clasificarla.
-
-### ⚙️ Procesado posterior
-
-Las entradas se revisan más tarde, donde el sistema:
-
-* Clasifica el contenido
-* Estructura la información
-* Genera notas útiles
-
-### 🧠 Construcción de conocimiento
-
-El resultado final son notas estructuradas, conectadas entre sí, formando una base de conocimiento personal.
+### Frontend Reactivo (Single Page Application)
+- **Tecnologias Core**: React 18 acoplado con React Router DOM v6.
+- **Motor de Renderizado Markdown**: Integracion y parseo seguro con `react-markdown`, interviniendo a nivel de AST (Abstract Syntax Tree) para sobreescribir el comportamiento por defecto de elementos como `<h1>` o `<img>` e inyectar reproductores nativos basados en contexto.
+- **Gestion de Caché Distribuido**: Sistema hibrido de estado que provee una percepcion offline-first. Los componentes gestionan hooks mutables sincronizados asincronamente con el almacenamiento nativo de navegador (`localStorage`) para los items transitorios de la bandeja de entrada, logrando latencia cero en la captura.
+- **Algoritmica Frontend Avanzada**: Construccion de interfaces visuales poligonales y radiales mediante calculo analitico puro de atributos matematicos expuestos directo a dominios nativos de `<svg>` (sin depender de bibliotecas Chart pesadas de terceros).
 
 ---
 
-## 🧩 Arquitectura del sistema
+## 2. Modulos y Funcionalidades Principales
 
-El sistema se organiza en los siguientes componentes:
+### 2.1 Motor de Ingesta Unificado (Digital Inbox)
+La bandeja de entrada actua como una cola FIFO asincrona disenada para no interrumpir el workflow del usuario (cero friccion).
 
-* **Inbox (`inbox_entries`)**
-  Almacena toda la información sin procesar.
+- **Multiples Formatos**: Admite pegado directo de URLs, volcado de bloques de texto plano o carga de ficheros binarios de video y audio continuo (Drag & Drop nativo y exploracion granular).
+- **Manejo Dinamico de Eventos**: Diseno defensivo de Drag & Drop implementando contadores referenciales para eliminar los repintados defectuosos recurrentes debidos a propagacion de eventos sobre capas embebidas (`pointer-events: none`).
+- **Vista Previa Semantica Optimista**: Las URLs extraidas por expresiones regulares validan encabezados CORS indirectamente via backend para construir *cards* enriquecidas antes de su transformacion formal a base de datos.
 
-* **Procesamiento (`processing_logs`)**
-  Registra las acciones realizadas sobre cada entrada.
+### 2.2 Canalizacion Cognitiva Asistida por IA (Llama)
+El modulo procesador actua como puente inteligente entre el estado `pending` y `knowledge`. A traves del `LlamaAIService`, se ejecutan prompts con restricciones de estructura y formato JSON determinista.
 
-* **Notas (`notes`)**
-  Contienen el conocimiento estructurado en formato Markdown.
+- **Auto-etiquetado y Taxonomia Automatica**: El modelo segrega el input, extrae la intencion original y expone sugerencias categoricas y de etiquetas (`tags`) que encajen mejor dentro del universo PKM.
+- **Conversion Arquitectonica de Texto a Markdown estructurado**: Transforma contenidos extensos sin jerarquias en notas estructuradas listas para ser consumidas (secciones de sumario y viñetas).
 
-* **Relaciones (`note_links`)**
-  Permiten conectar ideas entre sí.
+### 2.3 Sistema Activo de Verificacion de Datos (Fact-Checking)
+Funcionalidad innovadora de seguridad documental que envia y sub-procesa los textos brutos al motor LLM para validacion fáctica.
 
-* **Tags (`tags`, `note_tags`)**
-  Facilitan la organización y clasificación.
+- Revisa el texto fragmentado y modela los *claims* contra umbrales configurables retornando flags tri-estado: Verdadero, Falso y Dudoso/Contexto Insuficiente.
+- Implementacion Frontend de mutacion concurrente: Al generarse correcciones, se proveen acciones directas (botones) sobre el visor DOM que ejecutan funciones de sustitucion transaccional estricta en la cadena de estado origen sin requerir reentrada manual.
 
----
+### 2.4 Radar Visual de Tendencias Cognitivas Analiticas
+Construccion matematica compleja en puro front-end que genera graficos de radar comparando consumos de conocimiento entre dos dimensiones temporales definidas.
 
-## 💾 Almacenamiento abierto (Markdown en disco)
+- Mapeo continuo de nodos en SVG donde los radios y vertices poligonales se resuelven via funciones angulares estandar `(-Math.PI / 2 + (idx * 2 * Math.PI) / n)`.
+- El servicio expone a la IA de diagnostico estadistico (`/api/brain/trends/insights`) este sumario tabular para derivar insights prescriptivos, emitiendo recomendaciones constructivas del estilo "Considera ampliar conocimiento en la etiqueta Mapeo ya que su tendencia ha bajado un 42%".
 
-Además del almacenamiento local del frontend (para prototipado), cuando el usuario **procesa y guarda** una entrada,
-el backend persiste la nota también como **fichero `.md`** en la carpeta:
+### 2.5 Renderizador de Conocimiento Abstracto Adaptativo (MarkdownRenderer)
+Parseo especializado que protege e intercepta los formatos web inseguros y permite reproduccion nativa *in-situ*:
 
-`digital-brain-notes/`
-
-Esto cumple el criterio del reto de **formatos abiertos** y una estructura **versionable con Git**.
-
-⚠️ Importante: el sistema sigue el principio **"IA propone → la persona valida"**: la captura solo guarda en el inbox y
-la nota se genera/guarda cuando el usuario confirma en la pantalla de procesado.
-
-## 🔄 Flujo de funcionamiento
-
-```text
-Usuario captura información
-        ↓
-Se almacena en el inbox
-        ↓
-El sistema procesa la entrada
-        ↓
-Se genera una nota estructurada
-        ↓
-Se conecta con otras notas
-```
+- Se detectan y extraen identidades criptograficas exclusivas de plataformas (como los identificadores de video en base 64+mod de YouTube) garantizando que ninguna cadena convencional de exactamente 11 letras cruce al entorno del iFrame, blindando el visualizador ante caidas de red y fallas de incrustaciones de dominio.
+- El componente unifica la UX delegando atributos HTML dinamicos como el modo `youtube-nocookie.com`.
 
 ---
 
-## 🛠️ Tecnologías utilizadas
+## 3. Diseno de Ingenieria y Buenas Practicas
 
-* Backend: (ej. FastAPI / Node.js)
-* Base de datos: SQL (MySQL / SQLite)
-* Formato de notas: Markdown
-* Integración de IA para:
-
-  * Clasificación automática
-  * Resúmenes
-  * Generación de contenido
-
----
-
-## 🎯 Resultados
-
-* Sistema funcional de captura y procesamiento de información
-* Generación automática de notas estructuradas
-* Modelo de datos optimizado para conocimiento conectado
-* Base sólida para evolucionar hacia un “segundo cerebro” digital
-
----
-
-## 👥 Equipo
-
-* **Heitor Cambre García**
-* **Diego Viqueira Sebe**
-* **Xián Cotelo Varela**
-
----
+- **Construccion de Modelos Anemicos / Enriquecidos**: Los DTO (Data Transfer Objects) como el `TrendsInsightsParamsDto` previenen fugas de estructuras protegidas del ORM Data JPA y disminuyen la serializacion inyectando inmutabilidad en tiempo de ejecucion.
+- **Pipeline de Despliegue Unificado**: El ciclo Maven incluye la orquestacion transitoria del sistema SPA de React (`frontend-maven-plugin`). Al requerir el faseo `package`, descarga su propia instancia portable de NodeJS, compila el front, unifica y publica estaticamente en el classpath final del jar. Esto garantiza portabilidad total desde una imagen Kubernetes en un solo comando sin acoplamiento local al SO subyacente de dev.
+- **Coverage y Testing**: Pruebas configurables instrumentadas con `jacoco-maven-plugin` conectadas a las clases abstractas para monitoreo de metricas, asegurando bases sin colisiones para ciclos de integracion continuos.

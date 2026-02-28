@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
+  buildTrendsReport,
   deleteNoteById,
   exportNotesAsMarkdown,
+  loadInbox,
   loadNotes,
   toggleNoteReadStatus,
 } from "../digitalBrainStorage";
@@ -15,14 +17,105 @@ import { appFetch, fetchConfig } from "../../../backend/appFetch";
 // trabajamos con notas que ya han salido del inbox.
 const DigitalBrainKnowledge = () => {
   const [notes, setNotes] = useState([]);
+  const [inboxEntries, setInboxEntries] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedTag, setSelectedTag] = useState(null);
 
   useEffect(() => {
-    const loadedNotes = loadNotes();
-    setNotes(loadedNotes);
+    setNotes(loadNotes());
+    setInboxEntries(loadInbox());
   }, []);
+
+  const handleRefreshLocalData = () => {
+    setNotes(loadNotes());
+    setInboxEntries(loadInbox());
+  };
+
+  const trendsReport = useMemo(() => {
+    const items = [...(notes || []), ...(inboxEntries || [])];
+    return buildTrendsReport(items, { windowDays: 14, maxTopics: 7 });
+  }, [notes, inboxEntries]);
+
+  const radarModel = useMemo(() => {
+    const topics = (trendsReport?.topics || []).slice(0, 7);
+    const n = topics.length;
+    if (n < 3) {
+      return { enabled: false, topics: [] };
+    }
+
+    const scale = Math.max(
+      1,
+      ...topics.map((t) => Math.max(t.recentCount || 0, t.previousCount || 0))
+    );
+
+    const w = 320;
+    const h = 320;
+    const cx = w / 2;
+    const cy = h / 2;
+    const r = 110;
+    const labelR = r + 18;
+
+    const angleFor = (idx) => -Math.PI / 2 + (idx * 2 * Math.PI) / n;
+    const pointAt = (idx, value01) => {
+      const a = angleFor(idx);
+      const rr = r * Math.max(0, Math.min(1, value01));
+      return {
+        x: cx + Math.cos(a) * rr,
+        y: cy + Math.sin(a) * rr,
+      };
+    };
+
+    const labelAt = (idx) => {
+      const a = angleFor(idx);
+      return {
+        x: cx + Math.cos(a) * labelR,
+        y: cy + Math.sin(a) * labelR,
+        anchor: Math.abs(Math.cos(a)) < 0.2 ? 'middle' : Math.cos(a) > 0 ? 'start' : 'end',
+      };
+    };
+
+    const toPointsString = (pts) => pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const ringPoints = (k, rings = 4) => {
+      const v = k / rings;
+      const pts = topics.map((_, idx) => pointAt(idx, v));
+      return toPointsString(pts);
+    };
+
+    const recentPts = topics.map((t, idx) => pointAt(idx, (t.recentCount || 0) / scale));
+    const prevPts = topics.map((t, idx) => pointAt(idx, (t.previousCount || 0) / scale));
+
+    const labels = topics.map((t, idx) => {
+      const pos = labelAt(idx);
+      const text = (t.topic || '').toString();
+      const clipped = text.length > 14 ? `${text.slice(0, 14)}…` : text;
+      return { ...pos, topic: t.topic, text: clipped };
+    });
+
+    const axes = topics.map((_, idx) => {
+      const a = angleFor(idx);
+      return {
+        x2: cx + Math.cos(a) * r,
+        y2: cy + Math.sin(a) * r,
+      };
+    });
+
+    return {
+      enabled: true,
+      w,
+      h,
+      cx,
+      cy,
+      rings: 4,
+      topics,
+      scale,
+      ringPoints,
+      axes,
+      labels,
+      recentPolygon: toPointsString(recentPts),
+      previousPolygon: toPointsString(prevPts),
+    };
+  }, [trendsReport]);
 
   // Resumen por categorías: web, vídeos, música, otras
   const categorySummary = useMemo(() => {
@@ -238,9 +331,148 @@ const DigitalBrainKnowledge = () => {
           >
             Exportar a Markdown
           </button>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary"
+            onClick={handleRefreshLocalData}
+            title="Recarga inbox y notas desde localStorage"
+          >
+            Actualizar
+          </button>
           <Link to="/brain/inbox" className="btn btn-sm btn-primary synapse-brain-btn">
             Ir al inbox
           </Link>
+        </div>
+      </div>
+
+      <div className="card mb-3">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <div className="text-muted small fw-semibold">RADAR DE TENDENCIAS PERSONAL</div>
+              <div className="text-muted small">
+                Basado en {trendsReport.totalItemsAnalyzed} items.
+              </div>
+            </div>
+          </div>
+
+          {trendsReport.totalItemsAnalyzed === 0 ? (
+            <div className="text-muted small mt-2">
+              Aún no hay suficiente historial reciente para detectar tendencias.
+            </div>
+          ) : (
+            <div className="mt-2">
+              <div className="row g-3">
+                <div className="col-12 col-lg-6">
+                  {trendsReport.topics.length === 0 ? (
+                    <div className="text-muted small">No se detectaron temas claros.</div>
+                  ) : (
+                    <div>
+                      {radarModel.enabled ? (
+                        <div className="mb-2">
+                          <svg
+                            width="100%"
+                            viewBox={`0 0 ${radarModel.w} ${radarModel.h}`}
+                            role="img"
+                            aria-label="Gráfica radar de tendencias (reciente vs anterior)"
+                            style={{ maxWidth: 420 }}
+                          >
+                            {/* Grid rings */}
+                            {[1, 2, 3, 4].map((k) => (
+                              <polygon
+                                key={k}
+                                points={radarModel.ringPoints(k, radarModel.rings)}
+                                fill="none"
+                                stroke="var(--bs-border-color)"
+                                strokeWidth="1"
+                                opacity={k === radarModel.rings ? 0.9 : 0.6}
+                              />
+                            ))}
+
+                            {/* Axes */}
+                            {radarModel.axes.map((a, idx) => (
+                              <line
+                                key={idx}
+                                x1={radarModel.cx}
+                                y1={radarModel.cy}
+                                x2={a.x2}
+                                y2={a.y2}
+                                stroke="var(--bs-border-color)"
+                                strokeWidth="1"
+                                opacity="0.6"
+                              />
+                            ))}
+
+                            {/* Previous polygon */}
+                            <polygon
+                              points={radarModel.previousPolygon}
+                              fill="var(--bs-secondary)"
+                              fillOpacity="0.10"
+                              stroke="var(--bs-secondary)"
+                              strokeWidth="2"
+                              strokeDasharray="6 4"
+                            />
+
+                            {/* Recent polygon */}
+                            <polygon
+                              points={radarModel.recentPolygon}
+                              fill="var(--bs-primary)"
+                              fillOpacity="0.14"
+                              stroke="var(--bs-primary)"
+                              strokeWidth="2"
+                            />
+
+                            {/* Labels */}
+                            {radarModel.labels.map((l) => (
+                              <text
+                                key={l.topic}
+                                x={l.x}
+                                y={l.y}
+                                textAnchor={l.anchor}
+                                dominantBaseline="middle"
+                                fontSize="11"
+                                fill="var(--bs-secondary-color)"
+                              >
+                                {l.text}
+                              </text>
+                            ))}
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className="text-muted small">
+                          Necesitas al menos 3 temas para mostrar un radar.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="col-12 col-lg-6">
+                  <div className="small fw-semibold mb-1">💡 Insights</div>
+                  {trendsReport.insights.length === 0 ? (
+                    <div className="text-muted small">—</div>
+                  ) : (
+                    <ul className="mb-2">
+                      {trendsReport.insights.map((i, idx) => (
+                        <li key={idx} className="small">{i}</li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="small fw-semibold mb-1">🎯 Recomendaciones</div>
+                  {trendsReport.recommendations.length === 0 ? (
+                    <div className="text-muted small">—</div>
+                  ) : (
+                    <ul className="mb-0">
+                      {trendsReport.recommendations.map((r, idx) => (
+                        <li key={idx} className="small">{r}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

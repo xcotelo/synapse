@@ -38,49 +38,74 @@ const Register = () => {
     };
 
     return (
-        <div className="row justify-content-center ">
-            <div className="col-6">
-                <div className="card shadow-lg mt-4">
-                    <div className="card-header text-center bazul3">
-                        <h3 className="blanco">Registro</h3>
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh', background: 'linear-gradient(135deg, #1D3557 0%, #457B9D 50%, #A8DADC 100%)' }}>
+            <div className="col-11 col-sm-8 col-md-6 col-lg-5">
+                <div className="card shadow-lg border-0" style={{ borderRadius: '1.25rem', overflow: 'hidden' }}>
+                    <div className="card-header text-center bazul3 py-4">
+                        <h3 className="blanco mb-1">Crear cuenta</h3>
+                        <p className="mb-0 azul1" style={{ fontSize: '0.9rem' }}>Empieza a usar tu cerebro digital</p>
                     </div>
-                    <div className="card-body bazul1">
+                    <div className="card-body bazul1 p-4">
                         <Errors errors={backendErrors} onClose={() => setBackendErrors(null)} />
-                        <form ref={node => form = node}
-                            className="needs-validation" noValidate
-                            onSubmit={e => handleSubmit(e)}>
-                            <div className="row">
-                                <div className="col">
-                                    <label className="form-label" htmlFor="userName">Usuario</label>
-                                    <input type="text" className="form-control bblanco" id="userName"
-                                        value={userName}
-                                        onChange={e => setUserName(e.target.value)}
-                                        autoFocus
-                                        required />
-                                </div>
-                                <div className="col">
-                                    <label className="form-label" htmlFor="password">Contraseña</label>
-                                    <input type="password" id="password" className="form-control bblanco"
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
-                                        required />
-                                </div>
+                        <form
+                            ref={node => form = node}
+                            className="needs-validation"
+                            noValidate
+                            onSubmit={e => handleSubmit(e)}
+                        >
+                            <div className="mb-3">
+                                <label className="form-label azul3" htmlFor="userName">Usuario</label>
+                                <input
+                                    type="text"
+                                    className="form-control bblanco"
+                                    id="userName"
+                                    placeholder="Elige un nombre de usuario"
+                                    value={userName}
+                                    onChange={e => setUserName(e.target.value)}
+                                    autoFocus
+                                    required
+                                />
                             </div>
-                            <div className="row mt-3">
-                                <div className="col">
-                                    <label className="form-label" htmlFor="email">Email</label>
-                                    <input type="email" className="form-control bblanco" id="email" placeholder="name@example.com"
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        autoFocus
-                                        required />
-                                </div>
-                                <div className="col text-center">
-                                    <button type="submit" className="btn btn-primary btn-block my-4 bazul2">Registrarse</button>
-                                </div>
+                            <div className="mb-3">
+                                <label className="form-label azul3" htmlFor="email">Email</label>
+                                <input
+                                    type="email"
+                                    className="form-control bblanco"
+                                    id="email"
+                                    placeholder="name@example.com"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    required
+                                />
                             </div>
-                            <div className="text-center">
-                                <p>¿Ya registrado? <Link to="/">Iniciar Sesión</Link></p>
+                            <div className="mb-3">
+                                <label className="form-label azul3" htmlFor="password">Contraseña</label>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    className="form-control bblanco"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="d-grid gap-2 mt-3">
+                                <button
+                                    type="submit"
+                                    className="btn bazul2 blanco py-2"
+                                    style={{ borderRadius: '999px', fontWeight: 500 }}
+                                >
+                                    Registrarse
+                                </button>
+                            </div>
+                            <div className="text-center mt-3">
+                                <small className="azul3">
+                                    ¿Ya registrado?{' '}
+                                    <Link to="/" className="azul2" style={{ fontWeight: 500 }}>
+                                        Iniciar sesión
+                                    </Link>
+                                </small>
                             </div>
                         </form>
                     </div>

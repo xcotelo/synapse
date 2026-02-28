@@ -57,6 +57,18 @@ El sistema se organiza en los siguientes componentes:
 
 ---
 
+## 💾 Almacenamiento abierto (Markdown en disco)
+
+Además del almacenamiento local del frontend (para prototipado), cuando el usuario **procesa y guarda** una entrada,
+el backend persiste la nota también como **fichero `.md`** en la carpeta:
+
+`digital-brain-notes/`
+
+Esto cumple el criterio del reto de **formatos abiertos** y una estructura **versionable con Git**.
+
+⚠️ Importante: el sistema sigue el principio **"IA propone → la persona valida"**: la captura solo guarda en el inbox y
+la nota se genera/guarda cuando el usuario confirma en la pantalla de procesado.
+
 ## 🔄 Flujo de funcionamiento
 
 ```text

@@ -31,4 +31,8 @@ project:
     apiKey: ${API_KEY_LLAMA}
     apiUrl: https://api.groq.com/openai/v1/chat/completions
     model: llama-3.3-70b-versatile
+  # Carpeta local donde se guardan las notas procesadas en formato Markdown.
+  # Es intencionalmente "Git-friendly" (almacenamiento abierto y versionable).
+  notes:
+    dir: digital-brain-notes
 

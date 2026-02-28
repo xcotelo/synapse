@@ -15,8 +15,6 @@ export const defaultTemplate = (title, rawContent) => {
 
 ${rawContent}
 
-## Notas adicionales
 
-<!-- Añade aquí tus notas, ideas relacionadas, etc. -->
 `;
 };

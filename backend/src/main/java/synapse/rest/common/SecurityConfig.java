@@ -59,6 +59,8 @@ public class SecurityConfig {
                 // Cerebro digital: de momento permitimos el endpoint de sugerencias
                 .requestMatchers(antMatcher("/api/brain/suggest")).permitAll()
                 .requestMatchers(antMatcher("/api/brain/suggest/file")).permitAll()
+                .requestMatchers(antMatcher("/api/brain/preview")).permitAll()
+                .requestMatchers(antMatcher("/api/brain/notes/**")).permitAll()
                 .requestMatchers(antMatcher("/api/brain/media/**")).permitAll()
                 .requestMatchers(antMatcher("/actuator/**")).permitAll()
                 .anyRequest().authenticated()

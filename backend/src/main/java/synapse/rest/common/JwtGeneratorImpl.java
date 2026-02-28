@@ -17,11 +17,11 @@ import io.jsonwebtoken.security.Keys;
 public class JwtGeneratorImpl implements JwtGenerator {
 
     /** The sign key. */
-    @Value("${project.jwt.signKey}")
+    @Value("${project.jwt.signKey:${project.jwt.sign-key}}")
     private String signKey;
 
     /** The expiration minutes. */
-    @Value("${project.jwt.expirationMinutes}")
+    @Value("${project.jwt.expirationMinutes:${project.jwt.expiration-minutes}}")
     private long expirationMinutes;
 
     /**

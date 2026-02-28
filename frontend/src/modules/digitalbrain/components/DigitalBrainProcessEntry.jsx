@@ -36,6 +36,35 @@ export const DigitalBrainProcessEntry = () => {
     // Guardamos la entrada original
     setEntry(found);
 
+    // Si la entrada ya tiene una sugerencia (por ejemplo, tras subir un archivo), la reutilizamos.
+    if (found.aiSuggestion) {
+      const data = found.aiSuggestion;
+      setAiSuggestion(data);
+
+      const baseTitle = data.title || (found.type === "tarea" ? "Tarea" : "Nota");
+      setTitle(baseTitle);
+      if (data.destination) {
+        setDestination(data.destination);
+      }
+      if (data.tags && Array.isArray(data.tags)) {
+        setTags(data.tags.join(", "));
+      }
+
+      // Si viene un Markdown completo desde IA (detailedContent), lo usamos.
+      // Si no, caemos al template.
+      if (data.detailedContent) {
+        setContent(data.detailedContent);
+      } else {
+        const summaryPart = data.summary
+          ? `\n\n## Resumen (sugerido por IA)\n\n${data.summary}\n`
+          : "";
+        setContent(defaultTemplate(baseTitle, found.rawContent + summaryPart));
+      }
+      setLoadingSuggestion(false);
+      setSuggestionError(null);
+      return;
+    }
+
     // Pedimos sugerencias al backend (IA/reglas)
     setLoadingSuggestion(true);
     setSuggestionError(null);
@@ -91,6 +120,9 @@ export const DigitalBrainProcessEntry = () => {
         .filter(Boolean),
       structuredContent: content,
       type: aiSuggestion && aiSuggestion.type ? aiSuggestion.type : entry.type,
+      mediaUrl: entry.media && entry.media.url ? entry.media.url : undefined,
+      mediaContentType:
+        entry.media && entry.media.contentType ? entry.media.contentType : undefined,
     });
 
     // 3. Actualizar a lista de notas procesadas e eliminar a entrada do inbox
@@ -100,6 +132,42 @@ export const DigitalBrainProcessEntry = () => {
     // 4. Gardar cambios
     saveNotes(updatedNotes);
     saveInbox(updatedInbox);
+
+    // 4.1 Persistir también en formato abierto (Markdown en disco) via backend.
+    // Best-effort: si falla, la app sigue funcionando con localStorage.
+    appFetch(
+      "/brain/notes",
+      fetchConfig("POST", {
+        noteId: note.id,
+        entryId: note.entryId,
+        title: note.title,
+        destination: note.destination,
+        type: note.type,
+        createdAt: note.createdAt,
+        content: note.content,
+        tags: note.tags,
+        mediaUrl: note.media && note.media.url ? note.media.url : undefined,
+        mediaContentType:
+          note.media && note.media.contentType ? note.media.contentType : undefined,
+      }),
+      (data) => {
+        if (!data || !data.storageId) return;
+
+        // Guardar el storageId en la nota (localStorage) para poder borrarla del disco.
+        try {
+          const current = loadNotes();
+          const patched = current.map((n) =>
+            n.id === note.id ? { ...n, storageId: data.storageId } : n
+          );
+          saveNotes(patched);
+        } catch (err) {
+          // Ignorar: no bloquea UX
+        }
+      },
+      () => {
+        // Ignorar: no bloquea UX
+      }
+    );
 
     // 5. Ir á pantalla de coñecemento
     navigate("/brain/knowledge");
@@ -224,7 +292,7 @@ export const DigitalBrainProcessEntry = () => {
                       <span className="visually-hidden">Cargando...</span>
                     </div>
                     <span className="text-primary">
-                      <strong>🤖 Analizando con Claude AI...</strong>
+                      <strong>🤖 Analizando con Llama AI...</strong>
                     </span>
                   </div>
                   <small className="text-muted d-block mt-2">

@@ -125,34 +125,54 @@ const DigitalBrainKnowledge = () => {
       }
     };
 
-    const mediaUrl = selectedNote.media && selectedNote.media.url ? selectedNote.media.url : "";
-    const marker = "/api/brain/media/";
-    const markerIndex = mediaUrl.indexOf(marker);
-
-    // Solo podemos borrar ficheros que fueron subidos/guardados por nuestro backend.
-    if (markerIndex === -1) {
-      deleteNoteLocally();
-      return;
-    }
-
-    const filename = mediaUrl.substring(markerIndex + marker.length).split("?")[0];
-    if (!filename) {
-      deleteNoteLocally();
-      return;
-    }
-
-    appFetch(
-      `/brain/media/${encodeURIComponent(filename)}`,
-      fetchConfig("DELETE"),
-      () => {
-        deleteNoteLocally();
-      },
-      () => {
-        // Si hubiese un error 4xx (poco probable con nombres generados por la app),
-        // igualmente borramos la nota para no bloquear al usuario.
-        deleteNoteLocally();
+    const deleteStorageNote = (onDone) => {
+      if (!selectedNote.storageId) {
+        onDone();
+        return;
       }
-    );
+
+      appFetch(
+        `/brain/notes/${encodeURIComponent(selectedNote.storageId)}`,
+        fetchConfig("DELETE"),
+        () => onDone(),
+        () => onDone()
+      );
+    };
+
+    const deleteMediaIfAny = (onDone) => {
+      const mediaUrl =
+        selectedNote.media && selectedNote.media.url ? selectedNote.media.url : "";
+      const marker = "/api/brain/media/";
+      const markerIndex = mediaUrl.indexOf(marker);
+
+      // Solo podemos borrar ficheros que fueron subidos/guardados por nuestro backend.
+      if (markerIndex === -1) {
+        onDone();
+        return;
+      }
+
+      const filename = mediaUrl
+        .substring(markerIndex + marker.length)
+        .split("?")[0];
+      if (!filename) {
+        onDone();
+        return;
+      }
+
+      appFetch(
+        `/brain/media/${encodeURIComponent(filename)}`,
+        fetchConfig("DELETE"),
+        () => onDone(),
+        () => onDone()
+      );
+    };
+
+    // Best-effort: borramos fichero Markdown y media (si existe) y luego limpiamos localStorage.
+    deleteStorageNote(() => {
+      deleteMediaIfAny(() => {
+        deleteNoteLocally();
+      });
+    });
   };
 
   const handleExport = () => {
@@ -525,7 +545,8 @@ const DigitalBrainKnowledge = () => {
                   </div>
 
                   <div
-                    className={`card border-0 shadow-sm p-4 dbk-contentCard ${
+              
+                    className={`bg-white card border-0 shadow-sm p-4 dbk-contentCard ${
                       selectedNote.isRead ? "dbk-contentCard--read" : ""
                     }`}
                   >

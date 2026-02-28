@@ -62,9 +62,12 @@
   line-height: 1.15;
 }
 
+
 .dbk-contentCard {
-  background: var(--bs-body-tertiary);
+  background: #ffffff;   /* blanco */
+  color: #000000;        /* negro */
 }
+
 
 .dbk-contentCard--read {
   opacity: 0.8;

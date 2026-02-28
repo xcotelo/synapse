@@ -35,3 +35,5 @@ project:
   jwt:
     signKey: WzROun12eUiDvko3UrJ74gNeJz2TWEWPMTh6DxyE8HWXIf4hETUrkM4IUGqqHq66PuVS
     expirationMinutes: 1440
+  notes:
+    dir: target/test-digital-brain-notes

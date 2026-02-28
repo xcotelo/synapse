@@ -10,20 +10,40 @@ const MarkdownRenderer = ({ content }) => {
   }
 
   return (
-    <div className="markdown-content" style={{
-      lineHeight: "1.8",
-      color: "#333",
-    }}>
+    <div
+      className="markdown-content"
+      style={{
+        lineHeight: "1.8",
+        color: "inherit",
+      }}
+    >
       <ReactMarkdown
         components={{
           h1: ({ node, ...props }) => (
-            <h1 className="mb-3 mt-4" style={{ fontSize: "2rem", fontWeight: "700", color: "#212529" }} {...props} />
+            <h1
+              className="mb-3 mt-4"
+              style={{ fontSize: "2rem", fontWeight: "700" }}
+              {...props}
+            />
           ),
           h2: ({ node, ...props }) => (
-            <h2 className="mb-3 mt-4" style={{ fontSize: "1.5rem", fontWeight: "600", color: "#495057", borderBottom: "2px solid #e9ecef", paddingBottom: "0.5rem" }} {...props} />
+            <h2
+              className="mb-3 mt-4"
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "600",
+                borderBottom: "2px solid currentColor",
+                paddingBottom: "0.5rem",
+              }}
+              {...props}
+            />
           ),
           h3: ({ node, ...props }) => (
-            <h3 className="mb-2 mt-3" style={{ fontSize: "1.25rem", fontWeight: "600", color: "#6c757d" }} {...props} />
+            <h3
+              className="mb-2 mt-3"
+              style={{ fontSize: "1.25rem", fontWeight: "600" }}
+              {...props}
+            />
           ),
           p: ({ node, ...props }) => (
             <p className="mb-3" style={{ fontSize: "1rem" }} {...props} />
@@ -41,11 +61,10 @@ const MarkdownRenderer = ({ content }) => {
             if (inline) {
               return (
                 <code
-                  className="bg-light px-1 py-0 rounded"
+                  className="bg-dark text-light px-1 py-0 rounded"
                   style={{
                     fontFamily: "monospace",
                     fontSize: "0.9em",
-                    color: "#d63384",
                     padding: "0.2em 0.4em",
                   }}
                   {...props}
@@ -67,13 +86,18 @@ const MarkdownRenderer = ({ content }) => {
           },
           blockquote: ({ node, ...props }) => (
             <blockquote
-              className="border-start border-4 border-primary ps-3 py-2 mb-3 bg-light"
+              className="border-start border-4 border-primary ps-3 py-2 mb-3"
               style={{ fontStyle: "italic" }}
               {...props}
             />
           ),
           a: ({ node, ...props }) => (
-            <a className="text-primary text-decoration-none" target="_blank" rel="noopener noreferrer" {...props} />
+            <a
+              className="text-primary text-decoration-underline"
+              target="_blank"
+              rel="noopener noreferrer"
+              {...props}
+            />
           ),
           strong: ({ node, ...props }) => (
             <strong className="fw-bold" {...props} />

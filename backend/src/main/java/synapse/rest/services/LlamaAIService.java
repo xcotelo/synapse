@@ -20,32 +20,32 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * Servicio para interactuar con la API de LLaMA 3 (Groq)
+ * Servicio para interactuar con la API de LLaMA (Groq, formato OpenAI compatible).
  */
 @Service
-public class ClaudeAIService {
-    private static final Logger logger = LoggerFactory.getLogger(ClaudeAIService.class);
+public class LlamaAIService {
+    private static final Logger logger = LoggerFactory.getLogger(LlamaAIService.class);
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private final OkHttpClient client;
     private final Gson gson;
 
-    @Value("${project.llama.apiKey}")
+    @Value("${project.llama.apiKey:${project.llama.api-key:}}")
     private String apiKey;
 
-    @Value("${project.llama.apiUrl}")
+    @Value("${project.llama.apiUrl:${project.llama.api-url:}}")
     private String apiUrl;
 
-    @Value("${project.llama.model}")
+    @Value("${project.llama.model:}")
     private String model;
 
-    public ClaudeAIService() {
+    public LlamaAIService() {
         this.client = new OkHttpClient();
         this.gson = new Gson();
     }
 
     /**
-     * Clasifica y analiza contenido usando LLaMA 3
-     * 
+     * Clasifica y analiza contenido usando LLaMA.
+     *
      * @param content El contenido a analizar
      * @return Resultado de la clasificación con sugerencias
      */
@@ -58,20 +58,20 @@ public class ClaudeAIService {
 
         // Si no hay API key configurada, generar contenido básico del texto
         if (apiKey == null || apiKey.isEmpty() || apiKey.equals("your-groq-api-key-here")) {
-            logger.warn("API key de LLaMA 3 no configurada, generando contenido básico");
+            logger.warn("API key de LLaMA no configurada, generando contenido básico");
             return createSmartDefaultResult(content);
         }
 
         try {
             String prompt = buildClassificationPrompt(content);
-            logger.info("Enviando prompt a LLaMA 3, longitud: {}", prompt.length());
-            String response = callClaudeAPI(prompt);
-            logger.info("Respuesta recibida de LLaMA 3, longitud: {}", response != null ? response.length() : 0);
+            logger.info("Enviando prompt a LLaMA, longitud: {}", prompt.length());
+            String response = callLlamaApi(prompt);
+            logger.info("Respuesta recibida de LLaMA, longitud: {}", response != null ? response.length() : 0);
             if (response == null || response.trim().isEmpty()) {
-                logger.warn("Respuesta vacía de LLaMA 3, generando contenido básico");
+                logger.warn("Respuesta vacía de LLaMA, generando contenido básico");
                 return createSmartDefaultResult(content);
             }
-            ClassificationResult result = parseClaudeResponse(response, content);
+            ClassificationResult result = parseLlamaResponse(response, content);
 
             // Validar que el resultado tenga contenido útil
             if (result.getTitle().equals("Nota") && result.getSummary().isEmpty() &&
@@ -83,13 +83,13 @@ public class ClaudeAIService {
             logger.info("Resultado parseado - título: '{}', tags: {}", result.getTitle(), result.getTags().length);
             return result;
         } catch (Exception e) {
-            logger.error("Error al clasificar contenido con LLaMA 3: {}", e.getMessage(), e);
+            logger.error("Error al clasificar contenido con LLaMA: {}", e.getMessage(), e);
             return createSmartDefaultResult(content);
         }
     }
 
     /**
-     * Construye el prompt para LLaMA 3 - Optimizado para mejor precisión
+     * Construye el prompt para LLaMA - optimizado para mejor precisión.
      */
     private String buildClassificationPrompt(String content) {
         String contentPreview = content.substring(0, Math.min(content.length(), 15000));
@@ -100,10 +100,8 @@ public class ClaudeAIService {
                 "SÉ ESPECÍFICO Y PRECISO. NO uses etiquetas genéricas como 'general'.\n\n" +
                 "CONTENIDO:\n" + contentPreview + "\n\n" +
                 "REGLAS OBLIGATORIAS:\n" +
-                "1. TÍTULO: Crea un título descriptivo y específico basado en el contenido real (máx 120 caracteres)\n"
-                +
-                "2. SUMMARY: Resumen detallado de 200-800 caracteres explicando QUÉ enseña, QUÉ conceptos cubre, QUÉ tecnologías menciona\n"
-                +
+                "1. TÍTULO: Crea un título descriptivo y específico basado en el contenido real (máx 120 caracteres)\n" +
+                "2. SUMMARY: Resumen detallado de 200-800 caracteres explicando QUÉ enseña, QUÉ conceptos cubre, QUÉ tecnologías menciona\n" +
                 "3. DETAILEDCONTENT: Documento Markdown completo (mín 500 caracteres) con:\n" +
                 "   - Título principal\n" +
                 "   - Resumen ejecutivo\n" +
@@ -116,17 +114,17 @@ public class ClaudeAIService {
                 "6. TAGS: Array con 4-6 etiquetas ESPECÍFICAS extraídas del contenido. " +
                 "Ejemplos: 'react-hooks', 'futbol-espanol', 'sanidad-publica', 'algoritmos-grafos'. " +
                 "PROHIBIDO usar 'general', 'varios', 'otros', 'tecnologia', 'programacion'.\n\n" +
-                (isVideo ? "ES UN VIDEO: Analiza el título y descripción para extraer temas, tecnologías y conceptos específicos.\n\n"
-                        : "")
-                +
+                (isVideo
+                        ? "ES UN VIDEO: Analiza el título y descripción para extraer temas, tecnologías y conceptos específicos.\n\n"
+                        : "") +
                 "Responde SOLO con JSON válido, sin texto adicional:\n" +
                 "{\"type\":\"tipo\",\"title\":\"título\",\"summary\":\"resumen\",\"detailedContent\":\"# Título\\n\\n## Resumen\\n\\n...\",\"destination\":\"apunte\",\"tags\":[\"tag1\",\"tag2\",\"tag3\",\"tag4\"]}";
     }
 
     /**
-     * Llama a la API de LLaMA 3 (Groq - formato OpenAI compatible)
+     * Llama a la API de LLaMA (Groq - formato OpenAI compatible)
      */
-    private String callClaudeAPI(String prompt) throws IOException {
+    private String callLlamaApi(String prompt) throws IOException {
         JsonObject requestBody = new JsonObject();
         requestBody.addProperty("model", model);
         requestBody.addProperty("max_tokens", 4000);
@@ -180,9 +178,9 @@ public class ClaudeAIService {
     }
 
     /**
-     * Parsea la respuesta de LLaMA 3
+     * Parsea la respuesta de LLaMA
      */
-    private ClassificationResult parseClaudeResponse(String response, String originalContent) {
+    private ClassificationResult parseLlamaResponse(String response, String originalContent) {
         try {
             logger.debug("Parseando respuesta, longitud: {}", response.length());
 
@@ -232,7 +230,7 @@ public class ClaudeAIService {
             return new ClassificationResult(type, title, summary, detailedContent, destination,
                     tags.toArray(new String[0]));
         } catch (Exception e) {
-            logger.error("Error al parsear respuesta de LLaMA 3", e);
+            logger.error("Error al parsear respuesta de LLaMA", e);
             logger.error("Respuesta que causó el error: {}", response);
             return createSmartDefaultResult(originalContent);
         }
@@ -370,7 +368,7 @@ public class ClaudeAIService {
     }
 
     /**
-     * Crea un resultado por defecto cuando no se puede usar LLaMA 3
+     * Crea un resultado por defecto cuando no se puede usar LLaMA
      */
     private ClassificationResult createDefaultResult() {
         return new ClassificationResult("nota", "Nota", "",

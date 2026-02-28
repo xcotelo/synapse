@@ -28,13 +28,22 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import synapse.rest.dtos.BrainSuggestParamsDto;
 import synapse.rest.dtos.BrainSuggestionDto;
-import synapse.rest.services.ClaudeAIService;
+import synapse.rest.dtos.BrainLinkPreviewDto;
+import synapse.rest.dtos.SaveNoteParamsDto;
+import synapse.rest.dtos.SavedNoteDto;
+import synapse.rest.services.LlamaAIService;
 import synapse.rest.services.ContentExtractionService;
 import synapse.rest.services.MediaStorageService;
+import synapse.rest.services.NoteMarkdownStorageService;
 
 /**
  * Endpoint que utiliza IA (LLaMA 3) para clasificar y analizar contenido.
@@ -49,10 +58,13 @@ public class BrainController {
     private ContentExtractionService contentExtractionService;
 
     @Autowired
-    private ClaudeAIService claudeAIService;
+    private LlamaAIService llamaAIService;
 
     @Autowired
     private MediaStorageService mediaStorageService;
+
+    @Autowired
+    private NoteMarkdownStorageService noteMarkdownStorageService;
 
     @Value("${server.servlet.context-path:}")
     private String contextPath;
@@ -73,11 +85,9 @@ public class BrainController {
         ContentExtractionService.ExtractedContent extracted = null;
 
         if (isUrl(inputContent)) {
-            String urlToExtract = inputContent;
-            if (urlToExtract.toLowerCase().startsWith("www.")) {
-                urlToExtract = "http://" + urlToExtract;
-            }
+            String urlToExtract = normalizeUrl(inputContent);
             try {
+                validateExternalUrl(urlToExtract);
                 extracted = contentExtractionService.extractContent(urlToExtract);
                 // Combinar título, descripción y contenido para el análisis
                 StringBuilder fullContent = new StringBuilder();
@@ -105,7 +115,7 @@ public class BrainController {
         }
 
         logger.info("Enviando contenido a la IA para clasificación...");
-        ClaudeAIService.ClassificationResult classification = claudeAIService.classifyContent(contentToAnalyze);
+        LlamaAIService.ClassificationResult classification = llamaAIService.classifyContent(contentToAnalyze);
 
         // 3. Si extrajimos contenido de una URL, usar el título extraído si LLaMA 3 no
         // proporcionó uno mejor
@@ -128,6 +138,33 @@ public class BrainController {
                 classification.getDetailedContent(),
                 classification.getDestination(),
                 classification.getTags());
+    }
+
+    /**
+     * Vista previa de una URL: extrae título/descripcion y un snippet del contenido.
+     *
+     * Este endpoint permite "explotación de fuentes" sin comprometer el flujo:
+     * la IA puede proponer, pero el usuario ve y valida qué se ha extraído.
+     */
+    @GetMapping("/preview")
+    @ResponseStatus(HttpStatus.OK)
+    public BrainLinkPreviewDto preview(@RequestParam("url") String url) {
+        String normalized = normalizeUrl(url);
+        validateExternalUrl(normalized);
+
+        ContentExtractionService.ExtractedContent extracted = contentExtractionService.extractContent(normalized);
+        String title = extracted != null ? safe(extracted.getTitle()) : "";
+        String description = extracted != null ? safe(extracted.getDescription()) : "";
+        String type = extracted != null ? safe(extracted.getType()) : "link";
+        String content = extracted != null ? safe(extracted.getContent()) : "";
+
+        String snippet = content;
+        int max = 1200;
+        if (snippet.length() > max) {
+            snippet = snippet.substring(0, max) + "...";
+        }
+
+        return new BrainLinkPreviewDto(normalized, type, title, description, snippet);
     }
 
     @PostMapping(value = "/suggest/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -173,7 +210,7 @@ public class BrainController {
         }
 
         logger.info("Enviando metadatos de archivo '{}' a la IA para clasificación", originalName);
-        ClaudeAIService.ClassificationResult classification = claudeAIService.classifyContent(description.toString());
+        LlamaAIService.ClassificationResult classification = llamaAIService.classifyContent(description.toString());
 
         // Para ficheros subidos, el tipo debe reflejar el tipo real del archivo.
         // Esto hace que las categorías (vídeo/música/otras) sean consistentes.
@@ -352,6 +389,26 @@ public class BrainController {
     }
 
     /**
+     * Persistencia en formato abierto: guarda una nota como fichero Markdown
+     * dentro de una carpeta local versionable (Git-friendly).
+     */
+    @PostMapping("/notes")
+    @ResponseStatus(HttpStatus.OK)
+    public SavedNoteDto saveNote(@RequestBody SaveNoteParamsDto params) {
+        NoteMarkdownStorageService.SaveResult result = noteMarkdownStorageService.saveNote(params);
+        return new SavedNoteDto(result.getStorageId(), result.getFilename());
+    }
+
+    /**
+     * Borrado idempotente de una nota persistida en disco.
+     */
+    @DeleteMapping("/notes/{storageId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteNote(@PathVariable("storageId") String storageId) {
+        noteMarkdownStorageService.deleteByStorageId(storageId);
+    }
+
+    /**
      * Verifica si el contenido es una URL
      */
     private boolean isUrl(String content) {
@@ -360,6 +417,61 @@ public class BrainController {
         }
         String trimmed = content.trim().toLowerCase();
         return trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("www.");
+    }
+
+    private String normalizeUrl(String url) {
+        if (url == null) {
+            return "";
+        }
+        String trimmed = url.trim();
+        if (trimmed.toLowerCase().startsWith("www.")) {
+            return "http://" + trimmed;
+        }
+        return trimmed;
+    }
+
+    private void validateExternalUrl(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            throw new IllegalArgumentException("URL vacía");
+        }
+
+        URI uri;
+        try {
+            uri = new URI(url);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("URL no válida");
+        }
+
+        String scheme = uri.getScheme() != null ? uri.getScheme().toLowerCase() : "";
+        if (!scheme.equals("http") && !scheme.equals("https")) {
+            throw new IllegalArgumentException("Solo se permiten URLs http/https");
+        }
+
+        String host = uri.getHost();
+        if (host == null || host.trim().isEmpty()) {
+            throw new IllegalArgumentException("URL sin host");
+        }
+
+        String lowerHost = host.toLowerCase();
+        if (lowerHost.equals("localhost") || lowerHost.endsWith(".localhost")) {
+            throw new IllegalArgumentException("Host no permitido");
+        }
+
+        try {
+            InetAddress[] addrs = InetAddress.getAllByName(host);
+            for (InetAddress addr : addrs) {
+                if (addr.isAnyLocalAddress() || addr.isLoopbackAddress() || addr.isSiteLocalAddress()
+                        || addr.isLinkLocalAddress() || addr.isMulticastAddress()) {
+                    throw new IllegalArgumentException("Host no permitido");
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("No se pudo resolver el host");
+        }
+    }
+
+    private String safe(String s) {
+        return s == null ? "" : s.trim();
     }
 
 }

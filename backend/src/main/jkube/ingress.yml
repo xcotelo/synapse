@@ -1,17 +1,17 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: waterfantasy-ingress
+  name: synapse-ingress
   annotations:
-    ingress.kubernetes.io/rewrite-target: /waterfantasy
+    ingress.kubernetes.io/rewrite-target: /synapse
 spec:
   rules:
     - http:
         paths:
-          - path: /waterfantasy
+          - path: /synapse
             pathType: Prefix
             backend:
               service:
-                name: waterfantasy
+                name: synapse
                 port:
                   number: 8080

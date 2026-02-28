@@ -22,9 +22,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final String USER  = "USER";
-    private static final String ADMIN = "ADMIN";
-
     private final JwtFilter jwtFilter;
 
     public SecurityConfig(JwtFilter jwtFilter) {
@@ -53,8 +50,7 @@ public class SecurityConfig {
                 .requestMatchers(antMatcher("/api/users/signUp")).permitAll()
                 .requestMatchers(antMatcher("/api/users/login")).permitAll()
                 .requestMatchers(antMatcher("/api/users/loginFromServiceToken")).permitAll()
-                .requestMatchers(antMatcher("/api/users/allUsers")).hasRole(ADMIN)
-                .requestMatchers(antMatcher("/api/users/*/removeUser")).hasRole(ADMIN)
+                .requestMatchers(antMatcher("/api/users/*/removeUser")).authenticated()
                 .requestMatchers(antMatcher("/api/image/getImage/{imageName}")).permitAll()
                 .requestMatchers(antMatcher("/ws/**")).permitAll()
                 // Cerebro digital: de momento permitimos el endpoint de sugerencias

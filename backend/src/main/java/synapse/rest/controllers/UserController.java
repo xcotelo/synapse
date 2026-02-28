@@ -4,28 +4,22 @@ import static synapse.rest.dtos.UserConversor.toAuthenticatedUserDto;
 import static synapse.rest.dtos.UserConversor.toUser;
 import static synapse.rest.dtos.UserConversor.toUserDto;
 
-
-
-import static synapse.rest.dtos.UserConversor.toUserAllDtos;
+import static synapse.rest.dtos.UserConversor.toUserDto;
 
 import java.net.URI;
 import java.util.Locale;
 
 import org.springframework.context.MessageSource;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -36,14 +30,11 @@ import synapse.model.entities.Users;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.model.services.exceptions.IncorrectPasswordException;
 import synapse.model.services.exceptions.PermissionException;
-import synapse.model.services.exceptions.CannotDeleteAdminException;
-import synapse.model.services.Block;
 import synapse.model.services.UserService;
 import synapse.rest.common.ErrorsDto;
 import synapse.rest.common.JwtGenerator;
 import synapse.rest.common.JwtInfo;
 import synapse.rest.dtos.AuthenticatedUserDto;
-import synapse.rest.dtos.BlockDto;
 import synapse.rest.dtos.ChangePasswordParamsDto;
 import synapse.rest.dtos.LoginParamsDto;
 import synapse.rest.dtos.UserDto;
@@ -61,7 +52,6 @@ public class UserController {
 	/** The Constant INCORRECT_PASSWORD_EXCEPTION_CODE. */
 	private static final String INCORRECT_PASS_EXCEPTION_CODE = "project.exceptions.IncorrectPasswordException";
 
-	private static final String CANNOT_DELETE_ADMIN_EXCEPTION = "project.exceptions.CannotDeleteAdminException";
 	/** The message source. */
 	private final MessageSource messageSource;
 	/** The jwt generator. */
@@ -92,7 +82,6 @@ public class UserController {
 
 		return new ErrorsDto(errorMessage);
 
-		
 	}
 
 	/**
@@ -111,22 +100,6 @@ public class UserController {
 
 		return new ErrorsDto(errorMessage);
 
-	}
-	/**
-	 * Handle cannot delete admin user.
-	 *
-	 * @param exception the exception
-	 * @param locale    the locale
-	 * @return the errors dto
-	 */
-	@ExceptionHandler(CannotDeleteAdminException.class)
-	@ResponseStatus(HttpStatus.FORBIDDEN)
-	public ErrorsDto handleCannotDeleteAdminException( CannotDeleteAdminException exception, Locale locale) {
-
-		String errorMessage = messageSource.getMessage(CANNOT_DELETE_ADMIN_EXCEPTION, new Object[] { exception.getUserId() },
-		CANNOT_DELETE_ADMIN_EXCEPTION, locale);
-
-		return new ErrorsDto(errorMessage);
 	}
 
 	/**
@@ -206,7 +179,7 @@ public class UserController {
 		}
 
 		return toUserDto(
-				userService.updateProfile(id, userDto.getFirstName(), userDto.getLastName(), userDto.getEmail()));
+				userService.updateProfile(id, userDto.getEmail()));
 
 	}
 
@@ -242,24 +215,15 @@ public class UserController {
 	 */
 	private String generateServiceToken(Users user) {
 
-		JwtInfo jwtInfo = new JwtInfo(user.getId(), user.getUserName(), user.getRole().toString());
+		JwtInfo jwtInfo = new JwtInfo(user.getId(), user.getUserName());
 
 		return jwtGenerator.generate(jwtInfo);
 
 	}
 
-	@GetMapping("/allUsers")
-	public BlockDto<UserDto> findAllUsers(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "5") int size) {
-
-		Pageable pageable = PageRequest.of(page, size);
-		Block<Users> users = userService.findAllUsers(pageable);
-
-		return new BlockDto<>(toUserAllDtos(users.getItems()), users.getExistMoreItems());
-	}
-
 	@PostMapping("/{userId}/removeUser")
-    public void removeUser(@PathVariable Long userId) throws InstanceNotFoundException, CannotDeleteAdminException {
-        userService.removeUser(userId);
-    }
+	public void removeUser(@PathVariable Long userId) throws InstanceNotFoundException {
+		userService.removeUser(userId);
+	}
 
 }

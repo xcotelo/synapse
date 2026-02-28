@@ -2,13 +2,10 @@ package synapse.rest.common;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,7 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 @Component
 public class JwtFilter extends OncePerRequestFilter {
-    
+
     /** The jwt generator. */
     @Autowired
     private JwtGenerator jwtGenerator;
@@ -31,57 +28,48 @@ public class JwtFilter extends OncePerRequestFilter {
     /**
      * Do filter internal.
      *
-     * @param request the request
-     * @param response the response
+     * @param request     the request
+     * @param response    the response
      * @param filterChain the filter chain
      * @throws ServletException the servlet exception
-     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws IOException      Signals that an I/O exception has occurred.
      */
     @Override
-    protected void doFilterInternal(@SuppressWarnings("null") HttpServletRequest request, @SuppressWarnings("null") HttpServletResponse response, @SuppressWarnings("null") FilterChain filterChain)
-        throws ServletException, IOException {
-        
+    protected void doFilterInternal(@SuppressWarnings("null") HttpServletRequest request,
+            @SuppressWarnings("null") HttpServletResponse response, @SuppressWarnings("null") FilterChain filterChain)
+            throws ServletException, IOException {
+
         String authHeaderValue = request.getHeader(HttpHeaders.AUTHORIZATION);
-        
+
         if (authHeaderValue == null || !authHeaderValue.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
-        
+
         try {
-            
+
             String serviceToken = authHeaderValue.replace("Bearer ", "");
             JwtInfo jwtInfo = jwtGenerator.getInfo(serviceToken);
-            
+
             request.setAttribute("serviceToken", serviceToken);
             request.setAttribute("userId", jwtInfo.getUserId());
-            
-            configureSecurityContext(jwtInfo.getUserName(), jwtInfo.getRole());
-            
+
+            configureSecurityContext(jwtInfo.getUserName());
+
         } catch (Exception e) {
-             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-             return;
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
-        
+
         filterChain.doFilter(request, response);
-        
+
     }
-    
-    /**
-     * Configure security context.
-     *
-     * @param userName the user name
-     * @param role the role
-     */
-    private void configureSecurityContext(String userName, String role) {
-        
-        Set<GrantedAuthority> authorities = new HashSet<>();
-        
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
-        
+
+    private void configureSecurityContext(String userName) {
+
         SecurityContextHolder.getContext().setAuthentication(
-            new UsernamePasswordAuthenticationToken(userName, null, authorities));
-        
+                new UsernamePasswordAuthenticationToken(userName, null, new HashSet<>()));
+
     }
 
 }

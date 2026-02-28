@@ -1,4 +1,4 @@
 export const config = {
-    BASE_PATH: "/waterfantasy/api",
+    BASE_PATH: "/synapse/api",
     SERVICE_TOKEN_NAME: "serviceToken"
 }

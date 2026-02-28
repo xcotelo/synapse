@@ -19,8 +19,8 @@ const UserListAdmin = () => {
     const handleRemoveUser = (userId) => {
         removeUser(userId,
             () => {
-            setSuccessMessage('Eliminado con éxito');
-            setBackendErrors(null);
+                setSuccessMessage('Eliminado con éxito');
+                setBackendErrors(null);
             },
             backendErrors => setBackendErrors(backendErrors)
         );
@@ -79,12 +79,6 @@ const UserListAdmin = () => {
                                                     Usuario
                                                 </th>
                                                 <th scope="col" style={{ width: "20%" }}>
-                                                    Nombre
-                                                </th>
-                                                <th scope="col" style={{ width: "20%" }}>
-                                                    Apellido
-                                                </th>
-                                                <th scope="col" style={{ width: "20%" }}>
                                                     Correo electrónico
                                                 </th>
                                                 <th scope="col" style={{ width: "20%" }}>
@@ -95,8 +89,6 @@ const UserListAdmin = () => {
                                             {users.items.map(user => (
                                                 <tr key={user.id}>
                                                     <td style={{ verticalAlign: 'middle' }}>{user.userName}</td>
-                                                    <td style={{ verticalAlign: 'middle' }}>{user.firstName}</td>
-                                                    <td style={{ verticalAlign: 'middle' }}>{user.lastName}</td>
                                                     <td style={{ verticalAlign: 'middle' }}>{user.email}</td>
                                                     <td style={{ verticalAlign: 'middle' }}>
                                                         <button

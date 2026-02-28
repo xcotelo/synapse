@@ -24,8 +24,7 @@ public class UserConversor {
 	 * @return the user dto
 	 */
 	public static final UserDto toUserDto(Users user) {
-		return new UserDto(user.getId(), user.getUserName(), user.getFirstName(), user.getLastName(), user.getEmail(),
-				user.getRole().toString());
+		return new UserDto(user.getId(), user.getUserName(), user.getEmail());
 	}
 
 	/**
@@ -36,8 +35,7 @@ public class UserConversor {
 	 */
 	public static final Users toUser(UserDto userDto) {
 
-		return new Users(userDto.getUserName(), userDto.getPassword(), userDto.getFirstName(), userDto.getLastName(),
-				userDto.getEmail());
+		return new Users(userDto.getUserName(), userDto.getPassword(), userDto.getEmail());
 	}
 
 	/**
@@ -63,15 +61,14 @@ public class UserConversor {
 
 	}
 
-
 	public static final UserDto toUserDto2(Users user, int puntuation) {
-		return new UserDto(user.getId(), user.getUserName(),puntuation);
+		return new UserDto(user.getId(), user.getUserName(), puntuation);
 	}
 
 	public static final List<UserDto> toUserDtosPoints(List<Users> users, List<Integer> puntuationList) {
 
 		List<UserDto> userDtos = new ArrayList<>();
-		
+
 		for (int i = 0; i < users.size(); i++) {
 			userDtos.add(toUserDto2(users.get(i), puntuationList.get(i)));
 		}
@@ -84,4 +81,3 @@ public class UserConversor {
 		return users.stream().map(c -> toUserDto(c)).collect(Collectors.toList());
 	}
 }
-

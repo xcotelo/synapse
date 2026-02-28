@@ -1,39 +1,21 @@
 logging:
   level:
     org:
-      hibernate:
+      hibernate:  
         SQL: debug
 spring:
   datasource:
-    url: @dataSource.url@
-    username: @dataSource.user@
-    password: @dataSource.password@
-    max-active: 4
-    max-idle: 2
-    max-wait: 10000
-    remove-abandoned: true
-    remove-abandoned-timeout: 60
-    log-abandoned: true
-    validation-query: SELECT 1
-  devtools:
-    restart:
-      trigger-file: reload
-    livereload:
-      enabled: false
-  jackson:
-    default-property-inclusion: NON_NULL
+    url: jdbc:postgresql://localhost:5432/synapse
+    driver-class-name: org.postgresql.Driver
+    username: synapse
+    password: 1234
+
   jpa:
     hibernate:
-      ddl-auto: none
-      show-sql: true
-      format-sql: true
-      use-sql-comments: true
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-  h2:
-    console:
-      enabled: true
-      path: /h2-console/*
+      ddl-auto: update   # o create-drop si quieres recrear cada vez
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   servlet:
     multipart:
       max-file-size: 10MB     # Tamaño máximo de cada archivo

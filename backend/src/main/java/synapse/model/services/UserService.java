@@ -1,11 +1,8 @@
 package synapse.model.services;
 
-import org.springframework.data.domain.Pageable;
-
 import synapse.model.common.exceptions.DuplicateInstanceException;
 import synapse.model.common.exceptions.InstanceNotFoundException;
 import synapse.model.entities.Users;
-import synapse.model.services.exceptions.CannotDeleteAdminException;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.model.services.exceptions.IncorrectPasswordException;
 
@@ -41,17 +38,7 @@ public interface UserService {
 	 */
 	Users loginFromId(Long id) throws InstanceNotFoundException;
 
-	/**
-	 * Update profile.
-	 *
-	 * @param id        the id
-	 * @param firstName the first name
-	 * @param lastName  the last name
-	 * @param email     the email
-	 * @return the user
-	 * @throws InstanceNotFoundException the instance not found exception
-	 */
-	Users updateProfile(Long id, String firstName, String lastName, String email) throws InstanceNotFoundException;
+	Users updateProfile(Long id, String email) throws InstanceNotFoundException;
 
 	/**
 	 * Change password.
@@ -66,19 +53,10 @@ public interface UserService {
 			throws InstanceNotFoundException, IncorrectPasswordException;
 
 	/**
-	 * Find all users
-	 * 
-	 * @param pageable the pageable
-	 * @return the Block<Users>
-	 */
-	Block<Users> findAllUsers(Pageable pageable);
-
-	/**
 	 * Delete the user
 	 * 
 	 * @param userId the user id
 	 * @throws InstanceNotFoundException
-	 * @throws CannotDeleteAdminException
 	 */
-	void removeUser(Long userId) throws InstanceNotFoundException, CannotDeleteAdminException;
+	void removeUser(Long userId) throws InstanceNotFoundException;
 }

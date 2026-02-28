@@ -11,15 +11,6 @@ import jakarta.persistence.Id;
 @Entity
 public class Users {
 
-	/**
-	 * The Enum RoleType.
-	 */
-	public enum RoleType {
-		/** The user. */
-		USER,
-		ADMIN
-	}
-
 	/** The id. */
 	private Long id;
 
@@ -29,17 +20,8 @@ public class Users {
 	/** The password. */
 	private String password;
 
-	/** The first name. */
-	private String firstName;
-
-	/** The last name. */
-	private String lastName;
-
 	/** The email. */
 	private String email;
-
-	/** The role. */
-	private RoleType role;
 
 	/**
 	 * Instantiates a new user.
@@ -50,18 +32,14 @@ public class Users {
 	/**
 	 * Instantiates a new user.
 	 *
-	 * @param userName  the user name
-	 * @param password  the password
-	 * @param firstName the first name
-	 * @param lastName  the last name
-	 * @param email     the email
+	 * @param userName the user name
+	 * @param password the password
+	 * @param email    the email
 	 */
-	public Users(String userName, String password, String firstName, String lastName, String email) {
+	public Users(String userName, String password, String email) {
 
 		this.userName = userName;
 		this.password = password;
-		this.firstName = firstName;
-		this.lastName = lastName;
 		this.email = email;
 
 	}
@@ -123,42 +101,6 @@ public class Users {
 	}
 
 	/**
-	 * Gets the first name.
-	 *
-	 * @return the first name
-	 */
-	public String getFirstName() {
-		return firstName;
-	}
-
-	/**
-	 * Sets the first name.
-	 *
-	 * @param firstName the new first name
-	 */
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	/**
-	 * Gets the last name.
-	 *
-	 * @return the last name
-	 */
-	public String getLastName() {
-		return lastName;
-	}
-
-	/**
-	 * Sets the last name.
-	 *
-	 * @param lastName the new last name
-	 */
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
-
-	/**
 	 * Gets the email.
 	 *
 	 * @return the email
@@ -174,24 +116,6 @@ public class Users {
 	 */
 	public void setEmail(String email) {
 		this.email = email;
-	}
-
-	/**
-	 * Gets the role.
-	 *
-	 * @return the role
-	 */
-	public RoleType getRole() {
-		return role;
-	}
-
-	/**
-	 * Sets the role.
-	 *
-	 * @param role the new role
-	 */
-	public void setRole(RoleType role) {
-		this.role = role;
 	}
 
 }

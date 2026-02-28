@@ -8,8 +8,6 @@ const Register = () => {
     const navigate = useNavigate();
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [backendErrors, setBackendErrors] = useState(null);
     let form;
@@ -22,8 +20,6 @@ const Register = () => {
                 {
                     userName: userName.trim(),
                     password: password.trim(),
-                    firstName: firstName.trim(),
-                    lastName: lastName.trim(),
                     email: email.trim(),
                 },
                 () => navigate('/'),
@@ -67,24 +63,6 @@ const Register = () => {
                                     <input type="password" id="password" className="form-control bblanco"
                                         value={password}
                                         onChange={e => setPassword(e.target.value)}
-                                        required />
-                                </div>
-                            </div>
-                            <div className="row mt-3">
-                                <div className="col">
-                                    <label className="form-label" htmlFor="firstName">Nombre</label>
-                                    <input type="text" id="firstName" className="form-control bblanco"
-                                        value={firstName}
-                                        onChange={e => setFirstName(e.target.value)}
-                                        autoFocus
-                                        required />
-                                </div>
-                                <div className="col">
-                                    <label className="form-label" htmlFor="lastName">Apellido</label>
-                                    <input type="text" id="lastName" className="form-control bblanco"
-                                        value={lastName}
-                                        onChange={e => setLastName(e.target.value)}
-                                        autoFocus
                                         required />
                                 </div>
                             </div>

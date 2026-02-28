@@ -16,7 +16,6 @@ import synapse.model.services.exceptions.CannotDeleteAdminException;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.model.services.exceptions.IncorrectPasswordException;
 
-
 /**
  * The Class UserServiceImpl.
  */
@@ -52,7 +51,6 @@ public class UserServiceImpl implements UserService {
 		}
 
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
-		user.setRole(Users.RoleType.USER);
 
 		userDao.save(user);
 
@@ -108,13 +106,11 @@ public class UserServiceImpl implements UserService {
 	 * @throws InstanceNotFoundException the instance not found exception
 	 */
 	@Override
-	public Users updateProfile(Long id, String firstName, String lastName, String email)
+	public Users updateProfile(Long id, String email)
 			throws InstanceNotFoundException {
 
 		Users user = permissionChecker.checkUser(id);
 
-		user.setFirstName(firstName);
-		user.setLastName(lastName);
 		user.setEmail(email);
 
 		return user;
@@ -144,27 +140,12 @@ public class UserServiceImpl implements UserService {
 
 	}
 
-	/**
-	 * Find all users
-	 * 
-	 * @param pageable the pageable
-	 * @return the Block<Users>
-	 */
 	@Override
-	public Block<Users> findAllUsers(Pageable pageable) {
-		Slice<Users> users = userDao.find(pageable);
-		return new Block<>(users.getContent(), users.hasNext());
-	}
-	
-	@Override
-	public void removeUser(Long userId) throws InstanceNotFoundException, CannotDeleteAdminException {
-		Users user = userDao.findById(userId).orElseThrow(() ->  new InstanceNotFoundException("project.entities.user", userId));
-		
-		if(user.getRole().name().equals("ADMIN")) {
-			throw new CannotDeleteAdminException(userId);
-		}
-		
+	public void removeUser(Long userId) throws InstanceNotFoundException {
+
+		Users user = permissionChecker.checkUser(userId);
+
 		userDao.delete(user);
-	} 
+	}
 
 }

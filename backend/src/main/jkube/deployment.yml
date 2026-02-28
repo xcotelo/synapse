@@ -8,17 +8,17 @@ metadata:
     jkube.io/issue-tracker-url: https://redmine.fic.udc.es/project/WaterFantasy/issues
     jkube.io/scm-tag: head
   labels:
-    app: WaterFantasy
+    app: Synapse
     provider: jkube
     version: 0.1-SNAPSHOT
     group: es.udc.fi.dc.fd
-  name: waterfantasy
+  name: synapse
 spec:
   replicas: 1
   revisionHistoryLimit: 2
   selector:
     matchLabels:
-      app: WaterFantasy
+      app: Synapse
       provider: jkube
       group: es.udc.fi.dc.fd
   template:
@@ -29,7 +29,7 @@ spec:
         jkube.io/issue-tracker-url: https://redmine.fic.udc.es/project/WaterFantasy/issues
         jkube.io/scm-tag: head
       labels:
-        app: WaterFantasy
+        app: Synapse
         provider: jkube
         version: 0.1-SNAPSHOT
         group: es.udc.fi.dc.fd
@@ -44,9 +44,9 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: gitlab.fic.udc.es:5050/ferramentas.2024/waterfantasy:latest
+        image: gitlab.fic.udc.es:5050/ferramentas.2024/synapse:latest
         imagePullPolicy: Always
-        name: deploy-waterfantasy
+        name: deploy-synapse
         securityContext:
           privileged: false
         ports:

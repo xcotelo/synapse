@@ -1,8 +1,8 @@
-import React , { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from '../../../backend/userService';
 import { useUser } from "../../common/components/UserContext";
-import { Errors, RoleType } from "../../common";
+import { Errors } from "../../common";
 
 const Login = () => {
   const { logIn, logOut } = useUser();
@@ -21,12 +21,12 @@ const Login = () => {
         userName.trim(),
         password,
         (authenticatedUser) => {
-          logIn(RoleType.USER, authenticatedUser.user, Number(authenticatedUser.user.id));
-          navigate('/users/allUsers');
+          logIn(authenticatedUser.userDto.userName, Number(authenticatedUser.userDto.id));
+          navigate('/brain/inbox');
         },
         errors => {
-          if (typeof errors ==='string') {
-            setBackendErrors({ globalError: errors }); 
+          if (typeof errors === 'string') {
+            setBackendErrors({ globalError: errors });
           } else {
             setBackendErrors(errors);
           }
@@ -35,7 +35,7 @@ const Login = () => {
           navigate('/');
         }
       );
-    }  else {
+    } else {
       setBackendErrors(null);
       form.classList.add('was-validated');
     }
@@ -43,7 +43,7 @@ const Login = () => {
 
   useEffect(() => {
     logOut();
-  },[]);
+  }, []);
 
   return (
     <div className="row justify-content-center">
@@ -83,9 +83,6 @@ const Login = () => {
               </div>
               <div className="text-center">
                 <p>¿No registrado? <Link to="register">Registrarse</Link></p>
-              </div>
-              <div className="text-end">
-                <p><Link to="loginAdmin">Administrador</Link></p>
               </div>
             </form>
 

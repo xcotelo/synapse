@@ -24,34 +24,11 @@ export const login = (
     "/users/login",
     fetchConfig("POST", { userName, password }),
     (authenticatedUser) => {
-      if (authenticatedUser.user.role === "USER") {
-        processLoginSignUp(authenticatedUser, reauthenticationCallback, onSuccess);
-      } else {
-        onErrors("No dispone de credenciales de usuario")
-      }
+      processLoginSignUp(authenticatedUser, reauthenticationCallback, onSuccess);
     },
     onErrors
   );
 
-export const loginAdmin = (
-  userName,
-  password,
-  onSuccess,
-  onErrors,
-  reauthenticationCallback
-) =>
-  appFetch(
-    "/users/login",
-    fetchConfig("POST", { userName, password }),
-    (authenticatedUser) => {
-      if (authenticatedUser.user.role === "ADMIN") {
-        processLoginSignUp(authenticatedUser, reauthenticationCallback, onSuccess);
-      } else {
-        onErrors("No dispone de credenciales de administrador")
-      }
-    },
-    onErrors
-  );
 
 export const tryLoginFromServiceToken = (
   onSuccess,
@@ -104,11 +81,6 @@ export const changePassword = (
     onErrors
   );
 
-export const getAllUsers = ({ page }, onSuccess) => {
-
-  let path = `/users/allUsers?page=${page}`;
-  appFetch(path, fetchConfig('GET'), onSuccess)
-};
 
 export const removeUser = (userId, onSuccess, onErrors) =>
   appFetch(`/users/${userId}/removeUser`, fetchConfig('POST'), onSuccess, onErrors);

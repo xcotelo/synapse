@@ -2,7 +2,6 @@ package synapse.rest.controllers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Test;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import synapse.model.entities.Users;
-import synapse.model.entities.Users.RoleType;
 import synapse.model.entities.UserDao;
 import synapse.model.services.exceptions.IncorrectLoginException;
 
@@ -58,21 +56,12 @@ public class UserControllerTest {
 	@Autowired
 	private UserController userController;
 
-	/**
-	 * Creates the authenticated user.
-	 *
-	 * @param userName the user name
-	 * @param roleType the role type
-	 * @return the authenticated user dto
-	 * @throws IncorrectLoginException the incorrect login exception
-	 */
-	private AuthenticatedUserDto createAuthenticatedUser(String userName, RoleType roleType)
+	private AuthenticatedUserDto createAuthenticatedUser(String userName)
 			throws IncorrectLoginException {
 
-		Users user = new Users(userName, PASSWORD, "newUser", "user", "user@test.com");
+		Users user = new Users(userName, PASSWORD, "user@test.com");
 
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
-		user.setRole(roleType);
 
 		userDao.save(user);
 
@@ -92,7 +81,7 @@ public class UserControllerTest {
 	@Test
 	public void testPostLogin_Ok() throws Exception {
 
-		AuthenticatedUserDto user = createAuthenticatedUser("admin", RoleType.USER);
+		AuthenticatedUserDto user = createAuthenticatedUser("admin");
 
 		LoginParamsDto loginParams = new LoginParamsDto();
 		loginParams.setUserName(user.getUserDto().getUserName());
@@ -127,8 +116,6 @@ public class UserControllerTest {
 		UserDto user = new UserDto();
 		user.setUserName("user");
 		user.setPassword(PASSWORD);
-		user.setFirstName("firtsname");
-		user.setLastName("lastname");
 		user.setEmail("user@test.com");
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -145,8 +132,6 @@ public class UserControllerTest {
 		UserDto user = new UserDto();
 		user.setUserName("user");
 		user.setPassword(PASSWORD);
-		user.setFirstName("firtsname");
-		user.setLastName("lastname");
 		user.setEmail("user@test.com");
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -163,7 +148,7 @@ public class UserControllerTest {
 	@Test
 	public void testLoginFromServiceToken_Ok() throws Exception {
 
-		AuthenticatedUserDto authenticatedUser = createAuthenticatedUser("user", RoleType.USER);
+		AuthenticatedUserDto authenticatedUser = createAuthenticatedUser("user");
 
 		String serviceToken = authenticatedUser.getServiceToken();
 		Long userId = authenticatedUser.getUserDto().getId();
@@ -179,7 +164,7 @@ public class UserControllerTest {
 	@Test
 	public void testLoginFromServiceToken_InstanceNotFound() throws Exception {
 
-		AuthenticatedUserDto user = createAuthenticatedUser("user", RoleType.USER);
+		AuthenticatedUserDto user = createAuthenticatedUser("user");
 
 		Long nonExistentUserId = Long.valueOf(-1);
 		String serviceToken = user.getServiceToken();
@@ -195,14 +180,12 @@ public class UserControllerTest {
 	@Test
 	public void testUpdateProfile_Ok() throws Exception {
 
-		AuthenticatedUserDto authenticatedUser = createAuthenticatedUser("user", RoleType.USER);
+		AuthenticatedUserDto authenticatedUser = createAuthenticatedUser("user");
 		Long userId = authenticatedUser.getUserDto().getId();
 
 		UserDto user = new UserDto();
 		user.setUserName("user");
 		user.setPassword(PASSWORD);
-		user.setFirstName("firtsname");
-		user.setLastName("lastname");
 		user.setEmail("user@test.com");
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -216,10 +199,9 @@ public class UserControllerTest {
 	@Test
 	public void testUpdateProfile_NotPermission() throws Exception {
 
-		Users user1 = new Users("user1", "password", "firstName", "lastName",
-				"user1@user1.com");
+		Users user1 = new Users("user1", "password", "user1@user1.com");
 
-		AuthenticatedUserDto user2 = createAuthenticatedUser("user2", RoleType.USER);
+		AuthenticatedUserDto user2 = createAuthenticatedUser("user2");
 
 		mockMvc.perform(put("/api/users/{userId}", user1.getId())
 				.requestAttr("userId", user2.getUserDto().getId()))
@@ -229,7 +211,7 @@ public class UserControllerTest {
 	@Test
 	public void testChangePassword_Ok() throws Exception {
 
-		AuthenticatedUserDto user = createAuthenticatedUser("user", RoleType.USER);
+		AuthenticatedUserDto user = createAuthenticatedUser("user");
 
 		ChangePasswordParamsDto changePassworParams = new ChangePasswordParamsDto();
 		changePassworParams.setOldPassword(PASSWORD);
@@ -245,43 +227,17 @@ public class UserControllerTest {
 	}
 
 	@Test
-	public void testGetAllUsersAdmin_Ok() throws Exception {
-		AuthenticatedUserDto admin = createAuthenticatedUser("admin", RoleType.ADMIN);
+	public void testDeleteUser_Ok() throws Exception {
 
-		mockMvc.perform(get("/api/users/allUsers", admin.getUserDto().getId())
-				.header("Authorization", "Bearer " + admin.getServiceToken())
-				.contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
-	}
+		AuthenticatedUserDto admin = createAuthenticatedUser("admin");
 
-	@Test
-	public void testDeleteUserWithoutLeagues_Ok() throws Exception {
-
-		AuthenticatedUserDto admin = createAuthenticatedUser("user", RoleType.ADMIN);
-
-		Users user1 = new Users("user", "password", "firstName", "lastName", "noah@gmail.com");
-		user1.setRole(RoleType.USER);
+		Users user1 = new Users("user", "password", "noah@gmail.com");
 		userDao.save(user1);
 
 		mockMvc.perform(post("/api/users/" + user1.getId() + "/removeUser")
 				.header("Authorization", "Bearer " + admin.getServiceToken())
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk());
-	}
-
-	@Test
-	public void testDeleteAdmin_FORBIDDEN() throws Exception {
-
-		AuthenticatedUserDto admin = createAuthenticatedUser("user", RoleType.ADMIN);
-
-		Users user1 = new Users("user", "password", "firstName", "lastName", "noah@gmail.com");
-		user1.setRole(RoleType.ADMIN);
-		userDao.save(user1);
-
-		mockMvc.perform(post("/api/users/" + user1.getId() + "/removeUser")
-				.header("Authorization", "Bearer " + admin.getServiceToken())
-				.contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isForbidden());
 	}
 
 }

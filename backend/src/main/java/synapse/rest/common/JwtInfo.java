@@ -11,21 +11,16 @@ public class JwtInfo {
 	/** The user name. */
 	private String userName;
 
-	/** The role. */
-	private String role;
-
 	/**
 	 * Instantiates a new jwt info.
 	 *
 	 * @param userId   the user id
 	 * @param userName the user name
-	 * @param role     the role
 	 */
-	public JwtInfo(Long userId, String userName, String role) {
+	public JwtInfo(Long userId, String userName) {
 
 		this.userId = userId;
 		this.userName = userName;
-		this.role = role;
 
 	}
 
@@ -63,24 +58,6 @@ public class JwtInfo {
 	 */
 	public void setUserName(String userName) {
 		this.userName = userName;
-	}
-
-	/**
-	 * Gets the role.
-	 *
-	 * @return the role
-	 */
-	public String getRole() {
-		return role;
-	}
-
-	/**
-	 * Sets the role.
-	 *
-	 * @param role the new role
-	 */
-	public void setRole(String role) {
-		this.role = role;
 	}
 
 }

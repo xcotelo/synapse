@@ -2,8 +2,6 @@ package synapse.model.services;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
-
 import jakarta.transaction.Transactional;
 
 import org.junit.Rule;
@@ -12,17 +10,13 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import synapse.model.common.exceptions.DuplicateInstanceException;
 import synapse.model.common.exceptions.InstanceNotFoundException;
 import synapse.model.entities.Users;
-import synapse.model.entities.Users.RoleType;
 import synapse.model.entities.UserDao;
-import synapse.model.services.Block;
-import synapse.model.services.exceptions.CannotDeleteAdminException;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.model.services.exceptions.IncorrectPasswordException;
 
@@ -54,7 +48,7 @@ public class UserServiceTest {
 	 * @return the user
 	 */
 	private Users createUser(String userName) {
-		return new Users(userName, "password", "firstName", "lastName", userName + "@" + userName + ".com");
+		return new Users(userName, "password", userName + "@" + userName + ".com");
 	}
 
 	/**
@@ -71,9 +65,7 @@ public class UserServiceTest {
 		userService.signUp(user);
 
 		Users loggedInUser = userService.loginFromId(user.getId());
-
 		assertEquals(user, loggedInUser);
-		assertEquals(Users.RoleType.USER, user.getRole());
 
 	}
 
@@ -133,12 +125,9 @@ public class UserServiceTest {
 
 		userService.signUp(user);
 
-		user.setFirstName('X' + user.getFirstName());
-		user.setLastName('X' + user.getLastName());
 		user.setEmail('X' + user.getEmail());
 
-		userService.updateProfile(user.getId(), 'X' + user.getFirstName(), 'X' + user.getLastName(),
-				'X' + user.getEmail());
+		userService.updateProfile(user.getId(), 'X' + user.getEmail());
 
 		Users updatedUser = userService.loginFromId(user.getId());
 
@@ -149,7 +138,7 @@ public class UserServiceTest {
 	@Test
 	public void testUpdateProfileWithNonExistentId() throws InstanceNotFoundException {
 		thrown.expect(InstanceNotFoundException.class);
-		userService.updateProfile(NON_EXISTENT_ID, "X", "X", "X");
+		userService.updateProfile(NON_EXISTENT_ID, "X");
 	}
 
 	@Test
@@ -175,7 +164,8 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void testChangePasswordWithIncorrectPassword() throws DuplicateInstanceException, InstanceNotFoundException, IncorrectPasswordException {
+	public void testChangePasswordWithIncorrectPassword()
+			throws DuplicateInstanceException, InstanceNotFoundException, IncorrectPasswordException {
 
 		Users user = createUser("user");
 		String oldPassword = user.getPassword();
@@ -184,64 +174,6 @@ public class UserServiceTest {
 		userService.signUp(user);
 		thrown.expect(IncorrectPasswordException.class);
 		userService.changePassword(user.getId(), 'Y' + oldPassword, newPassword);
-
-	}
-
-	@Test
-	public void testFindAllUsersAdmin() {
-
-		Users user1 = createUser("user1");
-		user1.setRole(RoleType.USER);
-		userDao.save(user1);
-
-		Users user2 = createUser("user2");
-		user2.setRole(RoleType.USER);
-		userDao.save(user2);
-
-		Users user3 = createUser("user3");
-		user3.setRole(RoleType.USER);
-		userDao.save(user3);
-
-		Users user4 = createUser("user4");
-		user4.setRole(RoleType.ADMIN);
-		userDao.save(user4);
-
-		Block<Users> expectedBlock = new Block<>(Arrays.asList(user1, user2, user3), false);
-		Block<Users> actualBlock = userService.findAllUsers(PageRequest.of(0, 5));
-		assertEquals(expectedBlock.getItems(), actualBlock.getItems());
-	}
-
-	@Test
-	public void removeUser_withoutLeagues()
-			throws InstanceNotFoundException, CannotDeleteAdminException {
-		Users user1 = createUser("user1");
-		user1.setRole(RoleType.USER);
-		userDao.save(user1);
-
-		Users user2 = createUser("user2");
-		user2.setRole(RoleType.USER);
-		userDao.save(user2);
-
-		Block<Users> expectedBlock = new Block<>(Arrays.asList(user1, user2), false);
-		Block<Users> actualBlock = userService.findAllUsers(PageRequest.of(0, 5));
-		assertEquals(expectedBlock.getItems(), actualBlock.getItems());
-
-		userService.removeUser(user1.getId());
-		Block<Users> expectedBlock2 = new Block<>(Arrays.asList(user2), false);
-		Block<Users> actualBlock2 = userService.findAllUsers(PageRequest.of(0, 5));
-		assertEquals(expectedBlock2.getItems(), actualBlock2.getItems());
-
-	}
-
-	@Test
-	public void testRemoveUser_removeAdmin() throws InstanceNotFoundException, CannotDeleteAdminException {
-
-		Users user1 = createUser("user1");
-		user1.setRole(RoleType.ADMIN);
-		userDao.save(user1);
-
-		thrown.expect(CannotDeleteAdminException.class);
-		userService.removeUser(user1.getId());
 
 	}
 

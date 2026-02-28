@@ -1,6 +1,7 @@
 // Claves bajo las que guardamos la información en localStorage
 const INBOX_KEY = 'digitalBrain.inbox'; // entradas pendientes (inbox)
 const NOTES_KEY = 'digitalBrain.notes'; // notas ya procesadas
+const LAST_PROCESSED_KEY = 'digitalBrain.lastProcessed'; // fecha de último procesado
 
 // Fecha/hora en formato ISO, para guardar cuándo se creó cada elemento
 const nowIso = () => new Date().toISOString();
@@ -40,23 +41,51 @@ export const saveNotes = (items) => {
   localStorage.setItem(NOTES_KEY, JSON.stringify(items));
 };
 
+// Lee la fecha del último procesado (para el sistema de strikes)
+export const loadLastProcessed = () => {
+  const val = localStorage.getItem(LAST_PROCESSED_KEY);
+  return val ? parseInt(val, 10) : Date.now();
+};
+
+// Actualiza la fecha del último procesado a "ahora"
+export const updateLastProcessed = () => {
+  localStorage.setItem(LAST_PROCESSED_KEY, Date.now().toString());
+};
+
 // Clasificación básica del tipo de contenido según el texto introducido
+export const extractFirstUrl = (text) => {
+  if (!text) return null;
+  const match = text.match(/(https?:\/\/\S+|www\.\S+)/i);
+  if (!match) return null;
+  let url = match[0];
+  // Quitar puntuación típica al final
+  url = url.replace(/[),.;!?\]]+$/g, "");
+  if (/^www\./i.test(url)) {
+    url = `http://${url}`;
+  }
+  return url;
+};
+
+export const extractYouTubeId = (urlOrText) => {
+  if (!urlOrText) return null;
+  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+  const match = urlOrText.match(regExp);
+  return match ? match[1] : null;
+};
+
 export const detectEntryType = (content) => {
   if (!content) {
     return 'texto';
   }
 
   const trimmed = content.trim();
-  const urlRegex = /https?:\/\/\S+/i; // patrón muy simple para detectar URLs
-  const hasUrl = urlRegex.test(trimmed);
+  const firstUrl = extractFirstUrl(trimmed);
 
-  // Si es URL de vídeo conocida
-  if (hasUrl && (/youtube\.com|youtu\.be|vimeo\.com/i.test(trimmed))) {
-    return 'video';
-  }
-
-  // Si hay URL pero no parece vídeo, lo tratamos como enlace genérico
-  if (hasUrl) {
+  // Si hay URL, comprobamos si es de vídeo
+  if (firstUrl) {
+    if (/youtube\.com|youtu\.be|vimeo\.com/i.test(firstUrl)) {
+      return 'video';
+    }
     return 'link';
   }
 
@@ -89,20 +118,35 @@ export const createInboxEntry = (rawContent, source = 'manual') => {
 // Construye una nota procesada a partir de una entrada del inbox
 export const createNoteFromEntry = (
   entry,
-  { title, destination, tags, structuredContent, mediaUrl, mediaContentType, type: noteType }
+  { title, tags, structuredContent, mediaUrl, mediaContentType, type: noteType, reminderAt }
 ) => {
   return {
     id: `note-${Date.now().toString()}`,
     entryId: entry.id,
     title: title || 'Nota sin título',
-    destination: destination || 'nota',
+    destination: 'nota',
     tags: tags || [],
     content: structuredContent || entry.rawContent,
     type: noteType || entry.type,
     createdAt: nowIso(),
     isRead: false, // Por defecto, las notas no están leídas
     media: mediaUrl ? { url: mediaUrl, contentType: mediaContentType || '' } : undefined,
+    reminderAt: reminderAt || undefined,
   };
+};
+
+// Marca el recordatorio de una nota como disparado (ya notificado)
+export const clearNoteReminder = (noteId) => {
+  const notes = loadNotes();
+  const updatedNotes = notes.map((note) => {
+    if (note.id === noteId && note.reminderAt) {
+      const { reminderAt, ...rest } = note;
+      return rest;
+    }
+    return note;
+  });
+  saveNotes(updatedNotes);
+  return updatedNotes;
 };
 
 // Elimina una nota concreta por id

@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useUser } from "../../common/components/UserContext";
 import { Login, Register } from "../../user";
-import { DigitalBrainInbox, DigitalBrainProcessEntry, DigitalBrainKnowledge } from "../../digitalbrain";
+import { DigitalBrainInbox, DigitalBrainProcessEntry, DigitalBrainProcessBatch, DigitalBrainKnowledge } from "../../digitalbrain";
 import BrainLayout from "./BrainLayout";
 
 const Body = () => {
@@ -14,6 +14,7 @@ const Body = () => {
       <Route path="/brain" element={<BrainLayout />}>
         <Route path="inbox" element={<DigitalBrainInbox />} />
         <Route path="knowledge" element={<DigitalBrainKnowledge />} />
+        <Route path="process/batch" element={<DigitalBrainProcessBatch />} />
         <Route path="process/:id" element={<DigitalBrainProcessEntry />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

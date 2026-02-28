@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 
 import {
   buildTrendsReport,
@@ -8,6 +8,8 @@ import {
   loadInbox,
   loadNotes,
   toggleNoteReadStatus,
+  extractFirstUrl,
+  extractYouTubeId,
 } from "../digitalBrainStorage";
 import MarkdownRenderer from "./MarkdownRenderer";
 import "./DigitalBrainKnowledge.css";
@@ -16,17 +18,59 @@ import { appFetch, fetchConfig } from "../../../backend/appFetch";
 // Pantalla para navegar el conocimiento ya procesado: aquí solo
 // trabajamos con notas que ya han salido del inbox.
 const DigitalBrainKnowledge = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [notes, setNotes] = useState([]);
   const [inboxEntries, setInboxEntries] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [aiTrends, setAiTrends] = useState(null);
-  const aiReqSeqRef = useRef(0);
+  const [selectedTag, setSelectedTag] = useState(null);
+  const detailPanelRef = useRef(null);
 
   useEffect(() => {
     setNotes(loadNotes());
     setInboxEntries(loadInbox());
   }, []);
+
+  const categorizeNote = useCallback((note) => {
+    const type = note.type || "";
+    const isAudio =
+      note.media &&
+      note.media.contentType &&
+      note.media.contentType.startsWith("audio/");
+    if (type === "link") return "web";
+    if (type === "video") return "videos";
+    if (type === "audio") return "musica";
+    if (isAudio) return "musica";
+    return "otras";
+  }, []);
+
+  // Si viene noteId por URL (ej. desde notificación), seleccionar esa nota y llevar al contenido
+  useEffect(() => {
+    const noteIdFromUrl = searchParams.get("noteId");
+    if (!noteIdFromUrl || notes.length === 0) return;
+    const note = notes.find((n) => n.id === noteIdFromUrl);
+    if (note) {
+      setSelectedCategory(categorizeNote(note));
+      setSelectedId(note.id);
+    } else {
+      const next = new URLSearchParams(searchParams);
+      next.delete("noteId");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, notes, categorizeNote, setSearchParams]);
+
+  // Scroll automático al panel del contenido al seleccionar una nota (desde notificación o desde la lista)
+  useEffect(() => {
+    if (!selectedId || !selectedCategory) return;
+    const scrollToContent = () => {
+      const el = detailPanelRef.current;
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+      }
+    };
+    const t = setTimeout(scrollToContent, 100);
+    return () => clearTimeout(t);
+  }, [selectedId, selectedCategory]);
 
   const handleRefreshLocalData = () => {
     setNotes(loadNotes());
@@ -243,33 +287,40 @@ const DigitalBrainKnowledge = () => {
     }
   }, [notes, selectedId]);
 
-  const categorizeNote = (note) => {
-    const type = note.type || "";
-    const isAudio =
-      note.media &&
-      note.media.contentType &&
-      note.media.contentType.startsWith("audio/");
+  const notesByCategory = useMemo(() => {
+    if (!selectedCategory) return [];
+    return notes.filter((note) => categorizeNote(note) === selectedCategory);
+  }, [notes, selectedCategory, categorizeNote]);
 
-    if (type === "link") return "web";
-    if (type === "video") return "videos";
-    if (type === "audio") return "musica";
-    if (isAudio) return "musica";
-    return "otras";
-  };
+  const availableTags = useMemo(() => {
+    const tagSet = new Set();
+    notesByCategory.forEach((note) => {
+      if (note.tags && Array.isArray(note.tags)) {
+        note.tags.forEach((t) => {
+          const trimmed = String(t).trim();
+          if (trimmed) tagSet.add(trimmed);
+        });
+      }
+    });
+    return Array.from(tagSet).sort();
+  }, [notesByCategory]);
 
   const filteredNotes = useMemo(() => {
-    if (!selectedCategory) return [];
-
-    const filtered = notes.filter(
-      (note) => categorizeNote(note) === selectedCategory
-    );
-
+    let filtered = notesByCategory;
+    if (selectedTag) {
+      filtered = filtered.filter(
+        (note) =>
+          note.tags &&
+          Array.isArray(note.tags) &&
+          note.tags.some((t) => String(t).trim() === selectedTag)
+      );
+    }
     return filtered.sort((a, b) => {
       if (a.isRead && !b.isRead) return 1;
       if (!a.isRead && b.isRead) return -1;
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
-  }, [notes, selectedCategory]);
+  }, [notesByCategory, selectedTag]);
 
   const selectedNote = useMemo(() => {
     if (!selectedId && filteredNotes.length > 0) return filteredNotes[0];
@@ -280,6 +331,7 @@ const DigitalBrainKnowledge = () => {
   useEffect(() => {
     if (!selectedCategory) {
       setSelectedId(null);
+      setSelectedTag(null);
       return;
     }
     if (filteredNotes.length === 0) {
@@ -291,6 +343,10 @@ const DigitalBrainKnowledge = () => {
       setSelectedId(filteredNotes[0].id);
     }
   }, [selectedCategory, filteredNotes, selectedId]);
+
+  useEffect(() => {
+    setSelectedTag(null);
+  }, [selectedCategory]);
 
   const handleDeleteSelected = () => {
     if (!selectedNote) return;
@@ -371,6 +427,18 @@ const DigitalBrainKnowledge = () => {
     e?.stopPropagation?.();
     const updatedNotes = toggleNoteReadStatus(noteId);
     setNotes(updatedNotes);
+  };
+
+  const handleKeyDown = (noteId, e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setSelectedId(noteId);
+    }
+  };
+
+  const getYoutubeIdFromNote = (note) => {
+    if (!note) return null;
+    return extractYouTubeId(note.content) || extractYouTubeId(note.title);
   };
 
   return (
@@ -548,9 +616,8 @@ const DigitalBrainKnowledge = () => {
               <div className="col-6 col-md-3">
                 <button
                   type="button"
-                  className={`dbk-categoryCard card w-100 ${
-                    selectedCategory === "web" ? "dbk-categoryCard--active" : ""
-                  }`}
+                  className={`dbk-categoryCard card w-100 ${selectedCategory === "web" ? "dbk-categoryCard--active" : ""
+                    }`}
                   aria-pressed={selectedCategory === "web"}
                   onClick={() =>
                     setSelectedCategory((prev) => (prev === "web" ? null : "web"))
@@ -575,9 +642,8 @@ const DigitalBrainKnowledge = () => {
               <div className="col-6 col-md-3">
                 <button
                   type="button"
-                  className={`dbk-categoryCard card w-100 ${
-                    selectedCategory === "videos" ? "dbk-categoryCard--active" : ""
-                  }`}
+                  className={`dbk-categoryCard card w-100 ${selectedCategory === "videos" ? "dbk-categoryCard--active" : ""
+                    }`}
                   aria-pressed={selectedCategory === "videos"}
                   onClick={() =>
                     setSelectedCategory((prev) =>
@@ -604,11 +670,10 @@ const DigitalBrainKnowledge = () => {
               <div className="col-6 col-md-3">
                 <button
                   type="button"
-                  className={`dbk-categoryCard card w-100 ${
-                    selectedCategory === "musica"
-                      ? "dbk-categoryCard--active"
-                      : ""
-                  }`}
+                  className={`dbk-categoryCard card w-100 ${selectedCategory === "musica"
+                    ? "dbk-categoryCard--active"
+                    : ""
+                    }`}
                   aria-pressed={selectedCategory === "musica"}
                   onClick={() =>
                     setSelectedCategory((prev) =>
@@ -635,9 +700,8 @@ const DigitalBrainKnowledge = () => {
               <div className="col-6 col-md-3">
                 <button
                   type="button"
-                  className={`dbk-categoryCard card w-100 ${
-                    selectedCategory === "otras" ? "dbk-categoryCard--active" : ""
-                  }`}
+                  className={`dbk-categoryCard card w-100 ${selectedCategory === "otras" ? "dbk-categoryCard--active" : ""
+                    }`}
                   aria-pressed={selectedCategory === "otras"}
                   onClick={() =>
                     setSelectedCategory((prev) =>
@@ -674,6 +738,33 @@ const DigitalBrainKnowledge = () => {
             </div>
           )}
 
+          {selectedCategory && availableTags.length > 0 && (
+            <div className="col-12 mb-3">
+              <div className="d-flex align-items-center gap-2 flex-wrap">
+                <span className="small fw-semibold text-muted me-1">
+                  Filtrar por etiqueta:
+                </span>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${selectedTag === null ? "btn-primary" : "btn-outline-secondary"}`}
+                  onClick={() => setSelectedTag(null)}
+                >
+                  Todas
+                </button>
+                {availableTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`btn btn-sm ${selectedTag === tag ? "btn-primary" : "btn-outline-secondary"}`}
+                    onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {selectedCategory && (
             <div className="col-12 col-lg-4 mb-3">
               <div className="card border-0 shadow-sm h-100">
@@ -682,10 +773,10 @@ const DigitalBrainKnowledge = () => {
                     {selectedCategory === "web"
                       ? "Web"
                       : selectedCategory === "videos"
-                      ? "Vídeos"
-                      : selectedCategory === "musica"
-                      ? "Música"
-                      : "Otras"}
+                        ? "Vídeos"
+                        : selectedCategory === "musica"
+                          ? "Música"
+                          : "Otras"}
                   </div>
                   <span className="badge text-bg-secondary">
                     {filteredNotes.length}
@@ -694,7 +785,9 @@ const DigitalBrainKnowledge = () => {
 
                 {filteredNotes.length === 0 ? (
                   <div className="card-body text-muted">
-                    No hay notas en esta categoría.
+                    {selectedTag
+                      ? `No hay notas con la etiqueta #${selectedTag}.`
+                      : "No hay notas en esta categoría."}
                   </div>
                 ) : (
                   <ul className="list-group list-group-flush dbk-notesList">
@@ -705,35 +798,39 @@ const DigitalBrainKnowledge = () => {
                       return (
                         <li
                           key={note.id}
-                          className={`list-group-item list-group-item-action dbk-noteItem ${
-                            isActive ? "active" : ""
-                          } ${note.isRead ? "dbk-noteItem--read" : ""} ${
-                            isUnread ? "dbk-noteItem--unread" : ""
-                          }`}
+                          className={`list-group-item list-group-item-action dbk-noteItem ${isActive ? "active" : ""
+                            } ${note.isRead ? "dbk-noteItem--read" : ""} ${isUnread ? "dbk-noteItem--unread" : ""
+                            }`}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => setSelectedId(note.id)}
+                          onKeyDown={(e) => handleKeyDown(note.id, e)}
                           style={{ cursor: "pointer" }}
                         >
                           <div className="d-flex justify-content-between align-items-start gap-2">
                             <div className="flex-grow-1" style={{ minWidth: 0 }}>
                               <div
-                                className={`dbk-noteTitle fw-semibold text-truncate ${
-                                  note.isRead ? "text-muted" : ""
-                                }`}
+                                className={`dbk-noteTitle fw-semibold text-truncate ${note.isRead ? "text-muted" : ""
+                                  }`}
                               >
                                 {note.title || "Nota sin título"}
                               </div>
                               <div
-                                className={`small ${
-                                  isActive ? "text-white-50" : "text-muted"
-                                }`}
+                                className={`small ${isActive ? "text-white-50" : "text-muted"
+                                  }`}
                               >
-                                {note.destination} • {note.type}
+                                {note.type}
                               </div>
+
+                              {(note.type === "audio" || (note.media && note.media.contentType && note.media.contentType.startsWith("audio/"))) && note.media && note.media.url && (
+                                <div className="mt-2 text-dark">
+                                  <audio src={note.media.url} controls className="w-100" style={{ height: "30px" }} />
+                                </div>
+                              )}
                             </div>
                             <div
-                              className={`small text-nowrap ${
-                                isActive ? "text-white-50" : "text-muted"
-                              }`}
+                              className={`small text-nowrap ${isActive ? "text-white-50" : "text-muted"
+                                }`}
                             >
                               {new Date(note.createdAt).toLocaleDateString()}
                             </div>
@@ -748,7 +845,7 @@ const DigitalBrainKnowledge = () => {
           )}
 
           {selectedCategory && (
-            <div className="col-12 col-lg-8">
+            <div ref={detailPanelRef} className="col-12 col-lg-8">
               {selectedNote ? (
                 <>
                   <div className="card border-0 shadow-sm mb-3">
@@ -756,9 +853,8 @@ const DigitalBrainKnowledge = () => {
                       <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
                         <div style={{ minWidth: 0 }}>
                           <h3
-                            className={`h5 mb-1 dbk-detailTitle ${
-                              selectedNote.isRead ? "text-muted" : ""
-                            }`}
+                            className={`h5 mb-1 dbk-detailTitle ${selectedNote.isRead ? "text-muted" : ""
+                              }`}
                             style={{
                               textDecoration: selectedNote.isRead
                                 ? "line-through"
@@ -803,43 +899,24 @@ const DigitalBrainKnowledge = () => {
                     </div>
                   </div>
 
-                  {selectedNote.media && selectedNote.media.url && (
-                    <div className="mb-3">
-                      {selectedNote.media.contentType &&
-                      selectedNote.media.contentType.startsWith("audio/") ? (
-                        <audio
-                          controls
-                          className="w-100"
-                          src={selectedNote.media.url}
-                        >
-                          Your browser does not support the audio element.
-                        </audio>
-                      ) : selectedNote.media.contentType &&
-                        selectedNote.media.contentType.startsWith("video/") ? (
-                        <video
-                          controls
-                          className="w-100"
-                          style={{ maxHeight: "400px" }}
-                          src={selectedNote.media.url}
-                        >
-                          Your browser does not support the video tag.
-                        </video>
-                      ) : null}
+                  {/* Renderizado de Audio Nativo */}
+                  {(selectedNote.type === "audio" || (selectedNote.media && selectedNote.media.contentType && selectedNote.media.contentType.startsWith("audio/"))) && selectedNote.media && selectedNote.media.url && (
+                    <div className="mb-3 p-2 bg-light rounded border">
+                      <audio src={selectedNote.media.url} controls className="w-100" />
                     </div>
                   )}
 
                   <div className="mb-3">
                     <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
                       <span
-                        className={`badge bg-${
-                          selectedNote.destination === "apunte"
-                            ? "primary"
-                            : selectedNote.destination === "idea"
+                        className={`badge bg-${selectedNote.destination === "apunte"
+                          ? "primary"
+                          : selectedNote.destination === "idea"
                             ? "info"
                             : selectedNote.destination === "recurso"
-                            ? "success"
-                            : "warning"
-                        }`}
+                              ? "success"
+                              : "warning"
+                          }`}
                       >
                         {selectedNote.destination}
                       </span>
@@ -864,10 +941,9 @@ const DigitalBrainKnowledge = () => {
                   </div>
 
                   <div
-              
-                    className={`bg-white card border-0 shadow-sm p-4 dbk-contentCard ${
-                      selectedNote.isRead ? "dbk-contentCard--read" : ""
-                    }`}
+
+                    className={`bg-white card border-0 shadow-sm p-4 dbk-contentCard ${selectedNote.isRead ? "dbk-contentCard--read" : ""
+                      }`}
                   >
                     <div
                       style={{
@@ -876,7 +952,7 @@ const DigitalBrainKnowledge = () => {
                           : "none",
                       }}
                     >
-                      <MarkdownRenderer content={selectedNote.content} />
+                      <MarkdownRenderer content={selectedNote.content} selectedNote={selectedNote} />
                     </div>
                   </div>
                 </>

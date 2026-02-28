@@ -9,15 +9,21 @@ import {
   saveNotes,
   saveInbox,
   defaultTemplate,
+  updateLastProcessed,
+  extractFirstUrl,
+  extractYouTubeId,
 } from "../services/brainService";
+import { useNotifications } from "../../common/components/NotificationContext";
 
-export const DigitalBrainProcessEntry = () => {
-  const { id } = useParams();
+export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAfterSave }) => {
+  const { id: idFromParams } = useParams();
   const navigate = useNavigate();
+  const id = batchMode ? entryIdProp : idFromParams;
+  const { requestNotificationPermission, refreshReminders } = useNotifications();
   const [entry, setEntry] = useState(undefined);
   const [title, setTitle] = useState("");
-  const [destination, setDestination] = useState("apunte");
   const [tags, setTags] = useState("");
+  const [reminderAt, setReminderAt] = useState("");
   const [content, setContent] = useState("");
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
@@ -48,9 +54,6 @@ export const DigitalBrainProcessEntry = () => {
 
       const baseTitle = data.title || (found.type === "tarea" ? "Tarea" : "Nota");
       setTitle(baseTitle);
-      if (data.destination) {
-        setDestination(data.destination);
-      }
       if (data.tags && Array.isArray(data.tags)) {
         setTags(data.tags.join(", "));
       }
@@ -83,9 +86,6 @@ export const DigitalBrainProcessEntry = () => {
         // Usamos las sugerencias para pre-rellenar el formulario
         const baseTitle = data.title || (found.type === "tarea" ? "Tarea" : "Nota");
         setTitle(baseTitle);
-        if (data.destination) {
-          setDestination(data.destination);
-        }
         if (data.tags && Array.isArray(data.tags)) {
           setTags(data.tags.join(", "));
         }
@@ -118,11 +118,11 @@ export const DigitalBrainProcessEntry = () => {
     // 2. Crear nota estructurada a partir da entrada e os campos do formulario
     const note = createNoteFromEntry(entry, {
       title,
-      destination,
       tags: tags
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
+      reminderAt: reminderAt ? new Date(reminderAt).toISOString() : undefined,
       structuredContent: content,
       type: aiSuggestion && aiSuggestion.type ? aiSuggestion.type : entry.type,
       mediaUrl: entry.media && entry.media.url ? entry.media.url : undefined,
@@ -137,6 +137,13 @@ export const DigitalBrainProcessEntry = () => {
     // 4. Gardar cambios
     saveNotes(updatedNotes);
     saveInbox(updatedInbox);
+
+    if (note.reminderAt) {
+      refreshReminders();
+    }
+
+    // Resetear strikes
+    updateLastProcessed();
 
     // 4.1 Persistir también en formato abierto (Markdown en disco) via backend.
     // Best-effort: si falla, la app sigue funcionando con localStorage.
@@ -174,8 +181,12 @@ export const DigitalBrainProcessEntry = () => {
       }
     );
 
-    // 5. Ir á pantalla de coñecemento
-    navigate("/brain/knowledge");
+    // 5. En modo lote llamamos al callback; si no, ir a conocimiento
+    if (batchMode && onAfterSave) {
+      onAfterSave();
+    } else {
+      navigate("/brain/knowledge");
+    }
   };
 
   const handleFactCheck = () => {
@@ -273,14 +284,20 @@ export const DigitalBrainProcessEntry = () => {
   }
 
   return (
-    <div className="container synapse-brain-page" style={{ maxWidth: "1200px" }}>
+    <div className={`container synapse-brain-page ${batchMode ? "synapse-brain-page--batch" : ""}`} style={{ maxWidth: "1200px" }}>
       <div className="d-flex justify-content-between align-items-center mb-4 synapse-animate-in">
         <h2 className="synapse-brain-title mb-0 d-flex align-items-center gap-2">
           <span aria-hidden>🤖</span> Procesar con IA
         </h2>
-        <Link to="/brain/inbox" className="btn btn-outline-primary synapse-brain-btn">
-          ← Volver al inbox
-        </Link>
+        {batchMode ? (
+          <Link to="/brain/inbox" className="btn btn-outline-secondary synapse-brain-btn">
+            Cancelar y volver al inbox
+          </Link>
+        ) : (
+          <Link to="/brain/inbox" className="btn btn-outline-primary synapse-brain-btn">
+            ← Volver al inbox
+          </Link>
+        )}
       </div>
 
       <div className="row g-4">
@@ -322,6 +339,36 @@ export const DigitalBrainProcessEntry = () => {
                 {rawPreview}
               </div>
 
+              {/* Renderizado de Video/Audio (YouTube o Nativo) */}
+              {entry.type === "video" && (
+                <div className="mt-3 rounded overflow-hidden shadow-sm">
+                  {extractYouTubeId(entry.rawContent) ? (
+                    <iframe
+                      width="100%"
+                      height="240"
+                      src={`https://www.youtube.com/embed/${extractYouTubeId(entry.rawContent)}`}
+                      title="YouTube video player"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    ></iframe>
+                  ) : entry.media && entry.media.url ? (
+                    <video
+                      src={entry.media.url}
+                      controls
+                      width="100%"
+                      style={{ maxHeight: "300px", backgroundColor: "#000" }}
+                    />
+                  ) : null}
+                </div>
+              )}
+
+              {entry.type === "audio" && entry.media && entry.media.url && (
+                <div className="mt-3 p-2 bg-light rounded border">
+                  <audio src={entry.media.url} controls className="w-100" />
+                </div>
+              )}
+
               {/* Sugerencias de IA */}
               {loadingSuggestion && (
                 <div className="mt-4 p-3 bg-primary bg-opacity-10 rounded">
@@ -355,12 +402,6 @@ export const DigitalBrainProcessEntry = () => {
                       <div className="mb-2">
                         <strong>Resumen:</strong>
                         <p className="mb-0 mt-1">{aiSuggestion.summary}</p>
-                      </div>
-                    )}
-                    {aiSuggestion.destination && (
-                      <div className="mb-2">
-                        <strong>Destino sugerido:</strong>{" "}
-                        <span className="badge bg-info">{aiSuggestion.destination}</span>
                       </div>
                     )}
                     {aiSuggestion.tags && aiSuggestion.tags.length > 0 && (
@@ -413,23 +454,6 @@ export const DigitalBrainProcessEntry = () => {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="destination-select" className="form-label fw-semibold">
-                    Destino
-                  </label>
-                  <select
-                    id="destination-select"
-                    className="form-select"
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                  >
-                    <option value="apunte">📚 Apunte de estudio</option>
-                    <option value="idea">💡 Idea conectada</option>
-                    <option value="recurso">🔗 Recurso / referencia</option>
-                    <option value="tarea">✓ Lista de tareas</option>
-                  </select>
-                </div>
-
-                <div className="mb-3">
                   <label htmlFor="tags-input" className="form-label fw-semibold">
                     Etiquetas
                   </label>
@@ -443,6 +467,24 @@ export const DigitalBrainProcessEntry = () => {
                   />
                   <small className="text-muted">
                     Servirán para relacionar esta nota con otras más adelante.
+                  </small>
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="reminder-input" className="form-label fw-semibold">
+                    Recordatorio
+                  </label>
+                  <input
+                    id="reminder-input"
+                    type="datetime-local"
+                    className="form-control"
+                    value={reminderAt}
+                    onChange={(e) => setReminderAt(e.target.value)}
+                    onFocus={requestNotificationPermission}
+                    min={new Date().toISOString().slice(0, 16)}
+                  />
+                  <small className="text-muted">
+                    Te avisaremos en el momento exacto con una notificación del sistema.
                   </small>
                 </div>
 
@@ -489,7 +531,7 @@ export const DigitalBrainProcessEntry = () => {
                       Cancelar
                     </Link>
                     <button type="submit" className="btn btn-primary synapse-brain-btn px-4">
-                      <span aria-hidden>💾</span> Guardar nota y sacar del inbox
+                      <span aria-hidden>💾</span> {batchMode ? "Guardar y siguiente" : "Guardar nota y sacar del inbox"}
                     </button>
                   </div>
                 </div>

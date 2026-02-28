@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-import { createInboxEntry, loadInbox, saveInbox, loadNotes } from "../digitalBrainStorage";
+import { createInboxEntry, loadInbox, saveInbox, loadNotes, loadLastProcessed, extractFirstUrl, extractYouTubeId } from "../digitalBrainStorage";
 import { appFetch, fetchConfig } from "../../../backend/appFetch";
 import "./FileDropZone.css";
 
@@ -17,6 +17,7 @@ const DigitalBrainInbox = () => {
   const [previewLoading, setPreviewLoading] = useState({});
   const [previewError, setPreviewError] = useState({});
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const dragCounter = useRef(0);
   const navigate = useNavigate();
 
@@ -96,17 +97,30 @@ const DigitalBrainInbox = () => {
     navigate(`/brain/process/${id}`);
   };
 
-  const extractFirstUrl = (text) => {
-    if (!text) return null;
-    const match = text.match(/(https?:\/\/\S+|www\.\S+)/i);
-    if (!match) return null;
-    let url = match[0];
-    // Quitar puntuación típica al final
-    url = url.replace(/[),.;!?\]]+$/g, "");
-    if (/^www\./i.test(url)) {
-      url = `http://${url}`;
-    }
-    return url;
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllFiltered = () => {
+    setSelectedIds(new Set(filteredInbox.map((i) => i.id)));
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleProcessSelected = () => {
+    if (selectedIds.size === 0) return;
+    const ids = filteredInbox.filter((i) => selectedIds.has(i.id)).map((i) => i.id);
+    if (ids.length === 0) return;
+    navigate("/brain/process/batch", { state: { ids } });
+  };
+
+  const getYouTubeEmbedUrl = (id) => {
+    return id ? `https://www.youtube.com/embed/${id}` : null;
   };
 
   const handleLoadPreview = (id) => {
@@ -299,6 +313,13 @@ const DigitalBrainInbox = () => {
     return items;
   }, [inbox, query, sortOrder, typeFilter]);
 
+  const strikesCount = useMemo(() => {
+    const last = loadLastProcessed();
+    const diff = Date.now() - last;
+    const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+    return days > 0 ? days : 0;
+  }, [inbox]); // Se recalcula cuando cambia el inbox (potencial procesado)
+
   const ageLabel = (createdAt) => {
     const t = Date.parse(createdAt);
     if (!Number.isFinite(t)) return "";
@@ -414,7 +435,36 @@ const DigitalBrainInbox = () => {
                   <span className="badge bg-primary rounded-pill">{inbox.length}</span>
                 )}
               </h2>
-              <div className="d-flex gap-2 flex-wrap">
+              <div className="d-flex gap-2 flex-wrap align-items-center">
+                {filteredInbox.length > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={selectAllFiltered}
+                    >
+                      Seleccionar todo
+                    </button>
+                    {selectedIds.size > 0 && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={clearSelection}
+                        >
+                          Quitar selección
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary"
+                          onClick={handleProcessSelected}
+                        >
+                          <span aria-hidden>🤖</span> Procesar {selectedIds.size} seleccionado{selectedIds.size !== 1 ? "s" : ""}
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-danger"
@@ -495,86 +545,97 @@ const DigitalBrainInbox = () => {
               {filteredInbox.map((item) => (
                 <div
                   key={item.id}
-                  className="inbox-item synapse-inbox-item"
+                  className={`inbox-item synapse-inbox-item ${selectedIds.has(item.id) ? "synapse-inbox-item--selected" : ""}`}
                   style={{ borderLeft: `4px solid var(--bs-${getTypeBadgeColor(item.type)})` }}
                 >
                   <div className="d-flex justify-content-between align-items-start">
-                    <div className="flex-grow-1 me-3">
-                      <div className="d-flex align-items-center mb-2">
-                        <span className="me-2" style={{ fontSize: "1.2rem" }}>
-                          {getTypeIcon(item.type)}
-                        </span>
-                        <span
-                          className={`badge bg-${getTypeBadgeColor(item.type)} text-uppercase`}
-                          style={{ fontSize: "0.75rem" }}
-                        >
-                          {item.type}
-                        </span>
-                        <small className="text-muted ms-2">
-                          {new Date(item.createdAt).toLocaleString("es-ES", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </small>
-                        <span className="badge text-bg-light ms-2" title="Antigüedad">
-                          {ageLabel(item.createdAt)}
-                        </span>
-                      </div>
-                      <div
-                        className="mt-2"
-                        style={{
-                          maxWidth: "100%",
-                          wordBreak: "break-word",
-                          lineHeight: "1.5",
-                        }}
-                      >
-                        {item.rawContent.length > 200 ? (
-                          <>
-                            {item.rawContent.substring(0, 200)}...
-                            <span className="text-muted small"> (mostrar más)</span>
-                          </>
-                        ) : (
-                          item.rawContent
-                        )}
-                      </div>
-                      {item.aiSuggestion && (
-                        <div className="mt-2">
-                          <span className="badge text-bg-success">Sugerencia lista</span>
+                    <div className="d-flex align-items-start gap-2 flex-grow-1 me-3">
+                      <label className="synapse-inbox-item__checkbox-label mb-0 mt-1">
+                        <input
+                          type="checkbox"
+                          className="form-check-input synapse-inbox-item__checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelect(item.id)}
+                          aria-label={`Seleccionar entrada ${item.id}`}
+                        />
+                      </label>
+                      <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                        <div className="d-flex align-items-center mb-2">
+                          <span className="me-2" style={{ fontSize: "1.2rem" }}>
+                            {getTypeIcon(item.type)}
+                          </span>
+                          <span
+                            className={`badge bg-${getTypeBadgeColor(item.type)} text-uppercase`}
+                            style={{ fontSize: "0.75rem" }}
+                          >
+                            {item.type}
+                          </span>
+                          <small className="text-muted ms-2">
+                            {new Date(item.createdAt).toLocaleString("es-ES", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </small>
+                          <span className="badge text-bg-light ms-2" title="Antigüedad">
+                            {ageLabel(item.createdAt)}
+                          </span>
                         </div>
-                      )}
-
-                      {(item.type === "link" || extractFirstUrl(item.rawContent)) && (
-                        <div className="mt-3">
-                          {item.linkPreview ? (
-                            <div className="p-2 border rounded bg-light">
-                              <div className="small fw-semibold">
-                                {item.linkPreview.title || "Vista previa"}
-                              </div>
-                              {item.linkPreview.description && (
-                                <div className="small text-muted mt-1">
-                                  {item.linkPreview.description}
-                                </div>
-                              )}
-                            </div>
+                        <div
+                          className="mt-2"
+                          style={{
+                            maxWidth: "100%",
+                            wordBreak: "break-word",
+                            lineHeight: "1.5",
+                          }}
+                        >
+                          {item.rawContent.length > 200 ? (
+                            <>
+                              {item.rawContent.substring(0, 200)}...
+                              <span className="text-muted small"> (mostrar más)</span>
+                            </>
                           ) : (
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-outline-secondary"
-                                onClick={() => handleLoadPreview(item.id)}
-                                disabled={!!previewLoading[item.id]}
-                              >
-                                {previewLoading[item.id] ? "Cargando..." : "Cargar vista previa"}
-                              </button>
-                              {previewError[item.id] && (
-                                <small className="text-danger">{previewError[item.id]}</small>
-                              )}
-                            </div>
+                            item.rawContent
                           )}
                         </div>
-                      )}
+                        {item.aiSuggestion && (
+                          <div className="mt-2">
+                            <span className="badge text-bg-success">Sugerencia lista</span>
+                          </div>
+                        )}
+
+                        {(item.type === "link" || extractFirstUrl(item.rawContent)) && (
+                          <div className="mt-3">
+                            {item.linkPreview ? (
+                              <div className="p-2 border rounded bg-light">
+                                <div className="small fw-semibold">
+                                  {item.linkPreview.title || "Vista previa"}
+                                </div>
+                                {item.linkPreview.description && (
+                                  <div className="small text-muted mt-1">
+                                    {item.linkPreview.description}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="d-flex align-items-center gap-2 flex-wrap">
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-secondary"
+                                  onClick={() => handleLoadPreview(item.id)}
+                                  disabled={!!previewLoading[item.id]}
+                                >
+                                  {previewLoading[item.id] ? "Cargando..." : "Cargar vista previa"}
+                                </button>
+                                {previewError[item.id] && (
+                                  <small className="text-danger">{previewError[item.id]}</small>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="d-flex flex-column gap-2">
                       <button

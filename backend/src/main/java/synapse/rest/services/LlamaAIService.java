@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 import synapse.rest.dtos.FactCheckResponseDto;
+import synapse.rest.dtos.TrendsInsightsParamsDto;
+import synapse.rest.dtos.TrendsInsightsResponseDto;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -565,6 +567,118 @@ public class LlamaAIService {
             logger.error("Error al verificar información con LLaMA: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
+    }
+
+    /**
+     * Genera insights de tendencias personalizados usando LLaMA, a partir de:
+     * - Tópicos con conteos (reciente vs anterior)
+     * - Una muestra de items reales (título/tags/extracto)
+     *
+     * Devuelve un JSON con etiquetas más específicas y frases de insights.
+     */
+    public TrendsInsightsResponseDto generateTrendsInsights(TrendsInsightsParamsDto params) {
+        if (params == null) {
+            return new TrendsInsightsResponseDto();
+        }
+
+        // Si no hay API key configurada, devolver vacío (el frontend usará fallback determinista)
+        if (apiKey == null || apiKey.isEmpty() || apiKey.equals("your-groq-api-key-here")) {
+            logger.warn("API key de LLaMA no configurada, devolviendo insights vacíos");
+            return new TrendsInsightsResponseDto();
+        }
+
+        try {
+            String prompt = buildTrendsInsightsPrompt(params);
+            String response = callLlamaApi(prompt);
+
+            if (response == null || response.trim().isEmpty()) {
+                return new TrendsInsightsResponseDto();
+            }
+
+            String jsonStr = extractJSON(response);
+            TrendsInsightsResponseDto dto = gson.fromJson(jsonStr, TrendsInsightsResponseDto.class);
+            return dto != null ? dto : new TrendsInsightsResponseDto();
+        } catch (Exception e) {
+            logger.error("Error generando insights de tendencias con LLaMA: {}", e.getMessage(), e);
+            return new TrendsInsightsResponseDto();
+        }
+    }
+
+    private String buildTrendsInsightsPrompt(TrendsInsightsParamsDto params) {
+        JsonObject payload = new JsonObject();
+        payload.addProperty("windowDays", params.getWindowDays());
+
+        JsonArray topicsArray = new JsonArray();
+        if (params.getTopics() != null) {
+            for (TrendsInsightsParamsDto.TopicCountDto t : params.getTopics()) {
+                if (t == null) {
+                    continue;
+                }
+
+                JsonObject o = new JsonObject();
+                o.addProperty("topic", t.getTopic());
+                o.addProperty("trend", t.getTrend());
+                o.addProperty("recentCount", t.getRecentCount() == null ? 0 : t.getRecentCount());
+                o.addProperty("previousCount", t.getPreviousCount() == null ? 0 : t.getPreviousCount());
+                topicsArray.add(o);
+            }
+        }
+        payload.add("topics", topicsArray);
+
+        JsonArray itemsArray = new JsonArray();
+        if (params.getItems() != null) {
+            int max = Math.min(params.getItems().size(), 60);
+            for (int i = 0; i < max; i++) {
+                TrendsInsightsParamsDto.TrendSampleItemDto it = params.getItems().get(i);
+                if (it == null) {
+                    continue;
+                }
+
+                JsonObject o = new JsonObject();
+                o.addProperty("createdAt", it.getCreatedAt());
+                o.addProperty("type", it.getType());
+                o.addProperty("title", it.getTitle());
+
+                if (it.getTags() != null) {
+                    JsonArray tags = new JsonArray();
+                    for (String tag : it.getTags()) {
+                        if (tag != null && !tag.trim().isEmpty()) {
+                            tags.add(tag);
+                        }
+                    }
+                    o.add("tags", tags);
+                }
+
+                String c = it.getContent();
+                if (c != null && c.length() > 600) {
+                    c = c.substring(0, 600) + "...";
+                }
+                o.addProperty("content", c);
+
+                itemsArray.add(o);
+            }
+        }
+        payload.add("items", itemsArray);
+
+        String data = gson.toJson(payload);
+
+        return "Actúa como un analista de tendencias personales. Te doy un RADAR de tópicos (conteos reciente vs anterior) y una muestra de items reales (título/tags/extracto).\n\n"
+                + "OBJETIVO:\n"
+                + "1) Etiquetar cada topic con un nombre más específico en español (sin inventar).\n"
+                + "   - Si detectas música, concreta género/subgénero (ej. rap, techno, flamenco, reggaeton).\n"
+                + "   - Si detectas política, concreta el ámbito (nacional/internacional/elecciones/partidos/políticas públicas).\n"
+                + "   - Si no hay evidencia suficiente, usa etiqueta general (ej. 'música', 'política').\n"
+                + "2) Generar 'insights' (1-3 frases) y 'recommendations' (1-3) basadas en los datos.\n\n"
+                + "DATOS (JSON):\n" + data + "\n\n"
+                + "REGLAS:\n"
+                + "- No inventes hechos ni nombres propios; si dudas, sé conservador.\n"
+                + "- Devuelve SOLO JSON válido, sin texto adicional ni markdown.\n\n"
+                + "FORMATO DE SALIDA:\n"
+                + "{\n"
+                + "  \"topicLabels\": {\"topicOriginal\": \"Etiqueta específica\"},\n"
+                + "  \"insights\": [\"...\"],\n"
+                + "  \"recommendations\": [\"...\"]\n"
+                + "}";
     }
 
     private String buildFactCheckPrompt(String content) {

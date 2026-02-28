@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
@@ -20,6 +20,8 @@ const DigitalBrainKnowledge = () => {
   const [inboxEntries, setInboxEntries] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [aiTrends, setAiTrends] = useState(null);
+  const aiReqSeqRef = useRef(0);
 
   useEffect(() => {
     setNotes(loadNotes());
@@ -36,8 +38,93 @@ const DigitalBrainKnowledge = () => {
     return buildTrendsReport(items, { windowDays: 14, maxTopics: 7 });
   }, [notes, inboxEntries]);
 
+  useEffect(() => {
+    if (!trendsReport || trendsReport.totalItemsAnalyzed === 0 || (trendsReport.topics || []).length === 0) {
+      setAiTrends(null);
+      return;
+    }
+
+    const now = new Date();
+    const end = now.getTime();
+    const windowMs = trendsReport.windowDays * 24 * 60 * 60 * 1000;
+    const recentStart = end - windowMs;
+    const prevStart = recentStart - windowMs;
+
+    const allItems = [...(notes || []), ...(inboxEntries || [])]
+      .filter((it) => {
+        const ts = it && it.createdAt ? new Date(it.createdAt).getTime() : NaN;
+        if (!Number.isFinite(ts)) return false;
+        return ts >= prevStart && ts <= end;
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const limit = (arr, n) => arr.slice(0, n);
+    const recentItems = limit(allItems.filter((it) => new Date(it.createdAt).getTime() >= recentStart), 30);
+    const previousItems = limit(allItems.filter((it) => new Date(it.createdAt).getTime() < recentStart), 30);
+
+    const sampleItems = [...recentItems, ...previousItems].map((it) => {
+      const title = it.title || '';
+      const tags = Array.isArray(it.tags) ? it.tags : [];
+      const content = (it.content || it.rawContent || '').toString().slice(0, 800);
+      return {
+        createdAt: it.createdAt,
+        type: it.type || '',
+        title,
+        tags,
+        content,
+      };
+    });
+
+    const payload = {
+      windowDays: trendsReport.windowDays,
+      topics: (trendsReport.topics || []).map((t) => ({
+        topic: t.topic,
+        trend: t.trend,
+        recentCount: t.recentCount,
+        previousCount: t.previousCount,
+      })),
+      items: sampleItems,
+    };
+
+    const seq = (aiReqSeqRef.current += 1);
+    appFetch(
+      "/api/brain/trends/insights",
+      fetchConfig("POST", payload),
+      (resp) => {
+        if (aiReqSeqRef.current !== seq) return;
+        setAiTrends(resp || null);
+      },
+      () => {
+        if (aiReqSeqRef.current !== seq) return;
+        setAiTrends(null);
+      }
+    );
+  }, [trendsReport, notes, inboxEntries]);
+
+  const trendsTopicsForUi = useMemo(() => {
+    const labels = aiTrends && aiTrends.topicLabels ? aiTrends.topicLabels : {};
+    return (trendsReport?.topics || []).map((t) => ({
+      ...t,
+      displayTopic: labels[t.topic] || t.topic,
+    }));
+  }, [trendsReport, aiTrends]);
+
+  const insightsForUi = useMemo(() => {
+    if (aiTrends && Array.isArray(aiTrends.insights) && aiTrends.insights.length > 0) {
+      return aiTrends.insights;
+    }
+    return trendsReport?.insights || [];
+  }, [aiTrends, trendsReport]);
+
+  const recommendationsForUi = useMemo(() => {
+    if (aiTrends && Array.isArray(aiTrends.recommendations) && aiTrends.recommendations.length > 0) {
+      return aiTrends.recommendations;
+    }
+    return trendsReport?.recommendations || [];
+  }, [aiTrends, trendsReport]);
+
   const radarModel = useMemo(() => {
-    const topics = (trendsReport?.topics || []).slice(0, 7);
+    const topics = (trendsTopicsForUi || []).slice(0, 7);
     const n = topics.length;
     if (n < 3) {
       return { enabled: false, topics: [] };
@@ -86,7 +173,7 @@ const DigitalBrainKnowledge = () => {
 
     const labels = topics.map((t, idx) => {
       const pos = labelAt(idx);
-      const text = (t.topic || '').toString();
+      const text = (t.displayTopic || t.topic || '').toString();
       const clipped = text.length > 14 ? `${text.slice(0, 14)}…` : text;
       return { ...pos, topic: t.topic, text: clipped };
     });
@@ -114,7 +201,7 @@ const DigitalBrainKnowledge = () => {
       recentPolygon: toPointsString(recentPts),
       previousPolygon: toPointsString(prevPts),
     };
-  }, [trendsReport]);
+  }, [trendsTopicsForUi]);
 
   // Resumen por categorías: web, vídeos, música, otras
   const categorySummary = useMemo(() => {
@@ -422,22 +509,22 @@ const DigitalBrainKnowledge = () => {
 
                 <div className="col-12 col-lg-6">
                   <div className="small fw-semibold mb-1">💡 Insights</div>
-                  {trendsReport.insights.length === 0 ? (
+                  {insightsForUi.length === 0 ? (
                     <div className="text-muted small">—</div>
                   ) : (
                     <ul className="mb-2">
-                      {trendsReport.insights.map((i, idx) => (
+                      {insightsForUi.map((i, idx) => (
                         <li key={idx} className="small">{i}</li>
                       ))}
                     </ul>
                   )}
 
                   <div className="small fw-semibold mb-1">🎯 Recomendaciones</div>
-                  {trendsReport.recommendations.length === 0 ? (
+                  {recommendationsForUi.length === 0 ? (
                     <div className="text-muted small">—</div>
                   ) : (
                     <ul className="mb-0">
-                      {trendsReport.recommendations.map((r, idx) => (
+                      {recommendationsForUi.map((r, idx) => (
                         <li key={idx} className="small">{r}</li>
                       ))}
                     </ul>

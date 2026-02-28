@@ -175,13 +175,22 @@ public class BrainController {
         logger.info("Enviando metadatos de archivo '{}' a la IA para clasificación", originalName);
         ClaudeAIService.ClassificationResult classification = claudeAIService.classifyContent(description.toString());
 
+        // Para ficheros subidos, el tipo debe reflejar el tipo real del archivo.
+        // Esto hace que las categorías (vídeo/música/otras) sean consistentes.
+        String finalType = classification.getType();
+        if (isAudio) {
+            finalType = "audio";
+        } else if (isVideo) {
+            finalType = "video";
+        }
+
         // Guardar el archivo físico para poder reproducirlo después desde el navegador
         String storedFilename = mediaStorageService.storeFile(file);
         String basePath = (contextPath != null ? contextPath : "");
         String mediaUrl = basePath + "/api/brain/media/" + storedFilename;
 
         return new BrainSuggestionDto(
-                classification.getType(),
+            finalType,
                 classification.getTitle() != null ? classification.getTitle() : originalName,
                 classification.getSummary(),
                 classification.getDetailedContent(),

@@ -90,6 +90,7 @@ export const DigitalBrainProcessEntry = () => {
         .map((t) => t.trim())
         .filter(Boolean),
       structuredContent: content,
+      type: aiSuggestion && aiSuggestion.type ? aiSuggestion.type : entry.type,
     });
 
     // 3. Actualizar a lista de notas procesadas e eliminar a entrada do inbox

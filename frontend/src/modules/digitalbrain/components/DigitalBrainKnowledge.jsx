@@ -43,6 +43,8 @@ const DigitalBrainKnowledge = () => {
         summary.web += 1;
       } else if (type === "video") {
         summary.videos += 1;
+      } else if (type === "audio") {
+        summary.musica += 1;
       } else if (hasAudio) {
         summary.musica += 1;
       } else {
@@ -70,6 +72,7 @@ const DigitalBrainKnowledge = () => {
 
     if (type === "link") return "web";
     if (type === "video") return "videos";
+    if (type === "audio") return "musica";
     if (isAudio) return "musica";
     return "otras";
   };

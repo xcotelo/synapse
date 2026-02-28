@@ -49,6 +49,7 @@ const DigitalBrainInbox = () => {
             title: response.title || entry.rawContent.substring(0, 50),
             destination: response.destination || "apunte",
             tags: response.tags || [],
+            type: response.type || entry.type,
             structuredContent: response.detailedContent || `# ${response.title || "Nota"}\n\n${response.summary || entry.rawContent}`,
           });
 
@@ -109,7 +110,12 @@ const DigitalBrainInbox = () => {
     const inboxEntry = {
       id: Date.now().toString(),
       rawContent: `Archivo subido: ${file.name}`,
-      type: file.type && file.type.startsWith("video") ? "video" : "nota",
+      type:
+        file.type && file.type.startsWith("audio")
+          ? "audio"
+          : file.type && file.type.startsWith("video")
+          ? "video"
+          : "nota",
       createdAt: new Date().toISOString(),
       source: "upload",
       status: "inbox",
@@ -129,6 +135,7 @@ const DigitalBrainInbox = () => {
           title: response.title || file.name,
           destination: response.destination || "apunte",
           tags: response.tags || [],
+          type: response.type || inboxEntry.type,
           structuredContent:
             response.detailedContent ||
             `# ${response.title || file.name}\n\n## Resumen\n\n${response.summary || "Contenido generado a partir de los metadatos del archivo."}`,

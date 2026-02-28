@@ -8,8 +8,16 @@ import Menu from "./Menu";
 
 const App = () => {
   return (
-    <div className="global bblanco"
-    style={{ height: "100vh", width: "100vw", margin: 0, padding: 0, overflowX: "hidden"}}
+    <div
+      className="global"
+      style={{
+        minHeight: "100vh",
+        width: "100vw",
+        margin: 0,
+        padding: 0,
+        overflowX: "hidden",
+        backgroundColor: "#A8DADC" // mismo tono azul claro que el gradiente del login
+      }}
     >
       <Router>
         <Header />

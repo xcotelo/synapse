@@ -38,7 +38,14 @@ const Register = () => {
     };
 
     return (
-        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh', background: 'linear-gradient(135deg, #1D3557 0%, #457B9D 50%, #A8DADC 100%)' }}>
+        <div
+            className="d-flex justify-content-center align-items-center"
+            style={{
+                minHeight: 'calc(100vh - 64px)',
+                width: '100%',
+                background: 'linear-gradient(135deg, #1D3557 0%, #457B9D 50%, #A8DADC 100%)'
+            }}
+        >
             <div className="col-11 col-sm-8 col-md-6 col-lg-5">
                 <div className="card shadow-lg border-0" style={{ borderRadius: '1.25rem', overflow: 'hidden' }}>
                     <div className="card-header text-center bazul3 py-4">

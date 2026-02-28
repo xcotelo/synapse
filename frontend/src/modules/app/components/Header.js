@@ -15,20 +15,17 @@ const Header = () => {
         navigate('/');
     };
     return (
-        <div className="row bazul3 justify-content-between">
-            <div className="col-8 d-flex align-items-center mx-4 my-4">
-                <h1 className="blanco me-4">Synapse</h1>
-                <ul className="navbar-nav d-flex flex-row align-items-center">
-                </ul>
-            </div>
-            <div className="col-1 d-flex align-items-center justify-content-end mx-4 my-4">
-                {loggedIn && (
-                    <button className="btn btn-danger rounded-pill" onClick={handleLogout}>
-                        <img src={logoutIcon} alt="Logout" style={{ width: '40px', height: '40px' }} />
-                    </button>
-                )}
-            </div>
-        </div>
+        <header className="bazul3 d-flex align-items-center justify-content-center position-relative" style={{ minHeight: '64px' }}>
+            <h1 className="blanco m-0 text-center" style={{ flex: 1 }}>Synapse</h1>
+            {loggedIn && (
+                <button
+                    className="btn btn-danger rounded-pill position-absolute end-0 me-4"
+                    onClick={handleLogout}
+                >
+                    <img src={logoutIcon} alt="Logout" style={{ width: '40px', height: '40px' }} />
+                </button>
+            )}
+        </header>
     );
 };
 export default Header;

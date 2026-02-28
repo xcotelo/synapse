@@ -1,10 +1,16 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
+import { extractYouTubeId } from "../digitalBrainStorage";
+
+const getYoutubeIdFromNote = (note) => {
+  if (!note) return null;
+  return extractYouTubeId(note.content) || extractYouTubeId(note.title);
+};
 
 /**
  * Componente para renderizar contenido Markdown de forma bonita
  */
-const MarkdownRenderer = ({ content }) => {
+const MarkdownRenderer = ({ content, selectedNote }) => {
   if (!content) {
     return <p className="text-muted">No hay contenido disponible.</p>;
   }
@@ -19,13 +25,46 @@ const MarkdownRenderer = ({ content }) => {
     >
       <ReactMarkdown
         components={{
-          h1: ({ node, ...props }) => (
-            <h1
-              className="mb-3 mt-4"
-              style={{ fontSize: "2rem", fontWeight: "700" }}
-              {...props}
-            />
-          ),
+          h1: ({ node, children, ...props }) => {
+            let videoElement = null;
+            if (selectedNote && (selectedNote.type === "video" || getYoutubeIdFromNote(selectedNote))) {
+              videoElement = (
+                <div className="mb-3 rounded overflow-hidden shadow-sm" style={{ border: "1px solid #eee", backgroundColor: "#000" }}>
+                  {getYoutubeIdFromNote(selectedNote) ? (
+                    <iframe
+                      width="100%"
+                      height="400"
+                      src={`https://www.youtube-nocookie.com/embed/${getYoutubeIdFromNote(selectedNote)}`}
+                      title="YouTube Video"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    ></iframe>
+                  ) : selectedNote.media && selectedNote.media.url ? (
+                    <video
+                      src={selectedNote.media.url}
+                      controls
+                      className="w-100"
+                      style={{ maxHeight: "400px", backgroundColor: "#000" }}
+                    />
+                  ) : null}
+                </div>
+              );
+            }
+
+            return (
+              <>
+                <h1
+                  className="mb-3 mt-4"
+                  style={{ fontSize: "2rem", fontWeight: "700" }}
+                  {...props}
+                >
+                  {children}
+                </h1>
+                {videoElement}
+              </>
+            );
+          },
           h2: ({ node, ...props }) => (
             <h2
               className="mb-3 mt-4"
@@ -45,9 +84,10 @@ const MarkdownRenderer = ({ content }) => {
               {...props}
             />
           ),
-          p: ({ node, ...props }) => (
-            <p className="mb-3" style={{ fontSize: "1rem" }} {...props} />
-          ),
+          p: ({ node, children, ...props }) => {
+            // Si el contenido del párrafo es SOLO un texto que parece un link a YouTube
+            return <p className="mb-3" style={{ fontSize: "1rem" }} {...props}>{children}</p>;
+          },
           ul: ({ node, ...props }) => (
             <ul className="mb-3" style={{ paddingLeft: "1.5rem" }} {...props} />
           ),
@@ -88,14 +128,6 @@ const MarkdownRenderer = ({ content }) => {
             <blockquote
               className="border-start border-4 border-primary ps-3 py-2 mb-3"
               style={{ fontStyle: "italic" }}
-              {...props}
-            />
-          ),
-          a: ({ node, ...props }) => (
-            <a
-              className="text-primary text-decoration-underline"
-              target="_blank"
-              rel="noopener noreferrer"
               {...props}
             />
           ),

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-import { createInboxEntry, loadInbox, saveInbox, loadNotes } from "../digitalBrainStorage";
+import { createInboxEntry, loadInbox, saveInbox, loadNotes, loadLastProcessed, extractFirstUrl, extractYouTubeId } from "../digitalBrainStorage";
 import { appFetch, fetchConfig } from "../../../backend/appFetch";
 import "./FileDropZone.css";
 
@@ -119,17 +119,8 @@ const DigitalBrainInbox = () => {
     navigate("/brain/process/batch", { state: { ids } });
   };
 
-  const extractFirstUrl = (text) => {
-    if (!text) return null;
-    const match = text.match(/(https?:\/\/\S+|www\.\S+)/i);
-    if (!match) return null;
-    let url = match[0];
-    // Quitar puntuación típica al final
-    url = url.replace(/[),.;!?\]]+$/g, "");
-    if (/^www\./i.test(url)) {
-      url = `http://${url}`;
-    }
-    return url;
+  const getYouTubeEmbedUrl = (id) => {
+    return id ? `https://www.youtube.com/embed/${id}` : null;
   };
 
   const handleLoadPreview = (id) => {
@@ -321,6 +312,13 @@ const DigitalBrainInbox = () => {
 
     return items;
   }, [inbox, query, sortOrder, typeFilter]);
+
+  const strikesCount = useMemo(() => {
+    const last = loadLastProcessed();
+    const diff = Date.now() - last;
+    const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+    return days > 0 ? days : 0;
+  }, [inbox]); // Se recalcula cuando cambia el inbox (potencial procesado)
 
   const ageLabel = (createdAt) => {
     const t = Date.parse(createdAt);
@@ -562,81 +560,81 @@ const DigitalBrainInbox = () => {
                         />
                       </label>
                       <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                      <div className="d-flex align-items-center mb-2">
-                        <span className="me-2" style={{ fontSize: "1.2rem" }}>
-                          {getTypeIcon(item.type)}
-                        </span>
-                        <span
-                          className={`badge bg-${getTypeBadgeColor(item.type)} text-uppercase`}
-                          style={{ fontSize: "0.75rem" }}
-                        >
-                          {item.type}
-                        </span>
-                        <small className="text-muted ms-2">
-                          {new Date(item.createdAt).toLocaleString("es-ES", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </small>
-                        <span className="badge text-bg-light ms-2" title="Antigüedad">
-                          {ageLabel(item.createdAt)}
-                        </span>
-                      </div>
-                      <div
-                        className="mt-2"
-                        style={{
-                          maxWidth: "100%",
-                          wordBreak: "break-word",
-                          lineHeight: "1.5",
-                        }}
-                      >
-                        {item.rawContent.length > 200 ? (
-                          <>
-                            {item.rawContent.substring(0, 200)}...
-                            <span className="text-muted small"> (mostrar más)</span>
-                          </>
-                        ) : (
-                          item.rawContent
-                        )}
-                      </div>
-                      {item.aiSuggestion && (
-                        <div className="mt-2">
-                          <span className="badge text-bg-success">Sugerencia lista</span>
+                        <div className="d-flex align-items-center mb-2">
+                          <span className="me-2" style={{ fontSize: "1.2rem" }}>
+                            {getTypeIcon(item.type)}
+                          </span>
+                          <span
+                            className={`badge bg-${getTypeBadgeColor(item.type)} text-uppercase`}
+                            style={{ fontSize: "0.75rem" }}
+                          >
+                            {item.type}
+                          </span>
+                          <small className="text-muted ms-2">
+                            {new Date(item.createdAt).toLocaleString("es-ES", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </small>
+                          <span className="badge text-bg-light ms-2" title="Antigüedad">
+                            {ageLabel(item.createdAt)}
+                          </span>
                         </div>
-                      )}
-
-                      {(item.type === "link" || extractFirstUrl(item.rawContent)) && (
-                        <div className="mt-3">
-                          {item.linkPreview ? (
-                            <div className="p-2 border rounded bg-light">
-                              <div className="small fw-semibold">
-                                {item.linkPreview.title || "Vista previa"}
-                              </div>
-                              {item.linkPreview.description && (
-                                <div className="small text-muted mt-1">
-                                  {item.linkPreview.description}
-                                </div>
-                              )}
-                            </div>
+                        <div
+                          className="mt-2"
+                          style={{
+                            maxWidth: "100%",
+                            wordBreak: "break-word",
+                            lineHeight: "1.5",
+                          }}
+                        >
+                          {item.rawContent.length > 200 ? (
+                            <>
+                              {item.rawContent.substring(0, 200)}...
+                              <span className="text-muted small"> (mostrar más)</span>
+                            </>
                           ) : (
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-outline-secondary"
-                                onClick={() => handleLoadPreview(item.id)}
-                                disabled={!!previewLoading[item.id]}
-                              >
-                                {previewLoading[item.id] ? "Cargando..." : "Cargar vista previa"}
-                              </button>
-                              {previewError[item.id] && (
-                                <small className="text-danger">{previewError[item.id]}</small>
-                              )}
-                            </div>
+                            item.rawContent
                           )}
                         </div>
-                      )}
+                        {item.aiSuggestion && (
+                          <div className="mt-2">
+                            <span className="badge text-bg-success">Sugerencia lista</span>
+                          </div>
+                        )}
+
+                        {(item.type === "link" || extractFirstUrl(item.rawContent)) && (
+                          <div className="mt-3">
+                            {item.linkPreview ? (
+                              <div className="p-2 border rounded bg-light">
+                                <div className="small fw-semibold">
+                                  {item.linkPreview.title || "Vista previa"}
+                                </div>
+                                {item.linkPreview.description && (
+                                  <div className="small text-muted mt-1">
+                                    {item.linkPreview.description}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="d-flex align-items-center gap-2 flex-wrap">
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-secondary"
+                                  onClick={() => handleLoadPreview(item.id)}
+                                  disabled={!!previewLoading[item.id]}
+                                >
+                                  {previewLoading[item.id] ? "Cargando..." : "Cargar vista previa"}
+                                </button>
+                                {previewError[item.id] && (
+                                  <small className="text-danger">{previewError[item.id]}</small>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="d-flex flex-column gap-2">

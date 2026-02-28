@@ -9,6 +9,9 @@ import {
   saveNotes,
   saveInbox,
   defaultTemplate,
+  updateLastProcessed,
+  extractFirstUrl,
+  extractYouTubeId,
 } from "../services/brainService";
 import { useNotifications } from "../../common/components/NotificationContext";
 
@@ -138,6 +141,9 @@ export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAf
     if (note.reminderAt) {
       refreshReminders();
     }
+
+    // Resetear strikes
+    updateLastProcessed();
 
     // 4.1 Persistir también en formato abierto (Markdown en disco) via backend.
     // Best-effort: si falla, la app sigue funcionando con localStorage.
@@ -332,6 +338,36 @@ export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAf
               >
                 {rawPreview}
               </div>
+
+              {/* Renderizado de Video/Audio (YouTube o Nativo) */}
+              {entry.type === "video" && (
+                <div className="mt-3 rounded overflow-hidden shadow-sm">
+                  {extractYouTubeId(entry.rawContent) ? (
+                    <iframe
+                      width="100%"
+                      height="240"
+                      src={`https://www.youtube.com/embed/${extractYouTubeId(entry.rawContent)}`}
+                      title="YouTube video player"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    ></iframe>
+                  ) : entry.media && entry.media.url ? (
+                    <video
+                      src={entry.media.url}
+                      controls
+                      width="100%"
+                      style={{ maxHeight: "300px", backgroundColor: "#000" }}
+                    />
+                  ) : null}
+                </div>
+              )}
+
+              {entry.type === "audio" && entry.media && entry.media.url && (
+                <div className="mt-3 p-2 bg-light rounded border">
+                  <audio src={entry.media.url} controls className="w-100" />
+                </div>
+              )}
 
               {/* Sugerencias de IA */}
               {loadingSuggestion && (

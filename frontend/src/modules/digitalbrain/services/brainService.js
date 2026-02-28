@@ -5,6 +5,10 @@ export {
   loadNotes,
   saveNotes,
   saveInbox,
+  loadLastProcessed,
+  updateLastProcessed,
+  extractFirstUrl,
+  extractYouTubeId,
 } from "../digitalBrainStorage";
 
 // Template por defecto para el contenido estructurado

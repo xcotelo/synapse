@@ -8,6 +8,8 @@ import {
   loadInbox,
   loadNotes,
   toggleNoteReadStatus,
+  extractFirstUrl,
+  extractYouTubeId,
 } from "../digitalBrainStorage";
 import MarkdownRenderer from "./MarkdownRenderer";
 import "./DigitalBrainKnowledge.css";
@@ -342,6 +344,18 @@ const DigitalBrainKnowledge = () => {
     setNotes(updatedNotes);
   };
 
+  const handleKeyDown = (noteId, e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setSelectedId(noteId);
+    }
+  };
+
+  const getYoutubeIdFromNote = (note) => {
+    if (!note) return null;
+    return extractYouTubeId(note.content) || extractYouTubeId(note.title);
+  };
+
   return (
     <div className="container synapse-brain-page">
       <div className="d-flex justify-content-between align-items-center flex-wrap mb-3 dbk-topbar synapse-animate-in">
@@ -517,9 +531,8 @@ const DigitalBrainKnowledge = () => {
               <div className="col-6 col-md-3">
                 <button
                   type="button"
-                  className={`dbk-categoryCard card w-100 ${
-                    selectedCategory === "web" ? "dbk-categoryCard--active" : ""
-                  }`}
+                  className={`dbk-categoryCard card w-100 ${selectedCategory === "web" ? "dbk-categoryCard--active" : ""
+                    }`}
                   aria-pressed={selectedCategory === "web"}
                   onClick={() =>
                     setSelectedCategory((prev) => (prev === "web" ? null : "web"))
@@ -544,9 +557,8 @@ const DigitalBrainKnowledge = () => {
               <div className="col-6 col-md-3">
                 <button
                   type="button"
-                  className={`dbk-categoryCard card w-100 ${
-                    selectedCategory === "videos" ? "dbk-categoryCard--active" : ""
-                  }`}
+                  className={`dbk-categoryCard card w-100 ${selectedCategory === "videos" ? "dbk-categoryCard--active" : ""
+                    }`}
                   aria-pressed={selectedCategory === "videos"}
                   onClick={() =>
                     setSelectedCategory((prev) =>
@@ -573,11 +585,10 @@ const DigitalBrainKnowledge = () => {
               <div className="col-6 col-md-3">
                 <button
                   type="button"
-                  className={`dbk-categoryCard card w-100 ${
-                    selectedCategory === "musica"
-                      ? "dbk-categoryCard--active"
-                      : ""
-                  }`}
+                  className={`dbk-categoryCard card w-100 ${selectedCategory === "musica"
+                    ? "dbk-categoryCard--active"
+                    : ""
+                    }`}
                   aria-pressed={selectedCategory === "musica"}
                   onClick={() =>
                     setSelectedCategory((prev) =>
@@ -604,9 +615,8 @@ const DigitalBrainKnowledge = () => {
               <div className="col-6 col-md-3">
                 <button
                   type="button"
-                  className={`dbk-categoryCard card w-100 ${
-                    selectedCategory === "otras" ? "dbk-categoryCard--active" : ""
-                  }`}
+                  className={`dbk-categoryCard card w-100 ${selectedCategory === "otras" ? "dbk-categoryCard--active" : ""
+                    }`}
                   aria-pressed={selectedCategory === "otras"}
                   onClick={() =>
                     setSelectedCategory((prev) =>
@@ -678,10 +688,10 @@ const DigitalBrainKnowledge = () => {
                     {selectedCategory === "web"
                       ? "Web"
                       : selectedCategory === "videos"
-                      ? "Vídeos"
-                      : selectedCategory === "musica"
-                      ? "Música"
-                      : "Otras"}
+                        ? "Vídeos"
+                        : selectedCategory === "musica"
+                          ? "Música"
+                          : "Otras"}
                   </div>
                   <span className="badge text-bg-secondary">
                     {filteredNotes.length}
@@ -703,35 +713,39 @@ const DigitalBrainKnowledge = () => {
                       return (
                         <li
                           key={note.id}
-                          className={`list-group-item list-group-item-action dbk-noteItem ${
-                            isActive ? "active" : ""
-                          } ${note.isRead ? "dbk-noteItem--read" : ""} ${
-                            isUnread ? "dbk-noteItem--unread" : ""
-                          }`}
+                          className={`list-group-item list-group-item-action dbk-noteItem ${isActive ? "active" : ""
+                            } ${note.isRead ? "dbk-noteItem--read" : ""} ${isUnread ? "dbk-noteItem--unread" : ""
+                            }`}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => setSelectedId(note.id)}
+                          onKeyDown={(e) => handleKeyDown(note.id, e)}
                           style={{ cursor: "pointer" }}
                         >
                           <div className="d-flex justify-content-between align-items-start gap-2">
                             <div className="flex-grow-1" style={{ minWidth: 0 }}>
                               <div
-                                className={`dbk-noteTitle fw-semibold text-truncate ${
-                                  note.isRead ? "text-muted" : ""
-                                }`}
+                                className={`dbk-noteTitle fw-semibold text-truncate ${note.isRead ? "text-muted" : ""
+                                  }`}
                               >
                                 {note.title || "Nota sin título"}
                               </div>
                               <div
-                                className={`small ${
-                                  isActive ? "text-white-50" : "text-muted"
-                                }`}
+                                className={`small ${isActive ? "text-white-50" : "text-muted"
+                                  }`}
                               >
                                 {note.type}
                               </div>
+
+                              {(note.type === "audio" || (note.media && note.media.contentType && note.media.contentType.startsWith("audio/"))) && note.media && note.media.url && (
+                                <div className="mt-2 text-dark">
+                                  <audio src={note.media.url} controls className="w-100" style={{ height: "30px" }} />
+                                </div>
+                              )}
                             </div>
                             <div
-                              className={`small text-nowrap ${
-                                isActive ? "text-white-50" : "text-muted"
-                              }`}
+                              className={`small text-nowrap ${isActive ? "text-white-50" : "text-muted"
+                                }`}
                             >
                               {new Date(note.createdAt).toLocaleDateString()}
                             </div>
@@ -754,9 +768,8 @@ const DigitalBrainKnowledge = () => {
                       <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
                         <div style={{ minWidth: 0 }}>
                           <h3
-                            className={`h5 mb-1 dbk-detailTitle ${
-                              selectedNote.isRead ? "text-muted" : ""
-                            }`}
+                            className={`h5 mb-1 dbk-detailTitle ${selectedNote.isRead ? "text-muted" : ""
+                              }`}
                             style={{
                               textDecoration: selectedNote.isRead
                                 ? "line-through"
@@ -801,33 +814,27 @@ const DigitalBrainKnowledge = () => {
                     </div>
                   </div>
 
-                  {selectedNote.media && selectedNote.media.url && (
-                    <div className="mb-3">
-                      {selectedNote.media.contentType &&
-                      selectedNote.media.contentType.startsWith("audio/") ? (
-                        <audio
-                          controls
-                          className="w-100"
-                          src={selectedNote.media.url}
-                        >
-                          Your browser does not support the audio element.
-                        </audio>
-                      ) : selectedNote.media.contentType &&
-                        selectedNote.media.contentType.startsWith("video/") ? (
-                        <video
-                          controls
-                          className="w-100"
-                          style={{ maxHeight: "400px" }}
-                          src={selectedNote.media.url}
-                        >
-                          Your browser does not support the video tag.
-                        </video>
-                      ) : null}
+                  {/* Renderizado de Audio Nativo */}
+                  {(selectedNote.type === "audio" || (selectedNote.media && selectedNote.media.contentType && selectedNote.media.contentType.startsWith("audio/"))) && selectedNote.media && selectedNote.media.url && (
+                    <div className="mb-3 p-2 bg-light rounded border">
+                      <audio src={selectedNote.media.url} controls className="w-100" />
                     </div>
                   )}
 
                   <div className="mb-3">
                     <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                      <span
+                        className={`badge bg-${selectedNote.destination === "apunte"
+                          ? "primary"
+                          : selectedNote.destination === "idea"
+                            ? "info"
+                            : selectedNote.destination === "recurso"
+                              ? "success"
+                              : "warning"
+                          }`}
+                      >
+                        {selectedNote.destination}
+                      </span>
                       <span className="badge text-bg-secondary">
                         {selectedNote.type}
                       </span>
@@ -849,10 +856,9 @@ const DigitalBrainKnowledge = () => {
                   </div>
 
                   <div
-              
-                    className={`bg-white card border-0 shadow-sm p-4 dbk-contentCard ${
-                      selectedNote.isRead ? "dbk-contentCard--read" : ""
-                    }`}
+
+                    className={`bg-white card border-0 shadow-sm p-4 dbk-contentCard ${selectedNote.isRead ? "dbk-contentCard--read" : ""
+                      }`}
                   >
                     <div
                       style={{
@@ -861,7 +867,7 @@ const DigitalBrainKnowledge = () => {
                           : "none",
                       }}
                     >
-                      <MarkdownRenderer content={selectedNote.content} />
+                      <MarkdownRenderer content={selectedNote.content} selectedNote={selectedNote} />
                     </div>
                   </div>
                 </>

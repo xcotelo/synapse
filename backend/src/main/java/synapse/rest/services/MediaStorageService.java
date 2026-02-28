@@ -60,4 +60,30 @@ public class MediaStorageService {
         }
         throw new RuntimeException("No se pudo cargar el archivo multimedia solicitado");
     }
+
+    public boolean deleteFile(String filename) {
+        try {
+            Path storageDir = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Path filePath = storageDir.resolve(filename).normalize();
+
+            // Evitar path traversal: el fichero debe quedar dentro del directorio de uploads
+            if (!filePath.startsWith(storageDir)) {
+                throw new IllegalArgumentException("Nombre de archivo inválido");
+            }
+
+            boolean deleted = Files.deleteIfExists(filePath);
+            if (deleted) {
+                logger.info("Archivo multimedia '{}' eliminado de {}", filename, storageDir);
+            } else {
+                logger.info("Archivo multimedia '{}' no existe en {}", filename, storageDir);
+            }
+            return deleted;
+        } catch (IllegalArgumentException e) {
+            logger.warn("Solicitud de borrado de archivo inválida '{}': {}", filename, e.getMessage());
+            throw e;
+        } catch (IOException e) {
+            logger.error("Error al eliminar archivo multimedia '{}': {}", filename, e.getMessage());
+            throw new RuntimeException("No se pudo eliminar el archivo multimedia", e);
+        }
+    }
 }

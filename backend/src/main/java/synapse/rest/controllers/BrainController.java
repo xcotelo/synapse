@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -332,6 +333,13 @@ public class BrainController {
                 .contentLength(data.length)
                 .contentType(mediaType)
                 .body(data);
+    }
+
+    @DeleteMapping("/media/{filename:.+}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMedia(@PathVariable("filename") String filename) {
+        // Idempotente: si el archivo no existe, no se considera error para el cliente.
+        mediaStorageService.deleteFile(filename);
     }
 
     /**

@@ -40,7 +40,10 @@ public class SecurityConfig {
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         // @formatter:off
-        http.cors(cors -> cors.disable()).csrf(csrf -> csrf.disable())
+        http.cors(cors -> cors.disable())
+            .csrf(csrf -> csrf.disable())
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(antMatcher("/*")).permitAll()

@@ -42,6 +42,8 @@ import synapse.rest.dtos.SaveNoteParamsDto;
 import synapse.rest.dtos.SavedNoteDto;
 import synapse.rest.dtos.FactCheckParamsDto;
 import synapse.rest.dtos.FactCheckResponseDto;
+import synapse.rest.dtos.TrendsInsightsParamsDto;
+import synapse.rest.dtos.TrendsInsightsResponseDto;
 import synapse.rest.services.LlamaAIService;
 import synapse.rest.services.ContentExtractionService;
 import synapse.rest.services.MediaStorageService;
@@ -424,6 +426,16 @@ public class BrainController {
     public FactCheckResponseDto factCheck(@RequestBody FactCheckParamsDto params) {
         logger.info("Recibida petición de fact-checking para contenido");
         return new FactCheckResponseDto(llamaAIService.verifyInformation(params.getContent()));
+    }
+
+    @PostMapping("/trends/insights")
+    @ResponseStatus(HttpStatus.OK)
+    public TrendsInsightsResponseDto trendsInsights(@RequestBody TrendsInsightsParamsDto params) {
+        logger.info("Recibida petición de tendencias (IA). WindowDays: {}. Topics: {}. Items: {}",
+                params == null ? null : params.getWindowDays(),
+                params == null || params.getTopics() == null ? null : params.getTopics().size(),
+                params == null || params.getItems() == null ? null : params.getItems().size());
+        return llamaAIService.generateTrendsInsights(params);
     }
 
     /**

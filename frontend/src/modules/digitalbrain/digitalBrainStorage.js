@@ -372,10 +372,10 @@ export const buildTrendsReport = (items, options = {}) => {
 
   const insights = [];
   if (ups.length > 0) {
-    insights.push(`Tu interés reciente sube en: ${ups.map((t) => t.topic).join(', ')}.`);
+    insights.push(`Aumenta tu interés reciente en: ${ups.map((t) => t.topic).join(', ')}.`);
   }
   if (downs.length > 0) {
-    insights.push(`Baja la presencia de: ${downs.map((t) => t.topic).join(', ')}.`);
+    insights.push(`Disminuye tu interés reciente en: ${downs.map((t) => t.topic).join(', ')}.`);
   }
   if (insights.length === 0 && topics.length > 0) {
     insights.push('Tu interés se mantiene bastante estable en este periodo.');

@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
+  buildTrendsReport,
   deleteNoteById,
   exportNotesAsMarkdown,
+  loadInbox,
   loadNotes,
   toggleNoteReadStatus,
 } from "../digitalBrainStorage";
@@ -15,13 +17,31 @@ import { appFetch, fetchConfig } from "../../../backend/appFetch";
 // trabajamos con notas que ya han salido del inbox.
 const DigitalBrainKnowledge = () => {
   const [notes, setNotes] = useState([]);
+  const [inboxEntries, setInboxEntries] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => {
-    const loadedNotes = loadNotes();
-    setNotes(loadedNotes);
+    setNotes(loadNotes());
+    setInboxEntries(loadInbox());
   }, []);
+
+  const handleRefreshLocalData = () => {
+    setNotes(loadNotes());
+    setInboxEntries(loadInbox());
+  };
+
+  const trendsReport = useMemo(() => {
+    const items = [...(notes || []), ...(inboxEntries || [])];
+    return buildTrendsReport(items, { windowDays: 14, maxTopics: 7 });
+  }, [notes, inboxEntries]);
+
+  const maxTrendCount = useMemo(() => {
+    const totals = (trendsReport?.topics || []).map(
+      (t) => (t.recentCount || 0) + (t.previousCount || 0)
+    );
+    return totals.length > 0 ? Math.max(...totals, 1) : 1;
+  }, [trendsReport]);
 
   // Resumen por categorías: web, vídeos, música, otras
   const categorySummary = useMemo(() => {
@@ -211,9 +231,131 @@ const DigitalBrainKnowledge = () => {
           >
             Exportar a Markdown
           </button>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary"
+            onClick={handleRefreshLocalData}
+            title="Recarga inbox y notas desde localStorage"
+          >
+            Actualizar
+          </button>
           <Link to="/brain/inbox" className="btn btn-sm btn-primary synapse-brain-btn">
             Ir al inbox
           </Link>
+        </div>
+      </div>
+
+      <div className="card mb-3">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <div className="text-muted small fw-semibold">RADAR DE TENDENCIAS PERSONAL</div>
+              <div className="text-muted small">
+                Basado en {trendsReport.totalItemsAnalyzed} items.
+              </div>
+            </div>
+          </div>
+
+          {trendsReport.totalItemsAnalyzed === 0 ? (
+            <div className="text-muted small mt-2">
+              Aún no hay suficiente historial reciente para detectar tendencias.
+            </div>
+          ) : (
+            <div className="mt-2">
+              <div className="row g-3">
+                <div className="col-12 col-lg-6">
+                  <div className="small fw-semibold mb-1">📈 Tendencias</div>
+                  {trendsReport.topics.length === 0 ? (
+                    <div className="text-muted small">No se detectaron temas claros.</div>
+                  ) : (
+                    <div>
+                      <div className="d-flex gap-3 flex-wrap text-muted small mb-2">
+                        <span>
+                          <span className="badge text-bg-primary me-1"> </span>
+                          Reciente
+                        </span>
+                        <span>
+                          <span className="badge text-bg-secondary me-1"> </span>
+                          Anterior
+                        </span>
+                      </div>
+
+                      <div className="d-flex flex-column gap-2">
+                        {trendsReport.topics.map((t) => {
+                          const total = (t.recentCount || 0) + (t.previousCount || 0);
+                          const scale = maxTrendCount || 1;
+                          const recentPct = Math.round(((t.recentCount || 0) / scale) * 100);
+                          const prevPct = Math.round(((t.previousCount || 0) / scale) * 100);
+
+                          return (
+                            <div key={t.topic} className="pb-2 border-bottom">
+                              <div className="d-flex justify-content-between align-items-baseline gap-2">
+                                <div className="text-truncate">
+                                  <span className="fw-semibold">{t.topic}</span>{" "}
+                                  <span className="text-muted">({total})</span>
+                                </div>
+                                <div className="fw-semibold" aria-label={t.trend}>
+                                  {t.arrow}
+                                </div>
+                              </div>
+
+                              <div className="mt-1">
+                                <div className="progress" style={{ height: 8 }} aria-label="Reciente">
+                                  <div
+                                    className="progress-bar bg-primary"
+                                    role="progressbar"
+                                    style={{ width: `${Math.min(100, Math.max(0, recentPct))}%` }}
+                                    aria-valuenow={t.recentCount || 0}
+                                    aria-valuemin={0}
+                                    aria-valuemax={scale}
+                                  />
+                                </div>
+                                <div className="progress mt-1" style={{ height: 8 }} aria-label="Anterior">
+                                  <div
+                                    className="progress-bar bg-secondary"
+                                    role="progressbar"
+                                    style={{ width: `${Math.min(100, Math.max(0, prevPct))}%` }}
+                                    aria-valuenow={t.previousCount || 0}
+                                    aria-valuemin={0}
+                                    aria-valuemax={scale}
+                                  />
+                                </div>
+                                <div className="text-muted small mt-1">{t.explanation}</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="col-12 col-lg-6">
+                  <div className="small fw-semibold mb-1">💡 Insights</div>
+                  {trendsReport.insights.length === 0 ? (
+                    <div className="text-muted small">—</div>
+                  ) : (
+                    <ul className="mb-2">
+                      {trendsReport.insights.map((i, idx) => (
+                        <li key={idx} className="small">{i}</li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="small fw-semibold mb-1">🎯 Recomendaciones</div>
+                  {trendsReport.recommendations.length === 0 ? (
+                    <div className="text-muted small">—</div>
+                  ) : (
+                    <ul className="mb-0">
+                      {trendsReport.recommendations.map((r, idx) => (
+                        <li key={idx} className="small">{r}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

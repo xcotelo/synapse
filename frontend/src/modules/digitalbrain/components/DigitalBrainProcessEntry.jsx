@@ -1,59 +1,74 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { appFetch, fetchConfig } from "../../../backend/appFetch";
 
 import {
   createNoteFromEntry,
   loadInbox,
   loadNotes,
-  saveInbox,
   saveNotes,
-} from "../digitalBrainStorage";
+  saveInbox,
+  defaultTemplate,
+} from "../services/brainService";
 
-// Plantilla base en Markdown que usamos para pre-rellenar la nota
-const defaultTemplate = (title, rawContent) =>
-  `# ${title || "Nueva nota"}
-
-## Idea principal
-
-- 
-
-## Detalles
-
-${rawContent}
-
-## Referencias / próximos pasos
-
-- 
-`;
-
-// Pantalla para procesar unha entrada do inbox e transformala en coñecemento
-const DigitalBrainProcessEntry = () => {
+export const DigitalBrainProcessEntry = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  // Entrada original que viene del inbox
-  const [entry, setEntry] = useState(null);
-  // Campos del formulario de nota procesada
+  const [entry, setEntry] = useState(undefined);
   const [title, setTitle] = useState("");
-  const [destination, setDestination] = useState("apunte"); // Tipo nota
+  const [destination, setDestination] = useState("apunte");
   const [tags, setTags] = useState("");
   const [content, setContent] = useState("");
-  // Sugerencias devueltas por el backend (IA/reglas)
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   const [suggestionError, setSuggestionError] = useState(null);
 
-  // Carga todas as entradas do inbox e busca a entrada no inbox por id e se existe:
   useEffect(() => {
     const inbox = loadInbox();
     const found = inbox.find((item) => item.id === id);
 
-    // Non se atopou a entrada
+    // No se ha encontrado la entrada
     if (!found) {
       setEntry(null);
       return;
     }
 
+    // Guardamos la entrada original
+    setEntry(found);
+
+    // Pedimos sugerencias al backend (IA/reglas)
+    setLoadingSuggestion(true);
+    setSuggestionError(null);
+
+    appFetch(
+      "/brain/suggest",
+      fetchConfig("POST", { content: found.rawContent }),
+      (data) => {
+        setAiSuggestion(data);
+
+        // Usamos las sugerencias para pre-rellenar el formulario
+        const baseTitle = data.title || (found.type === "tarea" ? "Tarea" : "Nota");
+        setTitle(baseTitle);
+        if (data.destination) {
+          setDestination(data.destination);
+        }
+        if (data.tags && Array.isArray(data.tags)) {
+          setTags(data.tags.join(", "));
+        }
+
+        const summaryPart = data.summary ? `\n\nResumen sugerido:\n\n${data.summary}\n` : "";
+        setContent(defaultTemplate(baseTitle, found.rawContent + summaryPart));
+        setLoadingSuggestion(false);
+      },
+      () => {
+        // Si la "IA" falla, seguimos con el comportamiento básico
+        const baseTitle = found.type === "tarea" ? "Tarea" : "Nota";
+        setTitle(baseTitle);
+        setContent(defaultTemplate(baseTitle, found.rawContent));
+        setSuggestionError("No se pudieron cargar sugerencias automáticas.");
+        setLoadingSuggestion(false);
+      }
+    );
     // Garda a entrada
     setEntry(found);
 

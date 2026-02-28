@@ -31,6 +31,16 @@ const Header = () => {
                                 </Link>
                             </li>
                         )}
+                        <li className="nav-item mx-2">
+                            <Link
+                                to="/brain/inbox"
+                                className={`text-white text-decoration-none fs-4 ${
+                                    location.pathname.startsWith('/brain') ? '' : 'text-opacity-75'
+                                }`}
+                            >
+                                Cerebro Digital
+                            </Link>
+                        </li>
                     </ul>
                 )}
             </div>

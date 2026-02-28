@@ -24,6 +24,12 @@
   --synapse-success: #059669;
   --synapse-warning: #d97706;
 
+  /* Retro (Slot / arcade) accents */
+  --synapse-retro-title-top: #fcd34d;
+  --synapse-retro-title-bottom: var(--synapse-warning);
+  --synapse-retro-title-glow-1: rgba(252, 211, 77, 0.65);
+  --synapse-retro-title-glow-2: rgba(217, 119, 6, 0.45);
+
   --synapse-text: #0f172a;
   --synapse-text-secondary: #475569;
   --synapse-text-muted: #64748b;
@@ -743,6 +749,42 @@ body {
   animation: synapse-gradient-shift 16s ease infinite;
 }
 
+/* Retro skin (Slot-like) for login zone */
+.synapse-auth-page--retro {
+  background: linear-gradient(180deg, #0a0b0f 0%, #060709 50%, #030406 100%);
+  background-size: auto;
+  animation: none;
+  color: #e2e8f0;
+}
+
+.synapse-auth-page--retro::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #0a0b0f 0%, #060709 50%, #030406 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.synapse-auth-page--retro::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(96, 165, 250, 0.10), transparent 55%),
+    radial-gradient(circle at 20% 90%, rgba(217, 70, 239, 0.07), transparent 60%),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.02) 0,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+  z-index: -1;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
 .synapse-auth-page > div {
   width: 100%;
   max-width: 420px;
@@ -759,6 +801,14 @@ body {
   animation: synapse-scale-in 0.5s var(--synapse-spring) both;
 }
 
+.synapse-auth-card--retro {
+  border-radius: 16px;
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(96, 165, 250, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
 .synapse-auth-card .card-header {
   background: linear-gradient(135deg, var(--synapse-primary) 0%, var(--synapse-primary-hover) 100%);
   color: var(--synapse-text-inverse);
@@ -766,6 +816,49 @@ body {
   text-align: center;
   border: none;
   position: relative;
+}
+
+.synapse-auth-card--retro .card-header {
+  background: linear-gradient(180deg, #0f1419 0%, #080a0d 100%);
+  color: #e2e8f0;
+  border: 2px solid rgba(96, 165, 250, 0.4);
+  border-bottom: none;
+  padding: 1.35rem 1.5rem 1.1rem;
+  box-shadow:
+    0 0 20px rgba(96, 165, 250, 0.18),
+    inset 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.synapse-auth-card--retro .card-header::after {
+  background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.55), rgba(217, 70, 239, 0.35), rgba(96, 165, 250, 0.55), transparent);
+  height: 2px;
+  opacity: 0.9;
+}
+
+.synapse-auth-card--retro .card-header h3 {
+  color: var(--synapse-retro-title-top);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 18px var(--synapse-retro-title-glow-1),
+    0 0 40px var(--synapse-retro-title-glow-2);
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .synapse-auth-card--retro .card-header h3 {
+    background: linear-gradient(180deg, var(--synapse-retro-title-top) 0%, var(--synapse-retro-title-bottom) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow:
+      0 0 18px var(--synapse-retro-title-glow-1),
+      0 0 40px var(--synapse-retro-title-glow-2);
+  }
+}
+
+.synapse-auth-card--retro .card-header p {
+  color: #94a3b8;
+  opacity: 1;
 }
 
 .synapse-auth-card .card-header::after {
@@ -801,12 +894,26 @@ body {
   backdrop-filter: blur(8px);
 }
 
+.synapse-auth-card--retro .card-body {
+  background: linear-gradient(165deg, #1a1d24 0%, #0f1115 40%, #08090c 100%);
+  color: #e2e8f0;
+  backdrop-filter: none;
+}
+
 .synapse-auth-card .form-label {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--synapse-primary);
   margin-bottom: 0.4rem;
   letter-spacing: 0.01em;
+}
+
+.synapse-auth-card--retro .form-label {
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
 }
 
 .synapse-auth-card .form-control {
@@ -816,9 +923,28 @@ body {
   transition: border-color var(--synapse-ease), box-shadow var(--synapse-ease);
 }
 
+.synapse-auth-card--retro .form-control {
+  background: #f8fafc;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  color: #000;
+  border-radius: 10px;
+}
+
+.synapse-auth-card--retro .form-control::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
 .synapse-auth-card .form-control:focus {
   border-color: var(--synapse-primary-light);
   box-shadow: 0 0 0 3px var(--synapse-accent-soft);
+}
+
+.synapse-auth-card--retro .form-control:focus {
+  background: #ffffff;
+  color: #000;
+  border-color: rgba(96, 165, 250, 0.7);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18), 0 0 16px rgba(96, 165, 250, 0.12);
 }
 
 .synapse-auth-card .btn-primary {
@@ -828,6 +954,11 @@ body {
   font-weight: 600;
   padding: 0.65rem 1.25rem;
   transition: transform var(--synapse-ease), box-shadow var(--synapse-ease);
+}
+
+.synapse-auth-card--retro .btn-primary,
+.synapse-auth-card--retro .synapse-btn-primary {
+  box-shadow: 0 0 18px rgba(96, 165, 250, 0.25), 0 6px 22px rgba(0, 0, 0, 0.45);
 }
 
 .synapse-auth-card .btn-primary:hover {
@@ -843,9 +974,17 @@ body {
   transition: color var(--synapse-ease);
 }
 
+.synapse-auth-card--retro a {
+  color: #93c5fd;
+}
+
 .synapse-auth-card a:hover {
   color: var(--synapse-primary-light);
   text-decoration: underline;
+}
+
+.synapse-auth-card--retro a:hover {
+  color: #60a5fa;
 }
 
 /* ========== Alertas ========== */
@@ -900,6 +1039,40 @@ body {
 .synapse-app .form-select:focus {
   border-color: var(--synapse-primary);
   box-shadow: 0 0 0 3px var(--synapse-accent-soft);
+}
+
+/* ========== Auth retro overrides (readability) ========== */
+/* Ensure retro auth inputs remain readable even inside .synapse-app */
+.synapse-app .synapse-auth-card--retro .form-control {
+  background: #f8fafc;
+  color: #000;
+  caret-color: #000;
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+.synapse-app .synapse-auth-card--retro .form-control::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.synapse-app .synapse-auth-card--retro .form-control:focus {
+  background: #ffffff;
+  color: #000;
+  border-color: rgba(96, 165, 250, 0.7);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18), 0 0 16px rgba(96, 165, 250, 0.12);
+}
+
+.synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill,
+.synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill:hover,
+.synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000;
+  box-shadow: 0 0 0 1000px #f8fafc inset;
+  caret-color: #000;
+}
+
+.synapse-auth-card--retro .text-muted {
+  color: #cbd5e1 !important;
+  opacity: 0.9;
 }
 
 /* ========== Brain pages ========== */

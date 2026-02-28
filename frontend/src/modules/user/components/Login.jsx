@@ -46,9 +46,9 @@ const Login = () => {
   }, []);
 
   return (
-    <div className="synapse-auth-page">
+    <div className="synapse-auth-page synapse-auth-page--retro">
       <div className="col-11 col-sm-8 col-md-6 col-lg-4 synapse-animate-in synapse-animate-in-delay-2">
-        <div className="card synapse-auth-card">
+        <div className="card synapse-auth-card synapse-auth-card--retro">
           <div className="card-header">
             <h3 className="mb-1">Bienvenido</h3>
             <p className="mb-0">Conecta tu cerebro digital</p>

@@ -9,10 +9,7 @@ const Footer = () => {
   return (
     <footer className="synapse-footer">
       <div className="synapse-footer__inner">
-        <div className="synapse-footer__brand">
-          <span className="synapse-footer__logo">Synapse</span>
-          <span className="synapse-footer__tagline">Cerebro digital</span>
-        </div>
+        <div className="synapse-footer__spacer" aria-hidden />
         <nav className="synapse-footer__nav" aria-label="Pie de página">
           {loggedIn && (
             <>
@@ -31,8 +28,10 @@ const Footer = () => {
             </>
           )}
         </nav>
-        <div className="synapse-footer__copy">
-          &copy; {new Date().getFullYear()} Synapse
+        <div className="synapse-footer__spacer synapse-footer__right">
+          <span className="synapse-footer__copy">
+            &copy; {new Date().getFullYear()} Synapse
+          </span>
         </div>
       </div>
     </footer>

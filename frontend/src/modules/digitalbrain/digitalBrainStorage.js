@@ -89,13 +89,13 @@ export const createInboxEntry = (rawContent, source = 'manual') => {
 // Construye una nota procesada a partir de una entrada del inbox
 export const createNoteFromEntry = (
   entry,
-  { title, destination, tags, structuredContent, mediaUrl, mediaContentType, type: noteType }
+  { title, tags, structuredContent, mediaUrl, mediaContentType, type: noteType }
 ) => {
   return {
     id: `note-${Date.now().toString()}`,
     entryId: entry.id,
     title: title || 'Nota sin título',
-    destination: destination || 'nota',
+    destination: 'nota',
     tags: tags || [],
     content: structuredContent || entry.rawContent,
     type: noteType || entry.type,

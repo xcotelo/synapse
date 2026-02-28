@@ -17,6 +17,7 @@ const DigitalBrainKnowledge = () => {
   const [notes, setNotes] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedTag, setSelectedTag] = useState(null);
 
   useEffect(() => {
     const loadedNotes = loadNotes();
@@ -77,19 +78,40 @@ const DigitalBrainKnowledge = () => {
     return "otras";
   };
 
-  const filteredNotes = useMemo(() => {
+  const notesByCategory = useMemo(() => {
     if (!selectedCategory) return [];
+    return notes.filter((note) => categorizeNote(note) === selectedCategory);
+  }, [notes, selectedCategory]);
 
-    const filtered = notes.filter(
-      (note) => categorizeNote(note) === selectedCategory
-    );
+  const availableTags = useMemo(() => {
+    const tagSet = new Set();
+    notesByCategory.forEach((note) => {
+      if (note.tags && Array.isArray(note.tags)) {
+        note.tags.forEach((t) => {
+          const trimmed = String(t).trim();
+          if (trimmed) tagSet.add(trimmed);
+        });
+      }
+    });
+    return Array.from(tagSet).sort();
+  }, [notesByCategory]);
 
+  const filteredNotes = useMemo(() => {
+    let filtered = notesByCategory;
+    if (selectedTag) {
+      filtered = filtered.filter(
+        (note) =>
+          note.tags &&
+          Array.isArray(note.tags) &&
+          note.tags.some((t) => String(t).trim() === selectedTag)
+      );
+    }
     return filtered.sort((a, b) => {
       if (a.isRead && !b.isRead) return 1;
       if (!a.isRead && b.isRead) return -1;
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
-  }, [notes, selectedCategory]);
+  }, [notesByCategory, selectedTag]);
 
   const selectedNote = useMemo(() => {
     if (!selectedId && filteredNotes.length > 0) return filteredNotes[0];
@@ -100,6 +122,7 @@ const DigitalBrainKnowledge = () => {
   useEffect(() => {
     if (!selectedCategory) {
       setSelectedId(null);
+      setSelectedTag(null);
       return;
     }
     if (filteredNotes.length === 0) {
@@ -111,6 +134,10 @@ const DigitalBrainKnowledge = () => {
       setSelectedId(filteredNotes[0].id);
     }
   }, [selectedCategory, filteredNotes, selectedId]);
+
+  useEffect(() => {
+    setSelectedTag(null);
+  }, [selectedCategory]);
 
   const handleDeleteSelected = () => {
     if (!selectedNote) return;
@@ -355,6 +382,33 @@ const DigitalBrainKnowledge = () => {
             </div>
           )}
 
+          {selectedCategory && availableTags.length > 0 && (
+            <div className="col-12 mb-3">
+              <div className="d-flex align-items-center gap-2 flex-wrap">
+                <span className="small fw-semibold text-muted me-1">
+                  Filtrar por etiqueta:
+                </span>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${selectedTag === null ? "btn-primary" : "btn-outline-secondary"}`}
+                  onClick={() => setSelectedTag(null)}
+                >
+                  Todas
+                </button>
+                {availableTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`btn btn-sm ${selectedTag === tag ? "btn-primary" : "btn-outline-secondary"}`}
+                    onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {selectedCategory && (
             <div className="col-12 col-lg-4 mb-3">
               <div className="card border-0 shadow-sm h-100">
@@ -375,7 +429,9 @@ const DigitalBrainKnowledge = () => {
 
                 {filteredNotes.length === 0 ? (
                   <div className="card-body text-muted">
-                    No hay notas en esta categoría.
+                    {selectedTag
+                      ? `No hay notas con la etiqueta #${selectedTag}.`
+                      : "No hay notas en esta categoría."}
                   </div>
                 ) : (
                   <ul className="list-group list-group-flush dbk-notesList">
@@ -408,7 +464,7 @@ const DigitalBrainKnowledge = () => {
                                   isActive ? "text-white-50" : "text-muted"
                                 }`}
                               >
-                                {note.destination} • {note.type}
+                                {note.type}
                               </div>
                             </div>
                             <div
@@ -511,19 +567,6 @@ const DigitalBrainKnowledge = () => {
 
                   <div className="mb-3">
                     <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
-                      <span
-                        className={`badge bg-${
-                          selectedNote.destination === "apunte"
-                            ? "primary"
-                            : selectedNote.destination === "idea"
-                            ? "info"
-                            : selectedNote.destination === "recurso"
-                            ? "success"
-                            : "warning"
-                        }`}
-                      >
-                        {selectedNote.destination}
-                      </span>
                       <span className="badge text-bg-secondary">
                         {selectedNote.type}
                       </span>

@@ -16,7 +16,6 @@ export const DigitalBrainProcessEntry = () => {
   const navigate = useNavigate();
   const [entry, setEntry] = useState(undefined);
   const [title, setTitle] = useState("");
-  const [destination, setDestination] = useState("apunte");
   const [tags, setTags] = useState("");
   const [content, setContent] = useState("");
   const [aiSuggestion, setAiSuggestion] = useState(null);
@@ -48,9 +47,6 @@ export const DigitalBrainProcessEntry = () => {
 
       const baseTitle = data.title || (found.type === "tarea" ? "Tarea" : "Nota");
       setTitle(baseTitle);
-      if (data.destination) {
-        setDestination(data.destination);
-      }
       if (data.tags && Array.isArray(data.tags)) {
         setTags(data.tags.join(", "));
       }
@@ -83,9 +79,6 @@ export const DigitalBrainProcessEntry = () => {
         // Usamos las sugerencias para pre-rellenar el formulario
         const baseTitle = data.title || (found.type === "tarea" ? "Tarea" : "Nota");
         setTitle(baseTitle);
-        if (data.destination) {
-          setDestination(data.destination);
-        }
         if (data.tags && Array.isArray(data.tags)) {
           setTags(data.tags.join(", "));
         }
@@ -118,7 +111,6 @@ export const DigitalBrainProcessEntry = () => {
     // 2. Crear nota estructurada a partir da entrada e os campos do formulario
     const note = createNoteFromEntry(entry, {
       title,
-      destination,
       tags: tags
         .split(",")
         .map((t) => t.trim())
@@ -357,12 +349,6 @@ export const DigitalBrainProcessEntry = () => {
                         <p className="mb-0 mt-1">{aiSuggestion.summary}</p>
                       </div>
                     )}
-                    {aiSuggestion.destination && (
-                      <div className="mb-2">
-                        <strong>Destino sugerido:</strong>{" "}
-                        <span className="badge bg-info">{aiSuggestion.destination}</span>
-                      </div>
-                    )}
                     {aiSuggestion.tags && aiSuggestion.tags.length > 0 && (
                       <div>
                         <strong>Etiquetas sugeridas:</strong>
@@ -410,23 +396,6 @@ export const DigitalBrainProcessEntry = () => {
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Título descriptivo..."
                   />
-                </div>
-
-                <div className="mb-3">
-                  <label htmlFor="destination-select" className="form-label fw-semibold">
-                    Destino
-                  </label>
-                  <select
-                    id="destination-select"
-                    className="form-select"
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                  >
-                    <option value="apunte">📚 Apunte de estudio</option>
-                    <option value="idea">💡 Idea conectada</option>
-                    <option value="recurso">🔗 Recurso / referencia</option>
-                    <option value="tarea">✓ Lista de tareas</option>
-                  </select>
                 </div>
 
                 <div className="mb-3">

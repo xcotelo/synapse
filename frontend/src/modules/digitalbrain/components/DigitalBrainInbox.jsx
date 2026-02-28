@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { createInboxEntry, loadInbox, saveInbox, loadNotes, loadLastProcessed, extractFirstUrl, extractYouTubeId } from "../digitalBrainStorage";
 import { appFetch, fetchConfig } from "../../../backend/appFetch";
 import "./FileDropZone.css";
+import micIcon from "../../../assets/mic.svg";
 
 // Collemos o input do usuario e gárdase como entrada pendente
 const DigitalBrainInbox = () => {
@@ -18,12 +19,31 @@ const DigitalBrainInbox = () => {
   const [previewError, setPreviewError] = useState({});
   const [isDragging, setIsDragging] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [isRecording, setIsRecording] = useState(false);
+  const [micPermission, setMicPermission] = useState(null);
+  const [micError, setMicError] = useState(null);
   const dragCounter = useRef(0);
+  const streamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
   const navigate = useNavigate();
 
   // Cargamos as entradas xa gardadas no localStorage ao montar o componente
   useEffect(() => {
     setInbox(loadInbox());
+  }, []);
+
+  // Liberar micrófono al desmontar
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+    };
   }, []);
 
   // Mantener sincronizado el inbox con localStorage al volver a la pestaña/ventana
@@ -264,6 +284,84 @@ const DigitalBrainInbox = () => {
     }
   };
 
+  // Grabar nota de voz: permisos y MediaRecorder
+  const requestMicPermission = () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMicError("Tu navegador no soporta grabación de audio.");
+      setMicPermission("denied");
+      return;
+    }
+    setMicError(null);
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        streamRef.current = stream;
+        setMicPermission("granted");
+        setMicError(null);
+        startVoiceRecording();
+      })
+      .catch((err) => {
+        if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+          setMicError("Se ha denegado el acceso al micrófono. Actívalo en la configuración del navegador.");
+          setMicPermission("denied");
+        } else if (err.name === "NotFoundError") {
+          setMicError("No se encontró ningún micrófono.");
+          setMicPermission("denied");
+        } else {
+          setMicError(err.message || "No se pudo acceder al micrófono.");
+          setMicPermission("denied");
+        }
+      });
+  };
+
+  const startVoiceRecording = () => {
+    if (micPermission === "denied") return;
+    if (!streamRef.current) {
+      requestMicPermission();
+      return;
+    }
+    setMicError(null);
+    chunksRef.current = [];
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+      ? "audio/webm;codecs=opus"
+      : "audio/webm";
+    const recorder = new MediaRecorder(streamRef.current, { mimeType });
+    mediaRecorderRef.current = recorder;
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data);
+    };
+    recorder.onstop = () => {
+      if (chunksRef.current.length === 0) return;
+      const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
+      const ext = recorder.mimeType.includes("webm") ? "webm" : "ogg";
+      const file = new File([blob], `nota-voz-${Date.now()}.${ext}`, { type: blob.type });
+      processFile(file);
+    };
+    recorder.start();
+    setIsRecording(true);
+  };
+
+  const stopVoiceRecording = () => {
+    if (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") return;
+    mediaRecorderRef.current.stop();
+    mediaRecorderRef.current = null;
+    setIsRecording(false);
+  };
+
+  const handleMicClick = () => {
+    if (isRecording) {
+      stopVoiceRecording();
+      return;
+    }
+    if (micPermission === null) {
+      requestMicPermission();
+      return;
+    }
+    if (micPermission === "granted") {
+      startVoiceRecording();
+    }
+  };
+
   const getTypeBadgeColor = (type) => {
     const colors = {
       link: "primary",
@@ -366,10 +464,28 @@ const DigitalBrainInbox = () => {
               💡 Puedes pegar URLs de páginas o vídeos y cargar una vista previa.
             </p>
             <div className="inbox-capture__actions">
+              <button
+                type="button"
+                className={`inbox-capture__mic-btn ${isRecording ? "inbox-capture__mic-btn--recording" : ""}`}
+                onClick={handleMicClick}
+                disabled={micPermission === "denied"}
+                title={isRecording ? "Detener grabación" : "Grabar nota de voz"}
+                aria-label={isRecording ? "Detener grabación" : "Grabar nota de voz"}
+              >
+                <img src={micIcon} alt="" width="20" height="20" className="inbox-capture__mic-icon" />
+                <span className="inbox-capture__mic-label">
+                  {isRecording ? "Detener" : "Nota de voz"}
+                </span>
+              </button>
               <button type="submit" className="btn btn-primary synapse-brain-btn">
                 <span aria-hidden>✨</span> Añadir al inbox
               </button>
             </div>
+            {micError && (
+              <p className="inbox-capture__mic-error small text-danger mb-0 mt-2">
+                {micError}
+              </p>
+            )}
           </form>
         </section>
 

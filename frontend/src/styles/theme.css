@@ -308,6 +308,10 @@ body {
   transition: background var(--synapse-ease), transform var(--synapse-ease), border-color var(--synapse-ease), box-shadow var(--synapse-ease);
 }
 
+.synapse-header .btn-logout img {
+  filter: brightness(0) saturate(100%) invert(31%) sepia(98%) saturate(1200%) hue-rotate(350deg);
+}
+
 .synapse-header .btn-logout:hover {
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.18);
@@ -342,6 +346,10 @@ body {
   color: inherit;
   cursor: pointer;
   transition: background var(--synapse-ease), transform var(--synapse-ease), border-color var(--synapse-ease), box-shadow var(--synapse-ease);
+}
+
+.synapse-header__notif-btn img {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(59%) saturate(1000%) hue-rotate(5deg);
 }
 
 .synapse-header__notif-btn:hover {
@@ -700,8 +708,10 @@ body {
 
 /* ========== Auth pages ========== */
 .synapse-auth-page {
-  min-height: calc(100vh - 64px);
+  flex: 1;
+  min-height: calc(100vh - 96px);
   width: 100%;
+  max-width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -710,6 +720,12 @@ body {
   background: linear-gradient(160deg, #0f172a 0%, #1e293b 40%, #334155 100%);
   background-size: 200% 200%;
   animation: synapse-gradient-shift 16s ease infinite;
+}
+
+.synapse-auth-page > div {
+  width: 100%;
+  max-width: 420px;
+  flex-shrink: 0;
 }
 
 .synapse-auth-card {
@@ -1076,6 +1092,52 @@ body {
   align-items: center;
   gap: 0.75rem;
   margin-top: 1rem;
+}
+
+.inbox-capture__mic-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--synapse-radius-sm);
+  border: 1px solid var(--synapse-border);
+  background: var(--synapse-surface-alt);
+  color: var(--synapse-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--synapse-ease), border-color var(--synapse-ease), color var(--synapse-ease), box-shadow var(--synapse-ease);
+}
+
+.inbox-capture__mic-btn:hover:not(:disabled) {
+  background: var(--synapse-accent-soft);
+  border-color: var(--synapse-primary-light);
+  color: var(--synapse-primary);
+}
+
+.inbox-capture__mic-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.inbox-capture__mic-btn--recording {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: var(--synapse-danger);
+  color: var(--synapse-danger);
+  animation: inbox-mic-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes inbox-mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+}
+
+.inbox-capture__mic-icon {
+  flex-shrink: 0;
+}
+
+.inbox-capture__mic-error {
+  width: 100%;
 }
 
 .inbox-list-section {

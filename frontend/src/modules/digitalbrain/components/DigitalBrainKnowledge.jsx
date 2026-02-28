@@ -14,11 +14,13 @@ import {
 import MarkdownRenderer from "./MarkdownRenderer";
 import "./DigitalBrainKnowledge.css";
 import { appFetch, fetchConfig } from "../../../backend/appFetch";
+import { useNotifications } from "../../common/components/NotificationContext";
 
 // Pantalla para navegar el conocimiento ya procesado: aquí solo
 // trabajamos con notas que ya han salido del inbox.
 const DigitalBrainKnowledge = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { removeNotificationsForNote } = useNotifications();
   const [notes, setNotes] = useState([]);
   const [inboxEntries, setInboxEntries] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -41,8 +43,8 @@ const DigitalBrainKnowledge = () => {
       note.media.contentType.startsWith("audio/");
     if (type === "link") return "web";
     if (type === "video") return "videos";
-    if (type === "audio") return "musica";
-    if (isAudio) return "musica";
+    if (type === "audio") return "audio";
+    if (isAudio) return "audio";
     return "otras";
   }, []);
 
@@ -249,12 +251,12 @@ const DigitalBrainKnowledge = () => {
     };
   }, [trendsTopicsForUi]);
 
-  // Resumen por categorías: web, vídeos, música, otras
+  // Resumen por categorías: web, vídeos, audio, otras
   const categorySummary = useMemo(() => {
     const summary = {
       web: 0,
       videos: 0,
-      musica: 0,
+      audio: 0,
       otras: 0,
     };
 
@@ -270,9 +272,9 @@ const DigitalBrainKnowledge = () => {
       } else if (type === "video") {
         summary.videos += 1;
       } else if (type === "audio") {
-        summary.musica += 1;
+        summary.audio += 1;
       } else if (hasAudio) {
-        summary.musica += 1;
+        summary.audio += 1;
       } else {
         summary.otras += 1;
       }
@@ -351,10 +353,12 @@ const DigitalBrainKnowledge = () => {
   }, [selectedCategory]);
 
   const handleDeleteSelected = () => {
-    if (!selectedNote) return;
+    const noteToDelete = selectedNote ?? notes.find((n) => n.id === selectedId);
+    if (!noteToDelete) return;
 
     const deleteNoteLocally = () => {
-      const updatedNotes = deleteNoteById(selectedNote.id);
+      const updatedNotes = deleteNoteById(noteToDelete.id);
+      removeNotificationsForNote(noteToDelete.id);
       setNotes(updatedNotes);
       if (updatedNotes.length > 0) {
         setSelectedId(updatedNotes[0].id);
@@ -364,13 +368,13 @@ const DigitalBrainKnowledge = () => {
     };
 
     const deleteStorageNote = (onDone) => {
-      if (!selectedNote.storageId) {
+      if (!noteToDelete.storageId) {
         onDone();
         return;
       }
 
       appFetch(
-        `/brain/notes/${encodeURIComponent(selectedNote.storageId)}`,
+        `/brain/notes/${encodeURIComponent(noteToDelete.storageId)}`,
         fetchConfig("DELETE"),
         () => onDone(),
         () => onDone()
@@ -379,7 +383,7 @@ const DigitalBrainKnowledge = () => {
 
     const deleteMediaIfAny = (onDone) => {
       const mediaUrl =
-        selectedNote.media && selectedNote.media.url ? selectedNote.media.url : "";
+        noteToDelete.media && noteToDelete.media.url ? noteToDelete.media.url : "";
       const marker = "/api/brain/media/";
       const markerIndex = mediaUrl.indexOf(marker);
 
@@ -672,14 +676,15 @@ const DigitalBrainKnowledge = () => {
               <div className="col-6 col-md-3">
                 <button
                   type="button"
-                  className={`dbk-categoryCard card w-100 ${selectedCategory === "musica"
-                    ? "dbk-categoryCard--active"
-                    : ""
-                    }`}
-                  aria-pressed={selectedCategory === "musica"}
+                  className={`dbk-categoryCard card w-100 ${
+                    selectedCategory === "audio"
+                      ? "dbk-categoryCard--active"
+                      : ""
+                  }`}
+                  aria-pressed={selectedCategory === "audio"}
                   onClick={() =>
                     setSelectedCategory((prev) =>
-                      prev === "musica" ? null : "musica"
+                      prev === "audio" ? null : "audio"
                     )
                   }
                 >
@@ -687,9 +692,9 @@ const DigitalBrainKnowledge = () => {
                     <div className="d-flex align-items-center justify-content-between">
                       <div>
                         <div className="text-muted small fw-semibold dbk-categoryLabel">
-                          MÚSICA
+                          AUDIO
                         </div>
-                        <div className="h2 mb-0">{categorySummary.musica}</div>
+                        <div className="h2 mb-0">{categorySummary.audio}</div>
                       </div>
                       <div className="fs-3" aria-hidden>
                         🎵
@@ -775,10 +780,10 @@ const DigitalBrainKnowledge = () => {
                     {selectedCategory === "web"
                       ? "Web"
                       : selectedCategory === "videos"
-                        ? "Vídeos"
-                        : selectedCategory === "musica"
-                          ? "Música"
-                          : "Otras"}
+                      ? "Vídeos"
+                      : selectedCategory === "audio"
+                      ? "Audio"
+                      : "Otras"}
                   </div>
                   <span className="badge text-bg-secondary">
                     {filteredNotes.length}

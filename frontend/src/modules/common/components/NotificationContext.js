@@ -131,6 +131,14 @@ export const NotificationProvider = ({ children }) => {
     persistNotifications([]);
   }, [persistNotifications]);
 
+  const removeNotificationsForNote = useCallback(
+    (noteId) => {
+      const current = loadStoredNotifications();
+      persistNotifications(current.filter((n) => n.noteId !== noteId));
+    },
+    [persistNotifications]
+  );
+
   useEffect(() => {
     checkAndScheduleReminders();
     const interval = setInterval(checkAndScheduleReminders, 10 * 1000);
@@ -160,6 +168,7 @@ export const NotificationProvider = ({ children }) => {
       markAsRead,
       markAllAsRead,
       clearAll,
+      removeNotificationsForNote,
       requestNotificationPermission,
       refreshReminders: checkAndScheduleReminders,
     }),
@@ -170,6 +179,7 @@ export const NotificationProvider = ({ children }) => {
       markAsRead,
       markAllAsRead,
       clearAll,
+      removeNotificationsForNote,
       requestNotificationPermission,
       checkAndScheduleReminders,
     ]

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,7 @@ import okhttp3.Response;
 @Service
 public class ClaudeAIService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ClaudeAIService.class);
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private final OkHttpClient client;
     private final Gson gson;
@@ -49,88 +52,71 @@ public class ClaudeAIService {
      */
     public ClassificationResult classifyContent(String content) {
         if (content == null || content.trim().isEmpty()) {
-            return createDefaultResult();
+            return createDefaultResult(content);
         }
 
-        // Si no hay API key configurada, usar reglas básicas
+        // Si no hay API key configurada, generar contenido básico del texto
         if (apiKey == null || apiKey.isEmpty() || apiKey.equals("your-groq-api-key-here")) {
-            return createDefaultResult();
+            logger.warn("API key de LLaMA 3 no configurada, generando contenido básico");
+            return createSmartDefaultResult(content);
         }
 
         try {
             String prompt = buildClassificationPrompt(content);
+            logger.info("Enviando prompt a LLaMA 3, longitud: {}", prompt.length());
             String response = callClaudeAPI(prompt);
-            return parseClaudeResponse(response, content);
+            logger.info("Respuesta recibida de LLaMA 3, longitud: {}", response != null ? response.length() : 0);
+            if (response == null || response.trim().isEmpty()) {
+                logger.warn("Respuesta vacía de LLaMA 3, generando contenido básico");
+                return createSmartDefaultResult(content);
+            }
+            ClassificationResult result = parseClaudeResponse(response, content);
+            
+            // Validar que el resultado tenga contenido útil
+            if (result.getTitle().equals("Nota") && result.getSummary().isEmpty() && 
+                result.getDetailedContent().contains("Contenido sin procesar")) {
+                logger.warn("Resultado parece ser por defecto, generando contenido inteligente");
+                return createSmartDefaultResult(content);
+            }
+            
+            logger.info("Resultado parseado - título: '{}', tags: {}", result.getTitle(), result.getTags().length);
+            return result;
         } catch (Exception e) {
-            // Si falla, devolver resultado por defecto
-            return createDefaultResult();
+            logger.error("Error al clasificar contenido con LLaMA 3: {}", e.getMessage(), e);
+            logger.error("Stack trace completo:", e);
+            return createSmartDefaultResult(content);
         }
     }
 
     /**
-     * Construye el prompt para LLaMA 3
+     * Construye el prompt para LLaMA 3 - Optimizado para mejor precisión
      */
     private String buildClassificationPrompt(String content) {
-        // Detectar si es un video basándose en el contenido
+        String contentPreview = content.substring(0, Math.min(content.length(), 15000));
         boolean isVideo = content.contains("VIDEO") || content.contains("VIDEO DE YOUTUBE") || 
                          content.contains("CANAL:") || content.contains("TÍTULO DEL VIDEO:");
         
-        String videoInstructions = "";
-        if (isVideo) {
-            videoInstructions = "\n\nINSTRUCCIONES ESPECIALES PARA VIDEOS:\n" +
-                               "- Analiza el TÍTULO DEL VIDEO para identificar el tema principal y subtemas.\n" +
-                               "- Lee la DESCRIPCIÓN DEL VIDEO completa: contiene información valiosa sobre el contenido, " +
-                               "temas tratados, conceptos explicados, tecnologías mencionadas, etc.\n" +
-                               "- Considera el CANAL: puede indicar el contexto y especialización del contenido.\n" +
-                               "- Extrae del título y descripción: tecnologías específicas, frameworks, lenguajes de programación, " +
-                               "conceptos técnicos, metodologías, herramientas mencionadas, temas educativos, etc.\n" +
-                               "- El RESUMEN debe explicar QUÉ enseña o trata el video, QUÉ conceptos cubre, QUÉ tecnologías usa, " +
-                               "QUÉ problemas resuelve. NO digas solo 'es un video sobre X', explica el CONTENIDO REAL.\n" +
-                               "- Las ETIQUETAS deben reflejar el contenido REAL: si es sobre React hooks, usa 'react-hooks', " +
-                               "si es sobre algoritmos de grafos, usa 'algoritmos-grafos', si es sobre filosofía estoica, " +
-                               "usa 'filosofia-estoica'. Analiza el título y descripción para extraer temas específicos.\n" +
-                               "- El TÍTULO debe ser descriptivo del contenido real, no solo repetir el título del video.\n";
-        }
-        
-        return "Eres un experto analista de contenido. Tu tarea es analizar CRÍTICAMENTE el siguiente contenido " +
-               "y proporcionar un análisis estructurado y detallado.\n\n" +
-               "CONTENIDO A ANALIZAR:\n" + 
-               content.substring(0, Math.min(content.length(), 20000)) + "\n\n" +
-               "INSTRUCCIONES CRÍTICAS:\n" +
-               "1. LEE Y COMPRENDE TODO el contenido antes de clasificar. Analiza título, descripción, canal (si aplica), " +
-               "y cualquier información disponible. NO uses etiquetas genéricas como 'general', 'varios', 'otros', 'youtube'.\n" +
-               "2. El RESUMEN debe ser ELABORADO y ESPECÍFICO: explica QUÉ enseña, QUÉ conceptos cubre, QUÉ tecnologías menciona, " +
-               "QUÉ problemas resuelve, QUÉ metodologías presenta. Debe ser informativo para alguien que no haya visto el contenido. " +
-               "Mínimo 200 caracteres, máximo 800 caracteres. Para videos, explica el contenido educativo o informativo del video.\n" +
-               "3. Las ETIQUETAS deben ser ESPECÍFICAS y PRECISAS. Analiza el tema principal, subtemas, tecnologías, " +
-               "frameworks, lenguajes, conceptos clave, disciplinas mencionadas. Usa 4-6 etiquetas específicas. " +
-               "Ejemplos buenos: 'react-hooks', 'machine-learning-supervised', 'algoritmos-dijkstra', 'filosofia-estoica', " +
-               "'python-pandas', 'docker-containers'. Ejemplos malos: 'general', 'varios', 'tecnologia', 'programacion', 'video'.\n" +
-               "4. El TIPO debe ser preciso: 'video' (solo para videos), 'articulo' (artículo de blog/noticia), " +
-               "'tutorial' (guía paso a paso escrita), 'codigo' (snippet/repositorio), 'documentacion' (referencia técnica), " +
-               "'investigacion' (paper/estudio), 'nota' (solo si es texto breve sin estructura clara).\n" +
-               "5. El DESTINO debe reflejar el propósito real: 'apunte' (contenido educativo/estudio), 'idea' (concepto/reflexión), " +
-               "'recurso' (herramienta/referencia), 'tarea' (acción pendiente).\n" +
-               videoInstructions +
-               "\nResponde ÚNICAMENTE con un JSON válido (sin texto adicional, sin markdown, sin explicaciones):\n" +
-               "{\n" +
-               "  \"type\": \"tipo-preciso-del-contenido\",\n" +
-               "  \"title\": \"Título descriptivo y específico que refleje el contenido real (máximo 120 caracteres)\",\n" +
-               "  \"summary\": \"Resumen elaborado y detallado explicando QUÉ enseña/cubre el contenido, QUÉ conceptos, " +
-               "tecnologías o metodologías presenta (200-800 caracteres)\",\n" +
-               "  \"detailedContent\": \"Contenido detallado en formato Markdown. Debe ser ESPECÍFICO y ESTRUCTURADO. " +
-               "Incluye: título principal, resumen ejecutivo, puntos clave organizados por secciones, conceptos importantes, " +
-               "tecnologías/frameworks mencionados, conclusiones o takeaways. Usa encabezados (##), listas (-), código (```) si aplica, " +
-               "y formato markdown apropiado. Mínimo 500 caracteres. Sé detallado y específico sobre el contenido real.\",\n" +
-               "  \"destination\": \"apunte|idea|recurso|tarea\",\n" +
-               "  \"tags\": [\"etiqueta-especifica-1\", \"etiqueta-especifica-2\", \"etiqueta-especifica-3\", \"etiqueta-especifica-4\"]\n" +
-               "}\n\n" +
-               "IMPORTANTE: \n" +
-               "- Sé crítico y preciso. Analiza el contenido REAL, no solo la estructura.\n" +
-               "- El detailedContent debe ser un documento markdown completo y bien estructurado que capture la esencia del contenido.\n" +
-               "- Para videos: explica qué enseña, qué conceptos cubre, qué tecnologías demuestra, qué problemas resuelve.\n" +
-               "- Para artículos: extrae los puntos principales, argumentos clave, conclusiones, metodologías.\n" +
-               "- Extrae información específica del título y descripción. Evita generalizaciones.";
+        return "Analiza el siguiente contenido y genera un JSON con la clasificación. " +
+               "SÉ ESPECÍFICO Y PRECISO. NO uses etiquetas genéricas como 'general'.\n\n" +
+               "CONTENIDO:\n" + contentPreview + "\n\n" +
+               "REGLAS OBLIGATORIAS:\n" +
+               "1. TÍTULO: Crea un título descriptivo y específico basado en el contenido real (máx 120 caracteres)\n" +
+               "2. SUMMARY: Resumen detallado de 200-800 caracteres explicando QUÉ enseña, QUÉ conceptos cubre, QUÉ tecnologías menciona\n" +
+               "3. DETAILEDCONTENT: Documento Markdown completo (mín 500 caracteres) con:\n" +
+               "   - Título principal\n" +
+               "   - Resumen ejecutivo\n" +
+               "   - Puntos clave por secciones\n" +
+               "   - Conceptos importantes\n" +
+               "   - Tecnologías/frameworks mencionados\n" +
+               "   - Conclusiones o takeaways\n" +
+               "4. TYPE: 'video', 'articulo', 'tutorial', 'codigo', 'documentacion', 'investigacion', o 'nota'\n" +
+               "5. DESTINATION: 'apunte', 'idea', 'recurso', o 'tarea'\n" +
+               "6. TAGS: Array con 4-6 etiquetas ESPECÍFICAS extraídas del contenido. " +
+               "Ejemplos: 'react-hooks', 'futbol-espanol', 'sanidad-publica', 'algoritmos-grafos'. " +
+               "PROHIBIDO usar 'general', 'varios', 'otros', 'tecnologia', 'programacion'.\n\n" +
+               (isVideo ? "ES UN VIDEO: Analiza el título y descripción para extraer temas, tecnologías y conceptos específicos.\n\n" : "") +
+               "Responde SOLO con JSON válido, sin texto adicional:\n" +
+               "{\"type\":\"tipo\",\"title\":\"título\",\"summary\":\"resumen\",\"detailedContent\":\"# Título\\n\\n## Resumen\\n\\n...\",\"destination\":\"apunte\",\"tags\":[\"tag1\",\"tag2\",\"tag3\",\"tag4\"]}";
     }
 
     /**
@@ -161,10 +147,12 @@ public class ClaudeAIService {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 String errorBody = response.body() != null ? response.body().string() : "";
+                logger.error("Error en respuesta de Groq API: {} - {}", response.code(), errorBody);
                 throw new IOException("Unexpected code: " + response.code() + " - " + errorBody);
             }
             
             String responseBody = response.body().string();
+            logger.debug("Respuesta completa de Groq: {}", responseBody);
             JsonObject jsonResponse = gson.fromJson(responseBody, JsonObject.class);
             
             // Extraer el contenido de la respuesta (formato OpenAI/Groq)
@@ -173,10 +161,13 @@ public class ClaudeAIService {
                 JsonObject choice = choices.get(0).getAsJsonObject();
                 JsonObject messageObj = choice.getAsJsonObject("message");
                 if (messageObj != null && messageObj.has("content")) {
-                    return messageObj.get("content").getAsString();
+                    String content = messageObj.get("content").getAsString();
+                    logger.debug("Contenido extraído: {}", content.substring(0, Math.min(content.length(), 200)));
+                    return content;
                 }
             }
             
+            logger.warn("No se encontró contenido en la respuesta de Groq");
             return "";
         }
     }
@@ -186,8 +177,12 @@ public class ClaudeAIService {
      */
     private ClassificationResult parseClaudeResponse(String response, String originalContent) {
         try {
+            logger.debug("Parseando respuesta, longitud: {}", response.length());
+            
             // Intentar extraer JSON de la respuesta
             String jsonStr = extractJSON(response);
+            logger.debug("JSON extraído: {}", jsonStr.substring(0, Math.min(jsonStr.length(), 200)));
+            
             JsonObject json = gson.fromJson(jsonStr, JsonObject.class);
             
             String type = json.has("type") ? json.get("type").getAsString() : "nota";
@@ -200,46 +195,329 @@ public class ClaudeAIService {
             if (json.has("tags") && json.get("tags").isJsonArray()) {
                 JsonArray tagsArray = json.getAsJsonArray("tags");
                 for (int i = 0; i < tagsArray.size(); i++) {
-                    tags.add(tagsArray.get(i).getAsString());
+                    String tag = tagsArray.get(i).getAsString();
+                    // Filtrar etiquetas genéricas
+                    if (!tag.equalsIgnoreCase("general") && !tag.equalsIgnoreCase("varios") && 
+                        !tag.equalsIgnoreCase("otros") && !tag.trim().isEmpty()) {
+                        tags.add(tag);
+                    }
                 }
             }
             
+            // Si no hay tags válidas, intentar generar algunas del contenido
             if (tags.isEmpty()) {
-                tags.add("general");
+                tags = generateTagsFromContent(originalContent, title, summary);
             }
             
-            // Si no hay detailedContent, crear uno básico a partir del summary
-            if (detailedContent.isEmpty() && !summary.isEmpty()) {
-                detailedContent = "# " + title + "\n\n## Resumen\n\n" + summary + "\n\n## Contenido original\n\n" + originalContent.substring(0, Math.min(originalContent.length(), 1000));
+            // Si no hay detailedContent, crear uno detallado
+            if (detailedContent.isEmpty() || detailedContent.length() < 200) {
+                detailedContent = buildDetailedContentFromSummary(title, summary, originalContent);
             }
+            
+            // Asegurar que el summary tenga contenido
+            if (summary.isEmpty() && !originalContent.isEmpty()) {
+                summary = originalContent.substring(0, Math.min(originalContent.length(), 500)) + "...";
+            }
+            
+            logger.debug("Resultado final - título: '{}', tags: {}, summary length: {}", 
+                        title, tags.size(), summary.length());
             
             return new ClassificationResult(type, title, summary, detailedContent, destination, tags.toArray(new String[0]));
         } catch (Exception e) {
-            // Si falla el parsing, devolver resultado por defecto
-            return createDefaultResult();
+            logger.error("Error al parsear respuesta de LLaMA 3", e);
+            logger.error("Respuesta que causó el error: {}", response);
+            return createSmartDefaultResult(originalContent);
         }
+    }
+    
+    /**
+     * Genera etiquetas básicas del contenido cuando la IA no las proporciona
+     */
+    private List<String> generateTagsFromContent(String content, String title, String summary) {
+        List<String> tags = new ArrayList<>();
+        String allText = (title + " " + summary + " " + content).toLowerCase();
+        
+        // Detectar temas específicos
+        if (allText.contains("futbol") || allText.contains("fútbol") || allText.contains("deporte") || 
+            allText.contains("liga") || allText.contains("equipo")) {
+            tags.add("deportes");
+            if (allText.contains("español") || allText.contains("españa")) {
+                tags.add("futbol-espanol");
+            }
+        }
+        if (allText.contains("sanidad") || allText.contains("salud") || allText.contains("medicina") || 
+            allText.contains("mir") || allText.contains("hospital")) {
+            tags.add("sanidad");
+            if (allText.contains("publica") || allText.contains("pública")) {
+                tags.add("sanidad-publica");
+            }
+        }
+        if (allText.contains("historia") || allText.contains("histórico") || allText.contains("rey") || 
+            allText.contains("23f") || allText.contains("desclasificacion")) {
+            tags.add("historia");
+            tags.add("politica");
+        }
+        if (allText.contains("tecnologia") || allText.contains("tecnología") || allText.contains("programacion") ||
+            allText.contains("software") || allText.contains("aplicacion")) {
+            tags.add("tecnologia");
+        }
+        if (allText.contains("sociedad") || allText.contains("noticia") || allText.contains("actualidad")) {
+            tags.add("sociedad");
+        }
+        if (allText.contains("video") || allText.contains("youtube") || allText.contains("vimeo")) {
+            tags.add("video");
+        }
+        if (allText.contains("articulo") || allText.contains("artículo") || allText.contains("noticia") ||
+            allText.contains("cadena ser") || allText.contains("el país")) {
+            tags.add("articulo");
+        }
+        
+        // Extraer palabras clave del título
+        if (title != null && !title.isEmpty()) {
+            String[] titleWords = title.toLowerCase().split("[\\s|]+");
+            for (String word : titleWords) {
+                word = word.replaceAll("[^a-záéíóúñ]", "");
+                if (word.length() > 4 && !tags.contains(word) && tags.size() < 6) {
+                    // Evitar palabras muy comunes
+                    if (!word.equals("sobre") && !word.equals("cuando") && !word.equals("desde") &&
+                        !word.equals("hasta") && !word.equals("después") && !word.equals("nota")) {
+                        tags.add(word);
+                    }
+                }
+            }
+        }
+        
+        // Si aún no hay tags, usar una genérica pero específica
+        if (tags.isEmpty()) {
+            tags.add("contenido");
+        }
+        
+        return tags;
+    }
+    
+    /**
+     * Construye contenido detallado cuando la IA no lo proporciona
+     */
+    private String buildDetailedContentFromSummary(String title, String summary, String originalContent) {
+        StringBuilder content = new StringBuilder();
+        content.append("# ").append(title).append("\n\n");
+        
+        if (!summary.isEmpty()) {
+            content.append("## Resumen\n\n").append(summary).append("\n\n");
+        }
+        
+        content.append("## Contenido original\n\n");
+        String preview = originalContent.substring(0, Math.min(originalContent.length(), 2000));
+        content.append(preview);
+        if (originalContent.length() > 2000) {
+            content.append("\n\n... (contenido truncado)");
+        }
+        
+        return content.toString();
     }
 
     /**
      * Extrae JSON de la respuesta (puede venir con texto adicional)
      */
     private String extractJSON(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return "{}";
+        }
+        
         // Buscar el primer { y el último }
         int start = text.indexOf('{');
         int end = text.lastIndexOf('}');
         
         if (start != -1 && end != -1 && end > start) {
-            return text.substring(start, end + 1);
+            String json = text.substring(start, end + 1);
+            logger.debug("JSON extraído: {}", json.substring(0, Math.min(json.length(), 300)));
+            return json;
         }
         
+        // Si no hay JSON, intentar buscar entre ```json o ```
+        int jsonStart = text.indexOf("```json");
+        if (jsonStart != -1) {
+            jsonStart += 7; // Longitud de "```json"
+            int jsonEnd = text.indexOf("```", jsonStart);
+            if (jsonEnd != -1) {
+                return text.substring(jsonStart, jsonEnd).trim();
+            }
+        }
+        
+        // Buscar entre ```
+        int codeStart = text.indexOf("```");
+        if (codeStart != -1) {
+            codeStart += 3;
+            int codeEnd = text.indexOf("```", codeStart);
+            if (codeEnd != -1) {
+                String code = text.substring(codeStart, codeEnd).trim();
+                if (code.startsWith("{")) {
+                    return code;
+                }
+            }
+        }
+        
+        logger.warn("No se pudo extraer JSON válido de la respuesta");
         return text;
     }
 
     /**
      * Crea un resultado por defecto cuando no se puede usar LLaMA 3
      */
-    private ClassificationResult createDefaultResult() {
-        return new ClassificationResult("nota", "Nota", "", "# Nota\n\n## Contenido\n\nContenido sin procesar.", "apunte", new String[]{"general"});
+    private ClassificationResult createDefaultResult(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return new ClassificationResult("nota", "Nota", "", 
+                "# Nota\n\n## Contenido\n\nContenido sin procesar.", 
+                "apunte", new String[]{"general"});
+        }
+        return createSmartDefaultResult(content);
+    }
+    
+    /**
+     * Crea un resultado inteligente basado en el contenido cuando la IA falla
+     */
+    private ClassificationResult createSmartDefaultResult(String content) {
+        // Extraer título del contenido
+        String title = extractTitleFromContent(content);
+        String summary = extractSummaryFromContent(content);
+        List<String> tags = generateTagsFromContent(content, title, summary);
+        
+        // Construir contenido detallado
+        String detailedContent = buildDetailedContentFromSummary(title, summary, content);
+        
+        // Detectar tipo
+        String type = detectTypeFromContent(content);
+        
+        return new ClassificationResult(
+            type,
+            title,
+            summary,
+            detailedContent,
+            "apunte",
+            tags.toArray(new String[0])
+        );
+    }
+    
+    /**
+     * Extrae un título del contenido
+     */
+    private String extractTitleFromContent(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return "Nota";
+        }
+        
+        // Si hay "Título:" al inicio, extraerlo
+        if (content.startsWith("Título:") || content.contains("Título:")) {
+            int titleStart = content.indexOf("Título:") + 7;
+            int titleEnd = content.indexOf("\n", titleStart);
+            if (titleEnd == -1) titleEnd = Math.min(titleStart + 120, content.length());
+            String title = content.substring(titleStart, titleEnd).trim();
+            if (!title.isEmpty() && title.length() <= 120) {
+                return title;
+            }
+        }
+        
+        // Si es una URL, usar parte de la URL como título
+        if (content.startsWith("http://") || content.startsWith("https://")) {
+            try {
+                String domain = content.split("/")[2];
+                return "Enlace: " + domain;
+            } catch (Exception e) {
+                return "Enlace";
+            }
+        }
+        
+        // Usar las primeras palabras del contenido
+        String[] lines = content.split("\n");
+        for (String line : lines) {
+            line = line.trim();
+            if (line.length() > 10 && line.length() <= 120) {
+                return line;
+            }
+        }
+        
+        // Último recurso: primeras 120 caracteres
+        String firstLine = content.trim().split("\n")[0];
+        if (firstLine.length() > 120) {
+            return firstLine.substring(0, 117) + "...";
+        }
+        return firstLine.isEmpty() ? "Nota" : firstLine;
+    }
+    
+    /**
+     * Extrae un resumen del contenido
+     */
+    private String extractSummaryFromContent(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return "";
+        }
+        
+        // Si hay "Descripción:" o "Resumen:", extraerlo
+        String[] keywords = {"Descripción:", "Resumen:", "Summary:"};
+        for (String keyword : keywords) {
+            if (content.contains(keyword)) {
+                int start = content.indexOf(keyword) + keyword.length();
+                int end = content.indexOf("\n\n", start);
+                if (end == -1) end = Math.min(start + 800, content.length());
+                String summary = content.substring(start, end).trim();
+                if (summary.length() >= 50) {
+                    return summary;
+                }
+            }
+        }
+        
+        // Usar las primeras líneas como resumen
+        String[] lines = content.split("\n");
+        StringBuilder summary = new StringBuilder();
+        for (String line : lines) {
+            line = line.trim();
+            if (line.isEmpty() || line.startsWith("Título:") || line.startsWith("URL:")) {
+                continue;
+            }
+            if (summary.length() + line.length() > 800) {
+                break;
+            }
+            if (summary.length() > 0) {
+                summary.append(" ");
+            }
+            summary.append(line);
+            if (summary.length() >= 200) {
+                break;
+            }
+        }
+        
+        String result = summary.toString().trim();
+        if (result.length() < 50) {
+            // Si es muy corto, usar más contenido
+            result = content.substring(0, Math.min(500, content.length())).trim();
+            if (result.length() > 500) {
+                result = result.substring(0, 497) + "...";
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Detecta el tipo de contenido
+     */
+    private String detectTypeFromContent(String content) {
+        if (content == null) return "nota";
+        
+        String lower = content.toLowerCase();
+        if (lower.contains("video") || lower.contains("youtube") || lower.contains("vimeo")) {
+            return "video";
+        }
+        if (content.startsWith("http://") || content.startsWith("https://")) {
+            return "link";
+        }
+        if (lower.contains("```") || lower.contains("function") || lower.contains("class ")) {
+            return "codigo";
+        }
+        if (lower.contains("tutorial") || lower.contains("guía") || lower.contains("paso a paso")) {
+            return "tutorial";
+        }
+        return "articulo";
     }
 
     /**

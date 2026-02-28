@@ -46,21 +46,14 @@ const Login = () => {
   }, []);
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center"
-      style={{
-        minHeight: 'calc(100vh - 64px)',
-        width: '100%',
-        background: 'linear-gradient(135deg, #1D3557 0%, #457B9D 50%, #A8DADC 100%)'
-      }}
-    >
-      <div className="col-11 col-sm-8 col-md-6 col-lg-4">
-        <div className="card shadow-lg border-0" style={{ borderRadius: '1.25rem', overflow: 'hidden' }}>
-          <div className="card-header text-center bazul3 py-4">
-            <h3 className="blanco mb-1">Bienvenido!</h3>
-            <p className="mb-0 azul1" style={{ fontSize: '0.9rem' }}>Conecta tu cerebro digital</p>
+    <div className="synapse-auth-page">
+      <div className="col-11 col-sm-8 col-md-6 col-lg-4 synapse-animate-in synapse-animate-in-delay-2">
+        <div className="card synapse-auth-card">
+          <div className="card-header">
+            <h3 className="mb-1">Bienvenido</h3>
+            <p className="mb-0">Conecta tu cerebro digital</p>
           </div>
-          <div className="card-body bazul1 p-4">
+          <div className="card-body">
             <Errors errors={backendErrors} onClose={() => setBackendErrors(null)} />
             <form
               ref={node => form = node}
@@ -69,10 +62,10 @@ const Login = () => {
               onSubmit={e => handleSubmit(e)}
             >
               <div className="mb-3">
-                <label className="form-label azul3" htmlFor="userName">Usuario</label>
+                <label className="form-label" htmlFor="userName">Usuario</label>
                 <input
                   type="text"
-                  className="form-control bblanco"
+                  className="form-control"
                   id="userName"
                   placeholder="Tu usuario"
                   value={userName}
@@ -82,10 +75,10 @@ const Login = () => {
                 />
               </div>
               <div className="mb-3">
-                <label className="form-label azul3" htmlFor="password">Contraseña</label>
+                <label className="form-label" htmlFor="password">Contraseña</label>
                 <input
                   type="password"
-                  className="form-control bblanco"
+                  className="form-control"
                   id="password"
                   placeholder="••••••••"
                   value={password}
@@ -94,20 +87,13 @@ const Login = () => {
                 />
               </div>
               <div className="d-grid gap-2 mt-3">
-                <button
-                  type="submit"
-                  className="btn bazul2 blanco py-2"
-                  style={{ borderRadius: '999px', fontWeight: 500 }}
-                >
+                <button type="submit" className="btn btn-primary synapse-btn-primary w-100 py-2">
                   Iniciar sesión
                 </button>
               </div>
               <div className="text-center mt-3">
-                <small className="azul3">
-                  ¿No tienes cuenta todavía?{' '}
-                  <Link to="register" className="azul2" style={{ fontWeight: 500 }}>
-                    Registrarse
-                  </Link>
+                <small className="text-muted">
+                  ¿No tienes cuenta? <Link to="register">Registrarse</Link>
                 </small>
               </div>
             </form>

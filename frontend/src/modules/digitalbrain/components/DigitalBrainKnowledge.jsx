@@ -194,13 +194,13 @@ const DigitalBrainKnowledge = () => {
   };
 
   return (
-    <div className="container-xxl mt-4">
-      <div className="d-flex justify-content-between align-items-center flex-wrap mb-3 dbk-topbar">
+    <div className="container synapse-brain-page">
+      <div className="d-flex justify-content-between align-items-center flex-wrap mb-3 dbk-topbar synapse-animate-in">
         <div>
-          <h2 className="h4 mb-0">Conocimiento procesado</h2>
-          <div className="text-muted small">
+          <h2 className="synapse-brain-title mb-1">Conocimiento procesado</h2>
+          <p className="synapse-brain-subtitle text-muted mb-0">
             Explora tus notas por categoría y revisa el contenido procesado.
-          </div>
+          </p>
         </div>
         <div className="d-flex gap-2">
           <button
@@ -211,7 +211,7 @@ const DigitalBrainKnowledge = () => {
           >
             Exportar a Markdown
           </button>
-          <Link to="/brain/inbox" className="btn btn-sm btn-primary">
+          <Link to="/brain/inbox" className="btn btn-sm btn-primary synapse-brain-btn">
             Ir al inbox
           </Link>
         </div>
@@ -225,7 +225,7 @@ const DigitalBrainKnowledge = () => {
       ) : (
         <div className="row">
           <div className="col-12 mb-3 dbk-categoryGrid">
-            <div className="row g-3">
+            <div className="row g-3 synapse-stagger-children">
               <div className="col-6 col-md-3">
                 <button
                   type="button"

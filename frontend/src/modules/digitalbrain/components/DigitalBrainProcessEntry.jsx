@@ -273,12 +273,12 @@ export const DigitalBrainProcessEntry = () => {
   }
 
   return (
-    <div className="container mt-4" style={{ maxWidth: "1200px" }}>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="h3 mb-0">
-          <span style={{ fontSize: "1.8rem" }}>🤖</span> Procesar con IA
+    <div className="container synapse-brain-page" style={{ maxWidth: "1200px" }}>
+      <div className="d-flex justify-content-between align-items-center mb-4 synapse-animate-in">
+        <h2 className="synapse-brain-title mb-0 d-flex align-items-center gap-2">
+          <span aria-hidden>🤖</span> Procesar con IA
         </h2>
-        <Link to="/brain/inbox" className="btn btn-outline-secondary">
+        <Link to="/brain/inbox" className="btn btn-outline-primary synapse-brain-btn">
           ← Volver al inbox
         </Link>
       </div>
@@ -286,8 +286,8 @@ export const DigitalBrainProcessEntry = () => {
       <div className="row g-4">
         {/* Panel izquierdo: Entrada original y sugerencias de IA */}
         <div className="col-12 col-lg-5">
-          <div className="card shadow-sm border-0 h-100">
-            <div className="card-header bg-white border-bottom">
+          <div className="card synapse-brain-card h-100 synapse-animate-in synapse-animate-in-delay-1">
+            <div className="card-header">
               <h3 className="h6 mb-0">
                 <span className="me-2">{getTypeIcon(entry.type)}</span>
                 Entrada original
@@ -390,10 +390,10 @@ export const DigitalBrainProcessEntry = () => {
 
         {/* Panel derecho: Formulario de edición */}
         <div className="col-12 col-lg-7">
-          <div className="card shadow-sm border-0">
-            <div className="card-header bg-white border-bottom">
+          <div className="card synapse-brain-card synapse-animate-in synapse-animate-in-delay-2">
+            <div className="card-header">
               <h3 className="h6 mb-0">
-                <span>📝</span> Transformar en conocimiento
+                <span aria-hidden>📝</span> Transformar en conocimiento
               </h3>
             </div>
             <div className="card-body">
@@ -488,8 +488,8 @@ export const DigitalBrainProcessEntry = () => {
                     <Link to="/brain/inbox" className="btn btn-outline-secondary">
                       Cancelar
                     </Link>
-                    <button type="submit" className="btn btn-primary btn-lg px-4">
-                      <span>💾</span> Guardar nota y sacar del inbox
+                    <button type="submit" className="btn btn-primary synapse-brain-btn px-4">
+                      <span aria-hidden>💾</span> Guardar nota y sacar del inbox
                     </button>
                   </div>
                 </div>

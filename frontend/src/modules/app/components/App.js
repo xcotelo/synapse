@@ -1,28 +1,23 @@
 import React from "react";
-
 import { HashRouter as Router } from "react-router-dom";
 
+import "../../../styles/theme.css";
+import "../../common/estilo.css";
 import Body from "./Body";
+import Footer from "./Footer";
 import Header from "./Header";
 import Menu from "./Menu";
 
 const App = () => {
   return (
-    <div
-      className="global"
-      style={{
-        minHeight: "100vh",
-        width: "100vw",
-        margin: 0,
-        padding: 0,
-        overflowX: "hidden",
-        backgroundColor: "#A8DADC" // mismo tono azul claro que el gradiente del login
-      }}
-    >
+    <div className="synapse-app">
       <Router>
         <Header />
-        <Menu/>
-        <Body />
+        <Menu />
+        <main className="synapse-main">
+          <Body />
+        </main>
+        <Footer />
       </Router>
     </div>
   );

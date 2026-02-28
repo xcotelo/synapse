@@ -20,8 +20,7 @@ const Errors = ({ errors, onClose }) => {
     }
 
     return (
-
-        <div className="alert alert-danger alert-dismissible fade show" role="alert">
+        <div className="alert alert-danger alert-dismissible fade show synapse-alert synapse-alert-danger" role="alert">
 
             {globalError ? globalError : ''}
 

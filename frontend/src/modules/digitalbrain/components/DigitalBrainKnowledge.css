@@ -7,68 +7,109 @@
 }
 
 .dbk-categoryCard {
-  border: 1px solid var(--bs-border-color);
-  border-radius: var(--bs-border-radius-lg);
-  background: var(--bs-body-bg);
+  border: 1px solid rgba(29, 53, 87, 0.1);
+  border-radius: var(--synapse-radius, 12px);
+  background: var(--synapse-surface-alt, #fff);
   text-align: left;
-  transition: box-shadow 120ms ease, transform 120ms ease, border-color 120ms ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 1px 3px rgba(29, 53, 87, 0.04);
 }
 
 .dbk-categoryCard:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--bs-box-shadow-sm);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  border-color: var(--synapse-border-strong);
 }
 
 .dbk-categoryCard:focus-visible {
   outline: 0;
-  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.2);
+  box-shadow: 0 0 0 3px var(--synapse-accent-soft, rgba(168, 218, 220, 0.4));
 }
 
 .dbk-categoryCard--active {
-  border-color: var(--bs-primary);
-  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.12);
+  border-color: var(--synapse-primary);
+  box-shadow: 0 0 0 2px var(--synapse-accent-soft);
+  background: var(--synapse-accent-soft);
 }
 
 .dbk-categoryLabel {
-  letter-spacing: 0.08em;
+  font-family: var(--synapse-font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--synapse-text-muted, #5c5c7a);
 }
 
 .dbk-notesList {
   max-height: 55vh;
   overflow-y: auto;
+  border-radius: 0 0 var(--synapse-radius-sm, 8px) var(--synapse-radius-sm, 8px);
 }
 
 .dbk-noteItem {
   border-left: 3px solid transparent;
+  transition: background 0.15s ease;
+}
+
+.dbk-noteItem:hover {
+  background: rgba(15, 23, 42, 0.06);
 }
 
 .dbk-noteItem--unread {
-  border-left-color: var(--bs-primary);
+  border-left-color: var(--synapse-primary);
 }
 
 .dbk-noteItem--read {
-  opacity: 0.78;
+  opacity: 0.82;
 }
 
 .dbk-noteItem--read.active {
   opacity: 1;
 }
 
+/* Sin .active: texto siempre oscuro (hover incluido) para leer bien sobre fondo claro */
+.dbk-noteItem:not(.active) .dbk-noteTitle,
+.dbk-noteItem:not(.active).dbk-noteItem--read .dbk-noteTitle {
+  color: var(--synapse-text, #0f172a) !important;
+}
+
+.dbk-noteItem:not(.active) .small,
+.dbk-noteItem:not(.active) .text-muted {
+  color: var(--synapse-text-muted, #64748b) !important;
+}
+
+/* Con .active: texto blanco sobre fondo azul */
+.dbk-noteItem.active .dbk-noteTitle,
+.dbk-noteItem.active .small,
+.dbk-noteItem.active .text-white-50,
+.dbk-noteItem.active .text-muted {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
 .dbk-noteTitle {
-  line-height: 1.2;
+  font-family: var(--synapse-font-ui);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .dbk-detailTitle {
-  line-height: 1.15;
+  font-family: var(--synapse-font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
 }
-
 
 .dbk-contentCard {
-  background: #ffffff;   /* blanco */
-  color: #000000;        /* negro */
+  background: var(--synapse-surface-alt, #fff);
+  color: var(--synapse-text, #1a1a2e);
+  border-radius: var(--synapse-radius, 12px);
+  box-shadow: 0 1px 4px rgba(29, 53, 87, 0.06);
 }
 
-
 .dbk-contentCard--read {
-  opacity: 0.8;
+  opacity: 0.88;
 }

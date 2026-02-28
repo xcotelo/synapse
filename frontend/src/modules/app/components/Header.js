@@ -1,31 +1,38 @@
 import React from "react";
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { useUser } from '../../common/components/UserContext';
+import { useNavigate, Link } from "react-router-dom";
+import { useUser } from "../../common/components/UserContext";
 
-import logoutIcon from '../../../assets/logout.svg';
-import '../../common/estilo.css';
+import logoutIcon from "../../../assets/logout.svg";
 
 const Header = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const { loggedIn, logOut } = useUser();
+  const navigate = useNavigate();
+  const { loggedIn, logOut } = useUser();
 
-    const handleLogout = () => {
-        logOut();
-        navigate('/');
-    };
-    return (
-        <header className="bazul3 d-flex align-items-center justify-content-center position-relative" style={{ minHeight: '64px' }}>
-            <h1 className="blanco m-0 text-center" style={{ flex: 1 }}>Synapse</h1>
-            {loggedIn && (
-                <button
-                    className="btn btn-danger rounded-pill position-absolute end-0 me-4"
-                    onClick={handleLogout}
-                >
-                    <img src={logoutIcon} alt="Logout" style={{ width: '40px', height: '40px' }} />
-                </button>
-            )}
-        </header>
-    );
+  const handleLogout = () => {
+    logOut();
+    navigate("/");
+  };
+
+  return (
+    <header className="synapse-header">
+      <Link to={loggedIn ? "/brain/inbox" : "/"} className="synapse-header__logo">
+        <span className="synapse-header__logo-icon" aria-hidden>🧠</span>
+        <span className="synapse-header__wordmark">Synapse</span>
+      </Link>
+      <div className="synapse-header__actions">
+        {loggedIn && (
+          <button
+            type="button"
+            className="btn-logout"
+            onClick={handleLogout}
+            aria-label="Cerrar sesión"
+          >
+            <img src={logoutIcon} alt="" width="22" height="22" />
+          </button>
+        )}
+      </div>
+    </header>
+  );
 };
+
 export default Header;

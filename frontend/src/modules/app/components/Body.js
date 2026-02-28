@@ -1,29 +1,22 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { useUser } from "../../common/components/UserContext";
 import { Login, Register } from "../../user";
 import { DigitalBrainInbox, DigitalBrainProcessEntry, DigitalBrainKnowledge } from "../../digitalbrain";
+import BrainLayout from "./BrainLayout";
 
 const Body = () => {
-
-  const { loggedIn, userRole} = useUser();
+  const { loggedIn } = useUser();
 
   return (
     <Routes>
-      <Route path="/">
-        <Route index exact element={<Login />} />
-        {<Route path="/register" element={<Register />} />}
-        {/* Rutas del cerebro digital accesibles sin autenticación */}
-        {loggedIn && <Route path="/brain/inbox" element={<DigitalBrainInbox />} />}
-        {loggedIn && <Route path="/brain/process/:id" element={<DigitalBrainProcessEntry />} />}
-        {loggedIn && <Route path="/brain/knowledge" element={<DigitalBrainKnowledge />} />}
-        
-      </Route>
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={loggedIn ? <Navigate to="/brain/inbox" replace /> : <Login />} />
       <Route path="/register" element={<Register />} />
-      {/* Rutas del cerebro digital accesibles sin autenticación */}
-      <Route path="/brain/inbox" element={<DigitalBrainInbox />} />
-      <Route path="/brain/process/:id" element={<DigitalBrainProcessEntry />} />
-      <Route path="/brain/knowledge" element={<DigitalBrainKnowledge />} />
+      <Route path="/brain" element={<BrainLayout />}>
+        <Route path="inbox" element={<DigitalBrainInbox />} />
+        <Route path="knowledge" element={<DigitalBrainKnowledge />} />
+        <Route path="process/:id" element={<DigitalBrainProcessEntry />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

@@ -40,6 +40,8 @@ import synapse.rest.dtos.BrainSuggestionDto;
 import synapse.rest.dtos.BrainLinkPreviewDto;
 import synapse.rest.dtos.SaveNoteParamsDto;
 import synapse.rest.dtos.SavedNoteDto;
+import synapse.rest.dtos.FactCheckParamsDto;
+import synapse.rest.dtos.FactCheckResponseDto;
 import synapse.rest.services.LlamaAIService;
 import synapse.rest.services.ContentExtractionService;
 import synapse.rest.services.MediaStorageService;
@@ -141,7 +143,8 @@ public class BrainController {
     }
 
     /**
-     * Vista previa de una URL: extrae título/descripcion y un snippet del contenido.
+     * Vista previa de una URL: extrae título/descripcion y un snippet del
+     * contenido.
      *
      * Este endpoint permite "explotación de fuentes" sin comprometer el flujo:
      * la IA puede proponer, pero el usuario ve y valida qué se ha extraído.
@@ -189,16 +192,20 @@ public class BrainController {
             description.append("Tamaño aproximado: ")
                     .append(String.format("%.2f MB", file.getSize() / (1024.0 * 1024.0)))
                     .append("\n\n");
-            description.append("INFORMACIÓN PARA LA IA: A partir del nombre del archivo y estos metadatos, intenta deducir artista, autor o grupo probable, ");
-            description.append("así como el estilo o temática del audio. Si el nombre no da pistas claras, indícalo explícitamente.\n");
+            description.append(
+                    "INFORMACIÓN PARA LA IA: A partir del nombre del archivo y estos metadatos, intenta deducir artista, autor o grupo probable, ");
+            description.append(
+                    "así como el estilo o temática del audio. Si el nombre no da pistas claras, indícalo explícitamente.\n");
         } else if (isVideo) {
             description.append("Archivo de vídeo subido por el usuario (por ejemplo, MP4).\n\n");
             description.append("Nombre de archivo: ").append(originalName).append("\n");
             description.append("Tamaño aproximado: ")
                     .append(String.format("%.2f MB", file.getSize() / (1024.0 * 1024.0)))
                     .append("\n\n");
-            description.append("INFORMACIÓN PARA LA IA: No tienes acceso al contenido de vídeo, solo al nombre y metadatos básicos. ");
-            description.append("Intenta deducir de qué podría tratar el vídeo y genera un RESUMEN probable del tema y contexto, indicando que es una inferencia.\n");
+            description.append(
+                    "INFORMACIÓN PARA LA IA: No tienes acceso al contenido de vídeo, solo al nombre y metadatos básicos. ");
+            description.append(
+                    "Intenta deducir de qué podría tratar el vídeo y genera un RESUMEN probable del tema y contexto, indicando que es una inferencia.\n");
         } else {
             description.append("Archivo subido por el usuario.\n\n");
             description.append("Nombre de archivo: ").append(originalName).append("\n");
@@ -206,7 +213,8 @@ public class BrainController {
             description.append("Tamaño aproximado: ")
                     .append(String.format("%.2f MB", file.getSize() / (1024.0 * 1024.0)))
                     .append("\n\n");
-            description.append("INFORMACIÓN PARA LA IA: A partir de estos metadatos intenta clasificar el archivo y proponer un título y resumen útiles.\n");
+            description.append(
+                    "INFORMACIÓN PARA LA IA: A partir de estos metadatos intenta clasificar el archivo y proponer un título y resumen útiles.\n");
         }
 
         logger.info("Enviando metadatos de archivo '{}' a la IA para clasificación", originalName);
@@ -227,7 +235,7 @@ public class BrainController {
         String mediaUrl = basePath + "/api/brain/media/" + storedFilename;
 
         return new BrainSuggestionDto(
-            finalType,
+                finalType,
                 classification.getTitle() != null ? classification.getTitle() : originalName,
                 classification.getSummary(),
                 classification.getDetailedContent(),
@@ -243,7 +251,8 @@ public class BrainController {
         MediaType mediaType = MediaTypeFactory.getMediaType(resource)
                 .orElse(MediaType.APPLICATION_OCTET_STREAM);
 
-        // Fallback para casos típicos donde la detección falla (Windows a veces devuelve null)
+        // Fallback para casos típicos donde la detección falla (Windows a veces
+        // devuelve null)
         String name = resource.getFilename() != null ? resource.getFilename().toLowerCase() : "";
         if (MediaType.APPLICATION_OCTET_STREAM.equals(mediaType)) {
             if (name.endsWith(".mp3")) {
@@ -261,7 +270,8 @@ public class BrainController {
                     .body(resource);
         }
 
-        // Range requests: devolver un trozo del fichero (evita ResourceRegion converter issues)
+        // Range requests: devolver un trozo del fichero (evita ResourceRegion converter
+        // issues)
         Path path;
         try {
             path = resource.getFile().toPath();
@@ -304,7 +314,7 @@ public class BrainController {
         long end;
         try {
             if (parts[0].isEmpty()) {
-                // Sufijo: bytes=-500  -> últimos 500 bytes
+                // Sufijo: bytes=-500 -> últimos 500 bytes
                 long suffixLength = Long.parseLong(parts[1]);
                 if (suffixLength <= 0) {
                     throw new NumberFormatException();
@@ -348,7 +358,8 @@ public class BrainController {
             long skipped = is.skip(start);
             while (skipped < start) {
                 long s = is.skip(start - skipped);
-                if (s <= 0) break;
+                if (s <= 0)
+                    break;
                 skipped += s;
             }
             bytesRead = is.read(data);
@@ -406,6 +417,13 @@ public class BrainController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteNote(@PathVariable("storageId") String storageId) {
         noteMarkdownStorageService.deleteByStorageId(storageId);
+    }
+
+    @PostMapping("/fact-check")
+    @ResponseStatus(HttpStatus.OK)
+    public FactCheckResponseDto factCheck(@RequestBody FactCheckParamsDto params) {
+        logger.info("Recibida petición de fact-checking para contenido");
+        return new FactCheckResponseDto(llamaAIService.verifyInformation(params.getContent()));
     }
 
     /**

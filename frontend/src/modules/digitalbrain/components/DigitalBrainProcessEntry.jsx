@@ -23,6 +23,11 @@ export const DigitalBrainProcessEntry = () => {
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   const [suggestionError, setSuggestionError] = useState(null);
 
+  // Estados para Fact-Checking
+  const [factCheckResults, setFactCheckResults] = useState(null);
+  const [loadingFactCheck, setLoadingFactCheck] = useState(false);
+  const [factCheckError, setFactCheckError] = useState(null);
+
   useEffect(() => {
     const inbox = loadInbox();
     const found = inbox.find((item) => item.id === id);
@@ -171,6 +176,39 @@ export const DigitalBrainProcessEntry = () => {
 
     // 5. Ir á pantalla de coñecemento
     navigate("/brain/knowledge");
+  };
+
+  const handleFactCheck = () => {
+    if (!content.trim()) return;
+
+    setLoadingFactCheck(true);
+    setFactCheckError(null);
+    setFactCheckResults(null);
+
+    appFetch(
+      "/brain/fact-check",
+      fetchConfig("POST", { content: content }),
+      (data) => {
+        if (data && data.claims) {
+          setFactCheckResults(data.claims);
+        } else {
+          setFactCheckError("No se pudieron extraer afirmaciones para verificar.");
+        }
+        setLoadingFactCheck(false);
+      },
+      () => {
+        setFactCheckError("Error al conectar con el servicio de fact-checking.");
+        setLoadingFactCheck(false);
+      }
+    );
+  };
+
+  const applyCorrection = (original, correction) => {
+    if (!correction) return;
+    const newContent = content.replace(original, correction);
+    setContent(newContent);
+    // Eliminar la afirmación de la lista de resultados para indicar que ya se trató
+    setFactCheckResults(prev => prev.filter(c => c.originalText !== original));
   };
 
   // Versión recortada del texto original para mostrar como vista previa
@@ -426,14 +464,101 @@ export const DigitalBrainProcessEntry = () => {
                   </small>
                 </div>
 
-                <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                  <Link to="/brain/inbox" className="btn btn-outline-secondary">
-                    Cancelar
-                  </Link>
-                  <button type="submit" className="btn btn-primary btn-lg px-4">
-                    <span>💾</span> Guardar nota y sacar del inbox
-                  </button>
+                <div className="d-flex flex-wrap gap-2 justify-content-between">
+                  <div className="d-flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-outline-info"
+                      onClick={handleFactCheck}
+                      disabled={loadingFactCheck || !content.trim()}
+                    >
+                      {loadingFactCheck ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                          Verificando...
+                        </>
+                      ) : (
+                        <>
+                          <span>🔍</span> Verificar información
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <Link to="/brain/inbox" className="btn btn-outline-secondary">
+                      Cancelar
+                    </Link>
+                    <button type="submit" className="btn btn-primary btn-lg px-4">
+                      <span>💾</span> Guardar nota y sacar del inbox
+                    </button>
+                  </div>
                 </div>
+
+                {/* Resultados de Fact-Checking */}
+                {factCheckError && (
+                  <div className="alert alert-danger mt-3 mb-0">
+                    <small>{factCheckError}</small>
+                  </div>
+                )}
+
+                {factCheckResults && factCheckResults.length > 0 && (
+                  <div className="mt-4 p-4 rounded-4 border-0 shadow-sm" style={{
+                    background: "rgba(255, 255, 255, 0.7)",
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid rgba(255, 255, 255, 0.3)"
+                  }}>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h5 className="h6 mb-0 d-flex align-items-center">
+                        <span className="me-2">⚖️</span> Resultados de Verificación (Beta)
+                      </h5>
+                      <button
+                        type="button"
+                        className="btn-close btn-sm"
+                        onClick={() => setFactCheckResults(null)}
+                      ></button>
+                    </div>
+
+                    <div className="list-group list-group-flush bg-transparent">
+                      {factCheckResults.map((claim, idx) => {
+                        const isFalse = claim.status === 'false';
+                        const isSuspicious = claim.status === 'suspicious';
+                        const isTrue = claim.status === 'true';
+
+                        return (
+                          <div key={idx} className="list-group-item bg-transparent border-0 px-0 py-3 border-bottom">
+                            <div className="d-flex justify-content-between align-items-start mb-2">
+                              <span className={`badge ${isTrue ? 'bg-success' : isFalse ? 'bg-danger' : 'bg-warning text-dark'
+                                } text-uppercase px-2 py-1`}>
+                                {isTrue ? '✓ Verdad' : isFalse ? '✘ Falso' : '⚠ Dudoso'}
+                              </span>
+                            </div>
+                            <p className="mb-2 fw-semibold" style={{ fontSize: '0.95rem' }}>"{claim.originalText}"</p>
+                            <div className="p-2 rounded bg-white bg-opacity-50 small mb-2 border">
+                              <strong>Análisis:</strong> {claim.explanation}
+                            </div>
+                            {(isFalse || isSuspicious) && claim.correction && (
+                              <div className="d-flex flex-column gap-2 mt-2">
+                                <div className="p-2 rounded bg-info bg-opacity-10 border border-info border-opacity-25 small">
+                                  <strong>Corrección sugerida:</strong> {claim.correction}
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-info text-white align-self-end mt-1"
+                                  onClick={() => applyCorrection(claim.originalText, claim.correction)}
+                                >
+                                  Aplicar corrección
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <small className="text-muted d-block mt-3 text-center">
+                      ⚠ La verificación es realizada por IA y puede contener imprecisiones.
+                    </small>
+                  </div>
+                )}
               </form>
             </div>
           </div>

@@ -1,8 +1,10 @@
 package synapse.rest.services;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+
+import synapse.rest.dtos.FactCheckResponseDto;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +22,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * Servicio para interactuar con la API de LLaMA (Groq, formato OpenAI compatible).
+ * Servicio para interactuar con la API de LLaMA (Groq, formato OpenAI
+ * compatible).
  */
 @Service
 public class LlamaAIService {
@@ -37,6 +40,12 @@ public class LlamaAIService {
 
     @Value("${project.llama.model:}")
     private String model;
+
+    private static final String CONST_CONTENT = "content";
+    private static final String CONST_APUNTE = "apunte";
+    private static final String CONST_VIDEO = "video";
+    private static final String CONST_CLAIMS = "claims";
+    private static final String CONST_NOTA = "nota";
 
     public LlamaAIService() {
         this.client = new OkHttpClient();
@@ -100,8 +109,10 @@ public class LlamaAIService {
                 "SÉ ESPECÍFICO Y PRECISO. NO uses etiquetas genéricas como 'general'.\n\n" +
                 "CONTENIDO:\n" + contentPreview + "\n\n" +
                 "REGLAS OBLIGATORIAS:\n" +
-                "1. TÍTULO: Crea un título descriptivo y específico basado en el contenido real (máx 120 caracteres)\n" +
-                "2. SUMMARY: Resumen detallado de 200-800 caracteres explicando QUÉ enseña, QUÉ conceptos cubre, QUÉ tecnologías menciona\n" +
+                "1. TÍTULO: Crea un título descriptivo y específico basado en el contenido real (máx 120 caracteres)\n"
+                +
+                "2. SUMMARY: Resumen detallado de 200-800 caracteres explicando QUÉ enseña, QUÉ conceptos cubre, QUÉ tecnologías menciona\n"
+                +
                 "3. DETAILEDCONTENT: Documento Markdown completo (mín 500 caracteres) con:\n" +
                 "   - Título principal\n" +
                 "   - Resumen ejecutivo\n" +
@@ -116,7 +127,8 @@ public class LlamaAIService {
                 "PROHIBIDO usar 'general', 'varios', 'otros', 'tecnologia', 'programacion'.\n\n" +
                 (isVideo
                         ? "ES UN VIDEO: Analiza el título y descripción para extraer temas, tecnologías y conceptos específicos.\n\n"
-                        : "") +
+                        : "")
+                +
                 "Responde SOLO con JSON válido, sin texto adicional:\n" +
                 "{\"type\":\"tipo\",\"title\":\"título\",\"summary\":\"resumen\",\"detailedContent\":\"# Título\\n\\n## Resumen\\n\\n...\",\"destination\":\"apunte\",\"tags\":[\"tag1\",\"tag2\",\"tag3\",\"tag4\"]}";
     }
@@ -165,10 +177,11 @@ public class LlamaAIService {
             if (choices != null && choices.size() > 0) {
                 JsonObject choice = choices.get(0).getAsJsonObject();
                 JsonObject messageObj = choice.getAsJsonObject("message");
-                if (messageObj != null && messageObj.has("content")) {
-                    String content = messageObj.get("content").getAsString();
-                    logger.debug("Contenido extraído: {}", content.substring(0, Math.min(content.length(), 200)));
-                    return content;
+                if (messageObj != null && messageObj.has(CONST_CONTENT)) {
+                    String responseContent = messageObj.get(CONST_CONTENT).getAsString();
+                    logger.debug("Contenido extraído: {}",
+                            responseContent.substring(0, Math.min(responseContent.length(), 200)));
+                    return responseContent;
                 }
             }
 
@@ -190,11 +203,11 @@ public class LlamaAIService {
 
             JsonObject json = gson.fromJson(jsonStr, JsonObject.class);
 
-            String type = json.has("type") ? json.get("type").getAsString() : "nota";
+            String type = json.has("type") ? json.get("type").getAsString() : CONST_NOTA;
             String title = json.has("title") ? json.get("title").getAsString() : "Nota";
             String summary = json.has("summary") ? json.get("summary").getAsString() : "";
             String detailedContent = json.has("detailedContent") ? json.get("detailedContent").getAsString() : "";
-            String destination = json.has("destination") ? json.get("destination").getAsString() : "apunte";
+            String destination = json.has("destination") ? json.get("destination").getAsString() : CONST_APUNTE;
 
             List<String> tags = new ArrayList<>();
             if (json.has("tags") && json.get("tags").isJsonArray()) {
@@ -528,6 +541,79 @@ public class LlamaAIService {
     /**
      * Clase para almacenar el resultado de la clasificación
      */
+    /**
+     * Verifica la veracidad de la información en el contenido.
+     * Identifica afirmaciones falsas o dudosas y proporciona correcciones.
+     */
+    public List<FactCheckResponseDto.ClaimVerification> verifyInformation(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        logger.info("Verificando información de contenido de longitud: {}", content.length());
+
+        try {
+            String prompt = buildFactCheckPrompt(content);
+            String response = callLlamaApi(prompt);
+
+            if (response == null || response.trim().isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            return parseFactCheckResponse(response);
+        } catch (Exception e) {
+            logger.error("Error al verificar información con LLaMA: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+
+    private String buildFactCheckPrompt(String content) {
+        return "Actúa como un experto en verificación de hechos (fact-checking). Analiza el siguiente contenido y extrae las afirmaciones más importantes que puedan ser verificadas objetivamente.\n\n"
+                +
+                "CONTENIDO:\n" + content + "\n\n" +
+                "REGLAS:\n" +
+                "1. Divide el texto en afirmaciones individuales.\n" +
+                "2. Evalúa cada afirmación como 'true' (verdadera), 'false' (falsa) o 'suspicious' (dudosa/sin consenso claro).\n"
+                +
+                "3. Para cada 'false' o 'suspicious', proporciona una explicación detallada de por qué y una versión corregida de la información.\n"
+                +
+                "4. Si la afirmación es 'true', la explicación puede ser breve y no requiere corrección.\n\n" +
+                "Responde EXCLUSIVAMENTE con un JSON con este formato:\n" +
+                "{\n" +
+                "  \"claims\": [\n" +
+                "    {\n" +
+                "      \"originalText\": \"texto de la afirmación\",\n" +
+                "      \"status\": \"true|false|suspicious\",\n" +
+                "      \"explanation\": \"explicación detallada\",\n" +
+                "      \"correction\": \"versión corregida\"\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+    }
+
+    private List<FactCheckResponseDto.ClaimVerification> parseFactCheckResponse(String response) {
+        List<FactCheckResponseDto.ClaimVerification> results = new ArrayList<>();
+        try {
+            String jsonStr = extractJSON(response);
+            JsonObject json = gson.fromJson(jsonStr, JsonObject.class);
+
+            if (json.has(CONST_CLAIMS) && json.get(CONST_CLAIMS).isJsonArray()) {
+                JsonArray claimsArray = json.getAsJsonArray(CONST_CLAIMS);
+                for (int i = 0; i < claimsArray.size(); i++) {
+                    JsonObject claimJson = claimsArray.get(i).getAsJsonObject();
+                    results.add(new FactCheckResponseDto.ClaimVerification(
+                            claimJson.has("originalText") ? claimJson.get("originalText").getAsString() : "",
+                            claimJson.has("status") ? claimJson.get("status").getAsString() : "suspicious",
+                            claimJson.has("explanation") ? claimJson.get("explanation").getAsString() : "",
+                            claimJson.has("correction") ? claimJson.get("correction").getAsString() : ""));
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error al parsear respuesta de fact-checking", e);
+        }
+        return results;
+    }
+
     public static class ClassificationResult {
         private String type;
         private String title;

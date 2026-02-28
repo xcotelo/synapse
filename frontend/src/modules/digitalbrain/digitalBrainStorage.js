@@ -24,7 +24,12 @@ export const saveInbox = (items) => {
 export const loadNotes = () => {
   try {
     const raw = localStorage.getItem(NOTES_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const notes = raw ? JSON.parse(raw) : [];
+    // Asegurar que todas las notas tengan el campo isRead (migración para notas antiguas)
+    return notes.map(note => ({
+      ...note,
+      isRead: note.isRead !== undefined ? note.isRead : false
+    }));
   } catch (e) {
     return [];
   }
@@ -92,7 +97,21 @@ export const createNoteFromEntry = (entry, { title, destination, tags, structure
     content: structuredContent || entry.rawContent,
     type: entry.type,
     createdAt: nowIso(),
+    isRead: false, // Por defecto, las notas no están leídas
   };
+};
+
+// Marca una nota como leída o no leída
+export const toggleNoteReadStatus = (noteId) => {
+  const notes = loadNotes();
+  const updatedNotes = notes.map((note) => {
+    if (note.id === noteId) {
+      return { ...note, isRead: !note.isRead };
+    }
+    return note;
+  });
+  saveNotes(updatedNotes);
+  return updatedNotes;
 };
 
 // Convierte todas las notas en un único texto Markdown exportable

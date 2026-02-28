@@ -82,6 +82,7 @@ public class BrainController {
             finalType,
             finalTitle != null ? finalTitle : "Nota",
             classification.getSummary(),
+            classification.getDetailedContent(),
             classification.getDestination(),
             classification.getTags()
         );

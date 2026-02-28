@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
-import { createInboxEntry, loadInbox, saveInbox } from "../digitalBrainStorage";
+import { createInboxEntry, loadInbox, saveInbox, loadNotes, saveNotes, createNoteFromEntry } from "../digitalBrainStorage";
+import { appFetch, fetchConfig } from "../../../backend/appFetch";
 
 // Collemos o input do usuario e gárdase como entrada pendente
 const DigitalBrainInbox = () => {
@@ -16,16 +17,53 @@ const DigitalBrainInbox = () => {
     setInbox(loadInbox());
   }, []);
 
-  // Engade unha nova entrada ao inbox a partir do textarea
+  // Procesa automáticamente una entrada del inbox
+  const processEntryAutomatically = (entry) => {
+    // Llamar al backend para obtener sugerencias de IA
+    appFetch(
+      "/brain/suggest",
+      fetchConfig("POST", { content: entry.rawContent }),
+      (response) => {
+        if (response) {
+          // Crear nota procesada automáticamente
+          const notes = loadNotes();
+          const inbox = loadInbox();
+          
+          const note = createNoteFromEntry(entry, {
+            title: response.title || entry.rawContent.substring(0, 50),
+            destination: response.destination || "apunte",
+            tags: response.tags || [],
+            structuredContent: response.detailedContent || `# ${response.title || "Nota"}\n\n${response.summary || entry.rawContent}`,
+          });
+
+          // Guardar nota y eliminar del inbox
+          const updatedNotes = [note, ...notes];
+          const updatedInbox = inbox.filter((item) => item.id !== entry.id);
+          
+          saveNotes(updatedNotes);
+          saveInbox(updatedInbox);
+          setInbox(updatedInbox);
+        }
+      },
+      (error) => {
+        console.error("Error procesando entrada automáticamente:", error);
+      }
+    );
+  };
+
+  // Engade unha nova entrada ao inbox a partir do textarea y la procesa automáticamente
   const handleAdd = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     const entry = createInboxEntry(input.trim());   // Crea a nova entrada
-    const updated = [entry, ...inbox]; // Engade a nova entrada ao inicio da lista
+    const updated = [entry, ...inbox]; // Engade a nova entrada al inicio de la lista
     setInbox(updated);
     saveInbox(updated);
     setInput("");
+
+    // Procesar automáticamente en segundo plano
+    processEntryAutomatically(entry);
   };
 
   // Elimina unha entrada concreta do inbox
@@ -62,16 +100,30 @@ const DigitalBrainInbox = () => {
     return icons[type] || "📄";
   };
 
+  const notesCount = loadNotes().length;
+
   return (
     <div className="container mt-4" style={{ maxWidth: "900px" }}>
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-body">
-          <h2 className="card-title mb-3">
-            <span style={{ fontSize: "1.8rem" }}>🧠</span> Cerebro Digital – Inbox
-          </h2>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h2 className="card-title mb-0">
+              <span style={{ fontSize: "1.8rem" }}>🧠</span> Cerebro Digital – Inbox
+            </h2>
+            <Link 
+              to="/brain/knowledge" 
+              className="btn btn-outline-primary btn-lg"
+            >
+              <span>📚</span> Ver Notas Clasificadas
+              {notesCount > 0 && (
+                <span className="badge bg-primary ms-2">{notesCount}</span>
+              )}
+            </Link>
+          </div>
           <p className="text-muted mb-4">
             Captura aquí cualquier texto, enlace, idea rápida, código, etc. sin
-            interrumpir lo que estás haciendo. La IA analizará y clasificará automáticamente el contenido.
+            interrumpir lo que estás haciendo. La IA analizará y clasificará automáticamente el contenido
+            y lo guardará directamente en tu conocimiento.
           </p>
 
           <form onSubmit={handleAdd}>
@@ -93,7 +145,7 @@ const DigitalBrainInbox = () => {
               </small>
             </div>
             <button type="submit" className="btn btn-primary btn-lg px-4">
-              <span>✨</span> Añadir al inbox
+              <span>✨</span> Añadir y procesar con IA
             </button>
           </form>
         </div>
@@ -114,7 +166,12 @@ const DigitalBrainInbox = () => {
             <div className="text-center py-5">
               <div style={{ fontSize: "4rem", opacity: 0.3 }}>📭</div>
               <p className="text-muted mt-3 mb-0">No hay entradas en el inbox todavía.</p>
-              <p className="text-muted small">¡Añade tu primera entrada arriba!</p>
+              <p className="text-muted small mb-3">¡Añade tu primera entrada arriba!</p>
+              {notesCount > 0 && (
+                <Link to="/brain/knowledge" className="btn btn-primary">
+                  <span>📚</span> Ver {notesCount} nota{notesCount !== 1 ? 's' : ''} clasificada{notesCount !== 1 ? 's' : ''}
+                </Link>
+              )}
             </div>
           ) : (
             <div className="list-group list-group-flush">
@@ -165,13 +222,6 @@ const DigitalBrainInbox = () => {
                       </div>
                     </div>
                     <div className="d-flex flex-column gap-2">
-                      <button
-                        className="btn btn-sm btn-primary"
-                        onClick={() => handleProcess(item.id)}
-                        style={{ minWidth: "100px" }}
-                      >
-                        <span>🤖</span> Procesar con IA
-                      </button>
                       <button
                         className="btn btn-sm btn-outline-danger"
                         onClick={() => handleDiscard(item.id)}

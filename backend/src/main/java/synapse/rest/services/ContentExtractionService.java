@@ -1,8 +1,6 @@
 package synapse.rest.services;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -141,27 +139,90 @@ public class ContentExtractionService {
         String content = "";
 
         try {
-            // Para YouTube, intentar extraer información de la página
+            // Para YouTube, intentar extraer información completa de la página
             if (urlString.contains("youtube.com") || urlString.contains("youtu.be")) {
                 Document doc = Jsoup.connect(urlString)
-                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
                         .timeout(TIMEOUT_MS)
                         .followRedirects(true)
                         .get();
 
-                Element titleElement = doc.selectFirst("meta[property=og:title]");
-                if (titleElement != null) {
-                    title = titleElement.attr("content");
+                // Extraer título (múltiples fuentes)
+                Element ogTitle = doc.selectFirst("meta[property=og:title]");
+                if (ogTitle != null) {
+                    title = ogTitle.attr("content");
+                }
+                if (title.isEmpty()) {
+                    Element titleTag = doc.selectFirst("title");
+                    if (titleTag != null) {
+                        title = titleTag.text().replace(" - YouTube", "").trim();
+                    }
                 }
 
-                Element descElement = doc.selectFirst("meta[property=og:description]");
-                if (descElement != null) {
-                    description = descElement.attr("content");
+                // Extraer descripción (múltiples fuentes)
+                Element ogDesc = doc.selectFirst("meta[property=og:description]");
+                if (ogDesc != null) {
+                    description = ogDesc.attr("content");
+                }
+                if (description.isEmpty()) {
+                    Element metaDesc = doc.selectFirst("meta[name=description]");
+                    if (metaDesc != null) {
+                        description = metaDesc.attr("content");
+                    }
                 }
 
-                content = "Video: " + title + "\n\n" + description;
+                // Extraer información del canal
+                String channelName = "";
+                Element channelElement = doc.selectFirst("link[itemprop=name]");
+                if (channelElement != null) {
+                    channelName = channelElement.attr("content");
+                }
+                if (channelName.isEmpty()) {
+                    Element channelLink = doc.selectFirst("a[href*=/channel/], a[href*=/user/], a[href*=/c/]");
+                    if (channelLink != null) {
+                        channelName = channelLink.text().trim();
+                    }
+                }
+
+                // Construir contenido completo con toda la información disponible
+                StringBuilder fullContent = new StringBuilder();
+                fullContent.append("VIDEO DE YOUTUBE\n");
+                fullContent.append("==================\n\n");
+                
+                if (!title.isEmpty()) {
+                    fullContent.append("TÍTULO DEL VIDEO: ").append(title).append("\n\n");
+                }
+                
+                if (!channelName.isEmpty()) {
+                    fullContent.append("CANAL: ").append(channelName).append("\n\n");
+                }
+                
+                if (!description.isEmpty()) {
+                    fullContent.append("DESCRIPCIÓN DEL VIDEO:\n");
+                    fullContent.append(description).append("\n\n");
+                }
+                
+                fullContent.append("URL: ").append(urlString).append("\n");
+                
+                // Intentar extraer información adicional de los scripts JSON-LD
+                Elements jsonLdScripts = doc.select("script[type=application/ld+json]");
+                for (Element script : jsonLdScripts) {
+                    String jsonContent = script.html();
+                    if (jsonContent.contains("VideoObject")) {
+                        // Si hay información estructurada, podría extraerse aquí
+                        fullContent.append("\n[Información estructurada del video disponible]");
+                        break;
+                    }
+                }
+                
+                content = fullContent.toString();
+                
+                // Si no tenemos título, usar la URL
+                if (title.isEmpty()) {
+                    title = "Video de YouTube";
+                }
             } else {
-                // Para otros videos, intentar extraer información básica
+                // Para otros videos (Vimeo, etc.), intentar extraer información básica
                 Document doc = Jsoup.connect(urlString)
                         .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                         .timeout(TIMEOUT_MS)
@@ -173,11 +234,19 @@ public class ContentExtractionService {
                     title = titleElement.text();
                 }
 
-                content = "Video: " + title + "\n\nURL: " + urlString;
+                Element descElement = doc.selectFirst("meta[property=og:description]");
+                if (descElement != null) {
+                    description = descElement.attr("content");
+                }
+
+                content = "VIDEO\n" +
+                         "TÍTULO: " + title + "\n\n" +
+                         "DESCRIPCIÓN: " + description + "\n\n" +
+                         "URL: " + urlString;
             }
         } catch (Exception e) {
             title = "Video";
-            content = "Video URL: " + urlString;
+            content = "VIDEO\nURL: " + urlString + "\n\nError al extraer información completa: " + e.getMessage();
         }
 
         return new ExtractedContent(title, description, content, "video");

@@ -71,18 +71,66 @@ public class ClaudeAIService {
      * Construye el prompt para Claude
      */
     private String buildClassificationPrompt(String content) {
-        return "Analiza el siguiente contenido y proporciona una clasificación estructurada en formato JSON. " +
-               "El contenido puede ser texto, un enlace a una página web, un video, código, una tarea, etc.\n\n" +
-               "Contenido:\n" + content.substring(0, Math.min(content.length(), 10000)) + "\n\n" +
-               "Responde SOLO con un JSON válido que contenga los siguientes campos:\n" +
+        // Detectar si es un video basándose en el contenido
+        boolean isVideo = content.contains("VIDEO") || content.contains("VIDEO DE YOUTUBE") || 
+                         content.contains("CANAL:") || content.contains("TÍTULO DEL VIDEO:");
+        
+        String videoInstructions = "";
+        if (isVideo) {
+            videoInstructions = "\n\nINSTRUCCIONES ESPECIALES PARA VIDEOS:\n" +
+                               "- Analiza el TÍTULO DEL VIDEO para identificar el tema principal y subtemas.\n" +
+                               "- Lee la DESCRIPCIÓN DEL VIDEO completa: contiene información valiosa sobre el contenido, " +
+                               "temas tratados, conceptos explicados, tecnologías mencionadas, etc.\n" +
+                               "- Considera el CANAL: puede indicar el contexto y especialización del contenido.\n" +
+                               "- Extrae del título y descripción: tecnologías específicas, frameworks, lenguajes de programación, " +
+                               "conceptos técnicos, metodologías, herramientas mencionadas, temas educativos, etc.\n" +
+                               "- El RESUMEN debe explicar QUÉ enseña o trata el video, QUÉ conceptos cubre, QUÉ tecnologías usa, " +
+                               "QUÉ problemas resuelve. NO digas solo 'es un video sobre X', explica el CONTENIDO REAL.\n" +
+                               "- Las ETIQUETAS deben reflejar el contenido REAL: si es sobre React hooks, usa 'react-hooks', " +
+                               "si es sobre algoritmos de grafos, usa 'algoritmos-grafos', si es sobre filosofía estoica, " +
+                               "usa 'filosofia-estoica'. Analiza el título y descripción para extraer temas específicos.\n" +
+                               "- El TÍTULO debe ser descriptivo del contenido real, no solo repetir el título del video.\n";
+        }
+        
+        return "Eres un experto analista de contenido. Tu tarea es analizar CRÍTICAMENTE el siguiente contenido " +
+               "y proporcionar un análisis estructurado y detallado.\n\n" +
+               "CONTENIDO A ANALIZAR:\n" + 
+               content.substring(0, Math.min(content.length(), 20000)) + "\n\n" +
+               "INSTRUCCIONES CRÍTICAS:\n" +
+               "1. LEE Y COMPRENDE TODO el contenido antes de clasificar. Analiza título, descripción, canal (si aplica), " +
+               "y cualquier información disponible. NO uses etiquetas genéricas como 'general', 'varios', 'otros', 'youtube'.\n" +
+               "2. El RESUMEN debe ser ELABORADO y ESPECÍFICO: explica QUÉ enseña, QUÉ conceptos cubre, QUÉ tecnologías menciona, " +
+               "QUÉ problemas resuelve, QUÉ metodologías presenta. Debe ser informativo para alguien que no haya visto el contenido. " +
+               "Mínimo 200 caracteres, máximo 800 caracteres. Para videos, explica el contenido educativo o informativo del video.\n" +
+               "3. Las ETIQUETAS deben ser ESPECÍFICAS y PRECISAS. Analiza el tema principal, subtemas, tecnologías, " +
+               "frameworks, lenguajes, conceptos clave, disciplinas mencionadas. Usa 4-6 etiquetas específicas. " +
+               "Ejemplos buenos: 'react-hooks', 'machine-learning-supervised', 'algoritmos-dijkstra', 'filosofia-estoica', " +
+               "'python-pandas', 'docker-containers'. Ejemplos malos: 'general', 'varios', 'tecnologia', 'programacion', 'video'.\n" +
+               "4. El TIPO debe ser preciso: 'video' (solo para videos), 'articulo' (artículo de blog/noticia), " +
+               "'tutorial' (guía paso a paso escrita), 'codigo' (snippet/repositorio), 'documentacion' (referencia técnica), " +
+               "'investigacion' (paper/estudio), 'nota' (solo si es texto breve sin estructura clara).\n" +
+               "5. El DESTINO debe reflejar el propósito real: 'apunte' (contenido educativo/estudio), 'idea' (concepto/reflexión), " +
+               "'recurso' (herramienta/referencia), 'tarea' (acción pendiente).\n" +
+               videoInstructions +
+               "\nResponde ÚNICAMENTE con un JSON válido (sin texto adicional, sin markdown, sin explicaciones):\n" +
                "{\n" +
-               "  \"type\": \"tipo detectado (link, video, nota, tarea, codigo, articulo, recurso, etc.)\",\n" +
-               "  \"title\": \"título sugerido (máximo 100 caracteres)\",\n" +
-               "  \"summary\": \"resumen del contenido (máximo 300 caracteres)\",\n" +
-               "  \"destination\": \"destino sugerido (apunte, idea, recurso, tarea)\",\n" +
-               "  \"tags\": [\"etiqueta1\", \"etiqueta2\", \"etiqueta3\"]\n" +
+               "  \"type\": \"tipo-preciso-del-contenido\",\n" +
+               "  \"title\": \"Título descriptivo y específico que refleje el contenido real (máximo 120 caracteres)\",\n" +
+               "  \"summary\": \"Resumen elaborado y detallado explicando QUÉ enseña/cubre el contenido, QUÉ conceptos, " +
+               "tecnologías o metodologías presenta (200-800 caracteres)\",\n" +
+               "  \"detailedContent\": \"Contenido detallado en formato Markdown. Debe ser ESPECÍFICO y ESTRUCTURADO. " +
+               "Incluye: título principal, resumen ejecutivo, puntos clave organizados por secciones, conceptos importantes, " +
+               "tecnologías/frameworks mencionados, conclusiones o takeaways. Usa encabezados (##), listas (-), código (```) si aplica, " +
+               "y formato markdown apropiado. Mínimo 500 caracteres. Sé detallado y específico sobre el contenido real.\",\n" +
+               "  \"destination\": \"apunte|idea|recurso|tarea\",\n" +
+               "  \"tags\": [\"etiqueta-especifica-1\", \"etiqueta-especifica-2\", \"etiqueta-especifica-3\", \"etiqueta-especifica-4\"]\n" +
                "}\n\n" +
-               "Sé preciso y conciso. El título debe ser descriptivo y el resumen debe capturar los puntos clave.";
+               "IMPORTANTE: \n" +
+               "- Sé crítico y preciso. Analiza el contenido REAL, no solo la estructura.\n" +
+               "- El detailedContent debe ser un documento markdown completo y bien estructurado que capture la esencia del contenido.\n" +
+               "- Para videos: explica qué enseña, qué conceptos cubre, qué tecnologías demuestra, qué problemas resuelve.\n" +
+               "- Para artículos: extrae los puntos principales, argumentos clave, conclusiones, metodologías.\n" +
+               "- Extrae información específica del título y descripción. Evita generalizaciones.";
     }
 
     /**
@@ -91,7 +139,7 @@ public class ClaudeAIService {
     private String callClaudeAPI(String prompt) throws IOException {
         JsonObject requestBody = new JsonObject();
         requestBody.addProperty("model", model);
-        requestBody.addProperty("max_tokens", 1000);
+        requestBody.addProperty("max_tokens", 4000);
         
         JsonArray messages = new JsonArray();
         JsonObject message = new JsonObject();
@@ -141,6 +189,7 @@ public class ClaudeAIService {
             String type = json.has("type") ? json.get("type").getAsString() : "nota";
             String title = json.has("title") ? json.get("title").getAsString() : "Nota";
             String summary = json.has("summary") ? json.get("summary").getAsString() : "";
+            String detailedContent = json.has("detailedContent") ? json.get("detailedContent").getAsString() : "";
             String destination = json.has("destination") ? json.get("destination").getAsString() : "apunte";
             
             List<String> tags = new ArrayList<>();
@@ -155,7 +204,12 @@ public class ClaudeAIService {
                 tags.add("general");
             }
             
-            return new ClassificationResult(type, title, summary, destination, tags.toArray(new String[0]));
+            // Si no hay detailedContent, crear uno básico a partir del summary
+            if (detailedContent.isEmpty() && !summary.isEmpty()) {
+                detailedContent = "# " + title + "\n\n## Resumen\n\n" + summary + "\n\n## Contenido original\n\n" + originalContent.substring(0, Math.min(originalContent.length(), 1000));
+            }
+            
+            return new ClassificationResult(type, title, summary, detailedContent, destination, tags.toArray(new String[0]));
         } catch (Exception e) {
             // Si falla el parsing, devolver resultado por defecto
             return createDefaultResult();
@@ -181,7 +235,7 @@ public class ClaudeAIService {
      * Crea un resultado por defecto cuando no se puede usar Claude
      */
     private ClassificationResult createDefaultResult() {
-        return new ClassificationResult("nota", "Nota", "", "apunte", new String[]{"general"});
+        return new ClassificationResult("nota", "Nota", "", "# Nota\n\n## Contenido\n\nContenido sin procesar.", "apunte", new String[]{"general"});
     }
 
     /**
@@ -191,6 +245,7 @@ public class ClaudeAIService {
         private String type;
         private String title;
         private String summary;
+        private String detailedContent;
         private String destination;
         private String[] tags;
 
@@ -198,6 +253,15 @@ public class ClaudeAIService {
             this.type = type;
             this.title = title;
             this.summary = summary;
+            this.destination = destination;
+            this.tags = tags;
+        }
+
+        public ClassificationResult(String type, String title, String summary, String detailedContent, String destination, String[] tags) {
+            this.type = type;
+            this.title = title;
+            this.summary = summary;
+            this.detailedContent = detailedContent;
             this.destination = destination;
             this.tags = tags;
         }
@@ -220,6 +284,14 @@ public class ClaudeAIService {
 
         public String[] getTags() {
             return tags;
+        }
+
+        public String getDetailedContent() {
+            return detailedContent;
+        }
+
+        public void setDetailedContent(String detailedContent) {
+            this.detailedContent = detailedContent;
         }
     }
 }

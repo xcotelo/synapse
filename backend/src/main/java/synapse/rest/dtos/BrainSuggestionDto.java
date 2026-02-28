@@ -9,6 +9,7 @@ public class BrainSuggestionDto {
     private String type;       // link, nota, tarea, codigo, video...
     private String title;      // título sugerido
     private String summary;    // resumen o versión destilada
+    private String detailedContent; // contenido detallado en markdown
     private String destination; // apunte, idea, recurso, tarea...
     private String[] tags;     // etiquetas sugeridas
 
@@ -19,6 +20,15 @@ public class BrainSuggestionDto {
         this.type = type;
         this.title = title;
         this.summary = summary;
+        this.destination = destination;
+        this.tags = tags;
+    }
+
+    public BrainSuggestionDto(String type, String title, String summary, String detailedContent, String destination, String[] tags) {
+        this.type = type;
+        this.title = title;
+        this.summary = summary;
+        this.detailedContent = detailedContent;
         this.destination = destination;
         this.tags = tags;
     }
@@ -61,5 +71,13 @@ public class BrainSuggestionDto {
 
     public void setTags(String[] tags) {
         this.tags = tags;
+    }
+
+    public String getDetailedContent() {
+        return detailedContent;
+    }
+
+    public void setDetailedContent(String detailedContent) {
+        this.detailedContent = detailedContent;
     }
 }

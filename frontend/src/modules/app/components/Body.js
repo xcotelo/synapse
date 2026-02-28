@@ -18,6 +18,12 @@ const Body = () => {
         {loggedIn && <Route path="/brain/knowledge" element={<DigitalBrainKnowledge />} />}
         
       </Route>
+      <Route path="/" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      {/* Rutas del cerebro digital accesibles sin autenticación */}
+      <Route path="/brain/inbox" element={<DigitalBrainInbox />} />
+      <Route path="/brain/process/:id" element={<DigitalBrainProcessEntry />} />
+      <Route path="/brain/knowledge" element={<DigitalBrainKnowledge />} />
     </Routes>
   );
 };

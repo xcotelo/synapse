@@ -134,6 +134,23 @@ export const DigitalBrainProcessEntry = () => {
     return icons[type] || "📄";
   };
 
+  // Mostrar estado de carga mientras se busca la entrada
+  if (entry === undefined) {
+    return (
+      <div className="container mt-4">
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "400px" }}>
+          <div className="text-center">
+            <div className="spinner-border text-primary mb-3" role="status" style={{ width: "3rem", height: "3rem" }}>
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+            <p className="text-muted">Cargando entrada...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar error si no se encontró la entrada
   if (entry === null) {
     return (
       <div className="container mt-4">

@@ -28,7 +28,7 @@ project:
     signKey: WzROun12eUiDvko3UrJ74gNeJz2TWEWPMTh6DxyE8HWXIf4hETUrkM4IUGqqHq66PuVS
     expirationMinutes: 1440
   claude:
-    apiKey: ${CLAUDE_API_KEY:your-api-key-here}
+    apiKey: ${CLAUDE_API_KEY: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}
     apiUrl: https://api.anthropic.com/v1/messages
     model: claude-3-5-sonnet-20241022
 

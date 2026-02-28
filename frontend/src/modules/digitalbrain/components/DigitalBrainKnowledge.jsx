@@ -24,7 +24,9 @@ const DigitalBrainKnowledge = () => {
   const [selectedId, setSelectedId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedTag, setSelectedTag] = useState(null);
+  const [aiTrends, setAiTrends] = useState(null);
   const detailPanelRef = useRef(null);
+  const aiReqSeqRef = useRef(0);
 
   useEffect(() => {
     setNotes(loadNotes());

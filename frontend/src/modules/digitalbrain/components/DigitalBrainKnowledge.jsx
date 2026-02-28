@@ -337,22 +337,10 @@ const DigitalBrainKnowledge = () => {
             <div className="mt-2">
               <div className="row g-3">
                 <div className="col-12 col-lg-6">
-                  <div className="small fw-semibold mb-1">📈 Tendencias</div>
                   {trendsReport.topics.length === 0 ? (
                     <div className="text-muted small">No se detectaron temas claros.</div>
                   ) : (
                     <div>
-                      <div className="d-flex gap-3 flex-wrap text-muted small mb-2">
-                        <span>
-                          <span className="badge text-bg-primary me-1"> </span>
-                          Reciente
-                        </span>
-                        <span>
-                          <span className="badge text-bg-secondary me-1"> </span>
-                          Anterior
-                        </span>
-                      </div>
-
                       {radarModel.enabled ? (
                         <div className="mb-2">
                           <svg
@@ -422,36 +410,12 @@ const DigitalBrainKnowledge = () => {
                               </text>
                             ))}
                           </svg>
-
-                          <div className="text-muted small">
-                            Ventana: {trendsReport.windowDays} días (reciente) vs {trendsReport.windowDays} anteriores.
-                          </div>
                         </div>
                       ) : (
                         <div className="text-muted small">
                           Necesitas al menos 3 temas para mostrar un radar.
                         </div>
                       )}
-
-                      <div className="d-flex flex-column gap-2">
-                        {trendsReport.topics.map((t) => {
-                          const total = (t.recentCount || 0) + (t.previousCount || 0);
-                          return (
-                            <div key={t.topic} className="pb-2 border-bottom">
-                              <div className="d-flex justify-content-between align-items-baseline gap-2">
-                                <div className="text-truncate">
-                                  <span className="fw-semibold">{t.topic}</span>{" "}
-                                  <span className="text-muted">({total})</span>
-                                </div>
-                                <div className="fw-semibold" aria-label={t.trend}>
-                                  {t.arrow}
-                                </div>
-                              </div>
-                              <div className="text-muted small mt-1">{t.explanation}</div>
-                            </div>
-                          );
-                        })}
-                      </div>
                     </div>
                   )}
                 </div>

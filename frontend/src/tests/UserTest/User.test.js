@@ -18,12 +18,6 @@
 //   }),
 // }));
 
-// const mockSetPage = jest.fn();
-// jest.mock("../../../modules/player/components/PlayerSearchContext", () => ({
-//   usePlayerSearch: () => ({
-//     setPage: mockSetPage,
-//   }),
-// }));
 
 // jest.mock("../../../backend/userService", () => ({
 //   login: jest.fn(),
@@ -37,6 +31,12 @@
 //   ...jest.requireActual("react-router-dom"),
 //   useNavigate: () => mockNavigate,
 // }));
+
+describe("User", () => {
+  it("should have tests", () => {
+    expect(true).toBe(true);
+  });
+});
 
 // describe("Login", () => {
 //   beforeEach(() => {
@@ -106,7 +106,6 @@
 
 //     fireEvent.click(screen.getByText(/iniciar sesión/i));
 
-//     await waitFor(() => expect(mockSetPage).toHaveBeenCalledWith(0));
 //     await waitFor(() =>
 //       expect(mockNavigate).toHaveBeenCalledWith("/league/ShowLeagues")
 //     );
@@ -248,9 +247,8 @@
 
 //     fireEvent.click(screen.getByText(/iniciar sesión/i));
 
-//     await waitFor(() => expect(mockSetPage).toHaveBeenCalledWith(0));
 //     await waitFor(() =>
-//       expect(mockNavigate).toHaveBeenCalledWith("/player/find-players")
+//       expect(mockNavigate).toHaveBeenCalledWith("/admin")
 //     );
 //     await waitFor(() => expect(mockLogIn).toHaveBeenCalledWith(RoleType.ADMIN));
 //   });

@@ -1,47 +1,52 @@
-# logging:
-#   level:
-#     org:
-#       hibernate:
-#         SQL: debug
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug
 
-# spring:
-#   datasource:
-#     url: jdbc:h2:mem:testdb;
-#     driver-class-name: org.h2.Driver
-#     username: sa
-#     password:
-#     max-active: 4
-#     max-idle: 2
-#     max-wait: 10000
-#     remove-abandoned: true
-#     remove-abandoned-timeout: 60
-#     log-abandoned: true
-#     validation-query: SELECT 1
-#     init-mode: always
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    max-active: 4
+    max-idle: 2
+    max-wait: 10000
+    remove-abandoned: true
+    remove-abandoned-timeout: 60
+    log-abandoned: true
+    validation-query: SELECT 1
 
-#   jackson:
-#     default-property-inclusion: NON_NULL
+  sql:
+    init:
+      mode: never
 
-#   jpa:
-#     hibernate:
-#       ddl-auto: create-drop
-#       show-sql: true
-#       format-sql: true
-#       use-sql-comments: true
-#       naming:
-#         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  jackson:
+    default-property-inclusion: NON_NULL
 
-#   h2:
-#     console:
-#       enabled: true
-#       path: /h2-console/*
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        hbm2ddl:
+          auto: create-drop
 
-#   servlet:
-#     multipart:
-#       max-file-size: 10MB
-#       max-request-size: 10MB
+  h2:
+    console:
+      enabled: true
+      path: /h2-console/*
 
-# project:
-#   jwt:
-#     signKey: WzROun12eUiDvko3UrJ74gNeJz2TWEWPMTh6DxyE8HWXIf4hETUrkM4IUGqqHq66PuVS
-#     expirationMinutes: 1440
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+project:
+  jwt:
+    signKey: WzROun12eUiDvko3UrJ74gNeJz2TWEWPMTh6DxyE8HWXIf4hETUrkM4IUGqqHq66PuVS
+    expirationMinutes: 1440

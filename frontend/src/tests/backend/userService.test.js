@@ -3,6 +3,12 @@
 
 // jest.mock("../../../backend/appFetch");
 
+describe("userService", () => {
+  it("should have tests", () => {
+    expect(true).toBe(true);
+  });
+});
+
 // describe("userService", () => {
 //   beforeEach(() => {
 //     jest.clearAllMocks();

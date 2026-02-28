@@ -32,13 +32,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import es.udc.fi.dc.fd.model.common.exceptions.DuplicateInstanceException;
 import es.udc.fi.dc.fd.model.common.exceptions.InstanceNotFoundException;
-import es.udc.fi.dc.fd.model.entities.League;
 import es.udc.fi.dc.fd.model.entities.Users;
 import es.udc.fi.dc.fd.model.services.exceptions.IncorrectLoginException;
 import es.udc.fi.dc.fd.model.services.exceptions.IncorrectPasswordException;
 import es.udc.fi.dc.fd.model.services.exceptions.PermissionException;
 import es.udc.fi.dc.fd.model.services.exceptions.CannotDeleteAdminException;
-import es.udc.fi.dc.fd.model.services.exceptions.CannotDeleteCreatorOfLeagueException;
 import es.udc.fi.dc.fd.model.services.Block;
 import es.udc.fi.dc.fd.model.services.UserService;
 import es.udc.fi.dc.fd.rest.common.ErrorsDto;
@@ -47,10 +45,8 @@ import es.udc.fi.dc.fd.rest.common.JwtInfo;
 import es.udc.fi.dc.fd.rest.dtos.AuthenticatedUserDto;
 import es.udc.fi.dc.fd.rest.dtos.BlockDto;
 import es.udc.fi.dc.fd.rest.dtos.ChangePasswordParamsDto;
-import es.udc.fi.dc.fd.rest.dtos.LeagueDto;
 import es.udc.fi.dc.fd.rest.dtos.LoginParamsDto;
 import es.udc.fi.dc.fd.rest.dtos.UserDto;
-import static es.udc.fi.dc.fd.rest.dtos.LeagueConversor.toLeagueDtos;
 
 /**
  * The Class UserController.
@@ -66,8 +62,6 @@ public class UserController {
 	private static final String INCORRECT_PASS_EXCEPTION_CODE = "project.exceptions.IncorrectPasswordException";
 
 	private static final String CANNOT_DELETE_ADMIN_EXCEPTION = "project.exceptions.CannotDeleteAdminException";
-
-	private static final String CANNOT_DELETE_CREATOR_OF_LEAGUE_EXCEPTION = "project.exceptions.CannotDeleteCreatorOfLeagueException";
 	/** The message source. */
 	private final MessageSource messageSource;
 	/** The jwt generator. */
@@ -118,23 +112,6 @@ public class UserController {
 		return new ErrorsDto(errorMessage);
 
 	}
-	/**
-	 * Handle cannot delete a creator of league exception.
-	 *
-	 * @param exception the exception
-	 * @param locale    the locale
-	 * @return the errors dto
-	 */
-	@ExceptionHandler(CannotDeleteCreatorOfLeagueException.class)
-	@ResponseStatus(HttpStatus.FORBIDDEN)
-	public ErrorsDto handleCannotDeleteCreatorOfLeagueException(CannotDeleteCreatorOfLeagueException exception, Locale locale) {
-
-		String errorMessage = messageSource.getMessage(CANNOT_DELETE_CREATOR_OF_LEAGUE_EXCEPTION, new Object[] { exception.getUserId() },
-		CANNOT_DELETE_CREATOR_OF_LEAGUE_EXCEPTION, locale);
-
-		return new ErrorsDto(errorMessage);
-	}
-
 	/**
 	 * Handle cannot delete admin user.
 	 *
@@ -271,13 +248,6 @@ public class UserController {
 
 	}
 
-	@GetMapping("/{id}/leagues")
-	public BlockDto<LeagueDto> getLeagues(@PathVariable Long id, Pageable pageable) {
-
-		Block<League> leagues = userService.findLeaguesByUserId(id, pageable);
-		return new BlockDto<>(toLeagueDtos(leagues.getItems()), leagues.getExistMoreItems());
-	}
-
 	@GetMapping("/allUsers")
 	public BlockDto<UserDto> findAllUsers(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "5") int size) {
 
@@ -288,7 +258,7 @@ public class UserController {
 	}
 
 	@PostMapping("/{userId}/removeUser")
-    public void removeUser(@PathVariable Long userId) throws InstanceNotFoundException, CannotDeleteAdminException, CannotDeleteCreatorOfLeagueException {
+    public void removeUser(@PathVariable Long userId) throws InstanceNotFoundException, CannotDeleteAdminException {
         userService.removeUser(userId);
     }
 

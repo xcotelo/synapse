@@ -30,7 +30,7 @@ public interface UserDao extends JpaRepository<Users, Long> {
 
 
     /**
-     * Find all players with no admin role
+     * Find all users with no admin role
      * 
      * @param pageable the pageable
      * @return the slice

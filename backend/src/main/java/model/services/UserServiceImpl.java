@@ -11,14 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import es.udc.fi.dc.fd.model.common.exceptions.DuplicateInstanceException;
 import es.udc.fi.dc.fd.model.common.exceptions.InstanceNotFoundException;
 import es.udc.fi.dc.fd.model.entities.Users;
-import es.udc.fi.dc.fd.model.entities.League;
-import es.udc.fi.dc.fd.model.entities.RelationDao;
-import es.udc.fi.dc.fd.model.entities.UserOnLeagueDao;
 import es.udc.fi.dc.fd.model.entities.UserDao;
-import es.udc.fi.dc.fd.model.entities.LeagueDao;
-import es.udc.fi.dc.fd.model.entities.BidDao;
 import es.udc.fi.dc.fd.model.services.exceptions.CannotDeleteAdminException;
-import es.udc.fi.dc.fd.model.services.exceptions.CannotDeleteCreatorOfLeagueException;
 import es.udc.fi.dc.fd.model.services.exceptions.IncorrectLoginException;
 import es.udc.fi.dc.fd.model.services.exceptions.IncorrectPasswordException;
 
@@ -36,20 +30,12 @@ public class UserServiceImpl implements UserService {
 	private BCryptPasswordEncoder passwordEncoder;
 	/** The user dao. */
 	private UserDao userDao;
-	private final UserOnLeagueDao userOnLeagueDao;
-	private final RelationDao relationDao;
-	private final LeagueDao leagueDao;
-	private final BidDao bidDao;
 
 	public UserServiceImpl(PermissionChecker permissionChecker, BCryptPasswordEncoder passwordEncoder,
-			UserDao userDao, RelationDao relationDao, UserOnLeagueDao userOnLeagueDao, LeagueDao leagueDao, BidDao bidDao) {
+			UserDao userDao) {
 		this.permissionChecker = permissionChecker;
 		this.passwordEncoder = passwordEncoder;
 		this.userDao = userDao;
-		this.relationDao = relationDao;
-		this.userOnLeagueDao = userOnLeagueDao;
-		this.leagueDao = leagueDao;
-		this.bidDao = bidDao;
 	}
 
 	/**
@@ -158,13 +144,6 @@ public class UserServiceImpl implements UserService {
 
 	}
 
-	@Override
-	public Block<League> findLeaguesByUserId(Long id, Pageable pageable) {
-		Slice<League> leagues = relationDao.findUserLeagues(id, pageable);
-
-		return new Block<>(leagues.getContent(), leagues.hasNext());
-	}
-
 	/**
 	 * Find all users
 	 * 
@@ -178,21 +157,11 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public void removeUser(Long userId) throws InstanceNotFoundException, CannotDeleteAdminException,CannotDeleteCreatorOfLeagueException {
+	public void removeUser(Long userId) throws InstanceNotFoundException, CannotDeleteAdminException {
 		Users user = userDao.findById(userId).orElseThrow(() ->  new InstanceNotFoundException("project.entities.user", userId));
 		
 		if(user.getRole().name().equals("ADMIN")) {
 			throw new CannotDeleteAdminException(userId);
-		}
-		
-		if(leagueDao.isCreatorOfAnyLeague(userId)){
-			throw new CannotDeleteCreatorOfLeagueException(userId);
-		}
-        
-		if (userOnLeagueDao.existsByUserId(userId)) {
-			bidDao.deleteByUserId(userId);
-			relationDao.deleteByUserId(userId);
-			userOnLeagueDao.deleteByUserId(userId);
 		}
 		
 		userDao.delete(user);

@@ -2,11 +2,9 @@ import React , { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from '../../../backend/userService';
 import { useUser } from "../../common/components/UserContext";
-import { usePlayerSearch } from '../../player/components/PlayerSearchContext';
 import { Errors, RoleType } from "../../common";
 
 const Login = () => {
-  const { setPage } = usePlayerSearch();
   const { logIn, logOut } = useUser();
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
@@ -23,9 +21,8 @@ const Login = () => {
         userName.trim(),
         password,
         (authenticatedUser) => {
-          setPage(0);
           logIn(RoleType.USER, authenticatedUser.user, Number(authenticatedUser.user.id));
-          navigate('/league/ShowLeagues');
+          navigate('/users/allUsers');
         },
         errors => {
           if (typeof errors ==='string') {

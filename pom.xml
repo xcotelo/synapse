@@ -149,6 +149,22 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.jupiter</groupId>
+					<artifactId>junit-jupiter</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.junit.jupiter</groupId>
+					<artifactId>junit-jupiter-engine</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -211,11 +227,37 @@
 	<!-- ********************************************** -->
 	<build>
 		<!-- ============================================== -->
+		<!-- =============== SOURCE DIRECTORIES =========== -->
+		<!-- ============================================== -->
+		<sourceDirectory>backend/src/main/java</sourceDirectory>
+		<testSourceDirectory>backend/src/test/java</testSourceDirectory>
+		<resources>
+			<resource>
+				<directory>backend/src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/*.yml</include>
+					<include>**/*.properties</include>
+					<include>**/*.sql</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>backend/src/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>**/*.yml</exclude>
+					<exclude>**/*.properties</exclude>
+					<exclude>**/*.sql</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		
+		<!-- ============================================== -->
 		<!-- =============== TEST RESOURCES =============== -->
 		<!-- ============================================== -->
 		<testResources>
 			<testResource>
-				<directory>src/test/resources</directory>
+				<directory>backend/src/test/resources</directory>
 				<filtering>true</filtering>
 			</testResource>
 		</testResources>
@@ -227,6 +269,9 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>es.udc.fi.dc.fd.Application</mainClass>
+				</configuration>
 			</plugin>
 
 			<!-- Kubernetes deployment config -->
@@ -256,6 +301,19 @@
 							</jkube-service>
 						</config>
 					</enricher>
+				</configuration>
+			</plugin>
+
+			<!-- Surefire plugin for tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.2.5</version>
+				<configuration>
+					<includes>
+						<include>**/*Test.java</include>
+						<include>**/*Tests.java</include>
+					</includes>
 				</configuration>
 			</plugin>
 
@@ -289,6 +347,7 @@
 				<configuration>
 					<workingDirectory>frontend</workingDirectory>
 					<installDirectory>target</installDirectory>
+					<skip>${skipFrontend}</skip>
 				</configuration>
 				<executions>
 					<execution>
@@ -297,7 +356,7 @@
 							<goal>install-node-and-yarn</goal>
 						</goals>
 						<configuration>
-							<nodeVersion>v18.12.0</nodeVersion>
+							<nodeVersion>v20.18.0</nodeVersion>
 							<yarnVersion>v1.22.19</yarnVersion>
 						</configuration>
 						<phase>generate-resources</phase>

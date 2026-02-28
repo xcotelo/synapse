@@ -104,13 +104,6 @@ export const changePassword = (
     onErrors
   );
 
-export const findLeagues = ({ id }, onSuccess) => {
-
-  let path = `/users/${id}/leagues`;
-  appFetch(path, fetchConfig('GET'), onSuccess);
-
-};
-
 export const getAllUsers = ({ page }, onSuccess) => {
 
   let path = `/users/allUsers?page=${page}`;

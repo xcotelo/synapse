@@ -4,10 +4,8 @@ import org.springframework.data.domain.Pageable;
 
 import es.udc.fi.dc.fd.model.common.exceptions.DuplicateInstanceException;
 import es.udc.fi.dc.fd.model.common.exceptions.InstanceNotFoundException;
-import es.udc.fi.dc.fd.model.entities.League;
 import es.udc.fi.dc.fd.model.entities.Users;
 import es.udc.fi.dc.fd.model.services.exceptions.CannotDeleteAdminException;
-import es.udc.fi.dc.fd.model.services.exceptions.CannotDeleteCreatorOfLeagueException;
 import es.udc.fi.dc.fd.model.services.exceptions.IncorrectLoginException;
 import es.udc.fi.dc.fd.model.services.exceptions.IncorrectPasswordException;
 
@@ -68,15 +66,6 @@ public interface UserService {
 			throws InstanceNotFoundException, IncorrectPasswordException;
 
 	/**
-	 * Find League Users by Id
-	 * 
-	 * @param id       the id
-	 * @param pageable the pageable
-	 * @return the Block<League>
-	 */
-	Block<League> findLeaguesByUserId(Long id, Pageable pageable); // Relation
-
-	/**
 	 * Find all users
 	 * 
 	 * @param pageable the pageable
@@ -89,6 +78,7 @@ public interface UserService {
 	 * 
 	 * @param userId the user id
 	 * @throws InstanceNotFoundException
+	 * @throws CannotDeleteAdminException
 	 */
-	void removeUser(Long userId) throws InstanceNotFoundException, CannotDeleteAdminException,CannotDeleteCreatorOfLeagueException;
+	void removeUser(Long userId) throws InstanceNotFoundException, CannotDeleteAdminException;
 }

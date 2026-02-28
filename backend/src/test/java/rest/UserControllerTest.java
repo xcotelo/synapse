@@ -21,20 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import es.udc.fi.dc.fd.model.entities.Users;
 import es.udc.fi.dc.fd.model.entities.Users.RoleType;
-import es.udc.fi.dc.fd.model.entities.League;
-import es.udc.fi.dc.fd.model.entities.LeagueDao;
-import es.udc.fi.dc.fd.model.entities.Player;
-import es.udc.fi.dc.fd.model.entities.Player.PositionType;
-import es.udc.fi.dc.fd.model.entities.PlayerDao;
-import es.udc.fi.dc.fd.model.entities.Relation;
-import es.udc.fi.dc.fd.model.entities.RelationDao;
-import es.udc.fi.dc.fd.model.entities.Team;
-import es.udc.fi.dc.fd.model.entities.TeamDao;
 import es.udc.fi.dc.fd.model.entities.UserDao;
-import es.udc.fi.dc.fd.model.entities.UserOnLeague;
-import es.udc.fi.dc.fd.model.entities.UserOnLeagueDao;
 import es.udc.fi.dc.fd.model.services.exceptions.IncorrectLoginException;
-
 
 import es.udc.fi.dc.fd.rest.controllers.UserController;
 
@@ -67,21 +55,6 @@ public class UserControllerTest {
 	/** The user dao. */
 	@Autowired
 	UserDao userDao;
-
-	@Autowired
-	PlayerDao playerDao;
-
-	@Autowired
-	TeamDao teamDao;
-
-	@Autowired
-	LeagueDao leagueDao;
-
-	@Autowired
-	RelationDao relationDao;
-
-	@Autowired
-	UserOnLeagueDao userOnLeagueDao;
 
 	/** The user controller. */
 	@Autowired
@@ -274,16 +247,6 @@ public class UserControllerTest {
 	}
 
 	@Test
-	public void testGetLeaguesFromUser_Ok() throws Exception {
-		AuthenticatedUserDto user = createAuthenticatedUser("user", RoleType.USER);
-
-		mockMvc.perform(get("/api/users/{userId}/leagues", user.getUserDto().getId())
-				.header("Authorization", "Bearer " + user.getServiceToken())
-				.contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
-	}
-
-	@Test
 	public void testGetAllUsersAdmin_Ok() throws Exception {
 		AuthenticatedUserDto admin = createAuthenticatedUser("admin", RoleType.ADMIN);
 
@@ -293,8 +256,6 @@ public class UserControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	
-	
 	@Test
 	public void testDeleteUserWithoutLeagues_Ok() throws Exception {
 
@@ -311,49 +272,6 @@ public class UserControllerTest {
 	}
 
 	@Test
-	public void testDeleteUserWithLeagues_Ok() throws Exception {
-
-		AuthenticatedUserDto admin = createAuthenticatedUser("user", RoleType.ADMIN);
-		 
-		Users user1 =  new Users("user", "password", "firstName", "lastName", "noah@gmail.com");
-		
-		user1.setRole(RoleType.USER);
-		userDao.save(user1);
-
-		Users user2 =  new Users("user2", "password", "firstName", "lastName", "martin@gmail.com");
-		
-		user2.setRole(RoleType.USER);
-		userDao.save(user2);
-
-		League league = new League("TestLiga", user1, 9, 7, 15, 8, 8, "Waterpolo_1.png", 50000, 30);
-		leagueDao.save(league);
-
-		Team team = new Team("Equipo", "Team1.png");
-		teamDao.save(team);
-
-		Player player1 = new Player("player1", "lastName", PositionType.PORTERO, 25, 10, team, "",
-				"Waterpolo_6.png", 5000);
-		playerDao.save(player1);
-
-		Relation relation1 = new Relation(league, player1, user1);
-		relationDao.save(relation1);
-
-		UserOnLeague userOnLeague = new UserOnLeague(user1, league, 5000, true);
-		userOnLeagueDao.save(userOnLeague);
-		
-		Relation relation2 = new Relation(league, player1, user2);
-		relationDao.save(relation2);
-
-		UserOnLeague userOnLeague2 = new UserOnLeague(user2, league, 5000, true);
-		userOnLeagueDao.save(userOnLeague2);
-
-		mockMvc.perform(post("/api/users/" + user2.getId() + "/removeUser")
-				.header("Authorization", "Bearer " + admin.getServiceToken())
-				.contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
-	}
-
-	@Test
 	public void testDeleteAdmin_FORBIDDEN() throws Exception {
 
 		AuthenticatedUserDto admin = createAuthenticatedUser("user", RoleType.ADMIN);
@@ -362,38 +280,6 @@ public class UserControllerTest {
 		user1.setRole(RoleType.ADMIN);
 		userDao.save(user1);
 
-		mockMvc.perform(post("/api/users/" + user1.getId() + "/removeUser")
-				.header("Authorization", "Bearer " + admin.getServiceToken())
-				.contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isForbidden());
-	}
-
-	@Test
-	public void testDeleteCreatorOfLeagues_Ok() throws Exception {
-
-		AuthenticatedUserDto admin = createAuthenticatedUser("user", RoleType.ADMIN);
-		 
-		Users user1 =  new Users("user", "password", "firstName", "lastName", "noah@gmail.com");
-		
-		user1.setRole(RoleType.USER);
-		userDao.save(user1);
-
-		League league = new League("TestLiga", user1, 9, 7, 15, 8, 8, "Waterpolo_1.png", 50000, 30);
-		leagueDao.save(league);
-
-		Team team = new Team("Equipo", "Team1.png");
-		teamDao.save(team);
-
-		Player player1 = new Player("player1", "lastName", PositionType.PORTERO, 25, 10, team, "",
-				"Waterpolo_6.png", 5000);
-		playerDao.save(player1);
-
-		Relation relation1 = new Relation(league, player1, user1);
-		relationDao.save(relation1);
-
-		UserOnLeague userOnLeague = new UserOnLeague(user1, league, 5000, true);
-		userOnLeagueDao.save(userOnLeague);
-		
 		mockMvc.perform(post("/api/users/" + user1.getId() + "/removeUser")
 				.header("Authorization", "Bearer " + admin.getServiceToken())
 				.contentType(MediaType.APPLICATION_JSON))

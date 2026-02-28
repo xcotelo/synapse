@@ -179,6 +179,27 @@ body {
   padding-bottom: 70px;
 }
 
+/* Páginas oscuras (Slot, Arcade): mismo fondo para evitar franjas al deslizar */
+.synapse-app:has(.slot-page),
+.synapse-app:has(.arcade-page) {
+  background: #030406;
+}
+
+.synapse-app:has(.slot-page)::before,
+.synapse-app:has(.arcade-page)::before {
+  display: none;
+}
+
+.synapse-main:has(.slot-page),
+.synapse-main:has(.arcade-page) {
+  background: #030406;
+}
+
+.synapse-app:has(.slot-page) .slot-page,
+.synapse-app:has(.arcade-page) .arcade-page {
+  overscroll-behavior: none;
+}
+
 /* ========== Header fijo: tamaño progresivo según scroll (--header-scroll 0→1) ========== */
 .synapse-header {
   --header-scroll: 0;

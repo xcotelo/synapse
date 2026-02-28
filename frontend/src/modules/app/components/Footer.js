@@ -25,6 +25,18 @@ const Footer = () => {
               >
                 Conocimiento
               </Link>
+              <Link
+                to="/brain/slot"
+                className={`synapse-footer__link ${location.pathname === "/brain/slot" ? "active" : ""}`}
+              >
+                Slot
+              </Link>
+              <Link
+                to="/brain/arcade"
+                className={`synapse-footer__link ${location.pathname === "/brain/arcade" ? "active" : ""}`}
+              >
+                Arcade
+              </Link>
             </>
           )}
         </nav>

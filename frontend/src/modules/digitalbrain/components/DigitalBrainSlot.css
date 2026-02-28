@@ -1,0 +1,420 @@
+/* ——— Página Slot: temática oscura ——— */
+.slot-page {
+  min-height: calc(100vh - 96px);
+  width: 100%;
+  background: linear-gradient(180deg, #0a0b0f 0%, #060709 50%, #030406 100%);
+  color: #e2e8f0;
+  padding: 1.5rem 1rem 2rem;
+  position: relative;
+}
+
+.slot-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #0a0b0f 0%, #060709 50%, #030406 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.slot-page__back {
+  margin-bottom: 1rem;
+}
+
+.slot-page__back-link {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.slot-page__back-link:hover {
+  color: #60a5fa;
+}
+
+.slot-page__content {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.slot-page__title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+  color: #f1f5f9;
+}
+
+.slot-page__subtitle {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.slot-page__empty {
+  padding: 2rem;
+  text-align: center;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 12px;
+  border: 1px solid rgba(71, 85, 105, 0.4);
+}
+
+.slot-page__empty p {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.slot-page__empty a {
+  color: #60a5fa;
+}
+
+/* ——— Tragaperras: estilo futurista con neón (inspirado en referencia) ——— */
+.slot-machine {
+  perspective: 1400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.slot-machine__cabinet {
+  position: relative;
+  padding: 0 1.25rem 1.25rem 1.25rem;
+  background: linear-gradient(165deg, #1a1d24 0%, #0f1115 40%, #08090c 100%);
+  border-radius: 16px 16px 20px 20px;
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(96, 165, 250, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transform: rotateX(4deg);
+}
+
+/* Marquee con neón azul / magenta */
+.slot-machine__marquee {
+  position: relative;
+  margin: 0 -0.25rem 0.75rem;
+  padding: 0.55rem 1rem 0.65rem;
+  background: linear-gradient(180deg, #0f1419 0%, #080a0d 100%);
+  border-radius: 10px 10px 0 0;
+  border: 2px solid rgba(96, 165, 250, 0.4);
+  border-bottom: none;
+  box-shadow:
+    0 0 20px rgba(96, 165, 250, 0.2),
+    inset 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.slot-machine__marquee-text {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  color: #93c5fd;
+  text-shadow: 0 0 24px rgba(96, 165, 250, 0.8), 0 0 48px rgba(147, 197, 253, 0.4);
+}
+
+.slot-machine__marquee-glow {
+  position: absolute;
+  inset: -2px -4px 0 -4px;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.08), rgba(217, 70, 239, 0.06), transparent);
+  pointer-events: none;
+}
+
+.slot-machine__marquee-light {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #60a5fa;
+  box-shadow: 0 0 12px #60a5fa, 0 0 24px rgba(96, 165, 250, 0.6);
+  opacity: 0.95;
+  transform: translateY(-50%);
+}
+
+.slot-machine__marquee-light--1 { left: 12%; }
+.slot-machine__marquee-light--2 { left: 50%; transform: translate(-50%, -50%); background: #c084fc; box-shadow: 0 0 12px #c084fc, 0 0 24px rgba(192, 132, 252, 0.6); }
+.slot-machine__marquee-light--3 { right: 12%; background: #f472b6; box-shadow: 0 0 12px #f472b6, 0 0 24px rgba(244, 114, 182, 0.5); }
+
+/* Bezel: marco con borde neón */
+.slot-machine__bezel {
+  width: 340px;
+  padding: 10px 12px 12px;
+  background: linear-gradient(180deg, #05070a 0%, #020304 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(96, 165, 250, 0.35);
+  box-shadow:
+    0 0 24px rgba(96, 165, 250, 0.15),
+    inset 0 2px 24px rgba(0, 0, 0, 0.8);
+}
+
+/* Rodillos: pantallas digitales con borde luminoso */
+.slot-machine__reels {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.slot-machine__reel-wrap {
+  width: 72px;
+  height: 156px;
+  overflow: hidden;
+  background: #020304;
+  border-radius: 6px;
+  border: 2px solid rgba(96, 165, 250, 0.25);
+  box-shadow:
+    0 0 12px rgba(96, 165, 250, 0.1),
+    inset 0 0 24px rgba(0, 0, 0, 0.9);
+}
+
+.slot-machine__reel-strip {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+
+.slot-machine__reel-strip:not(.slot-machine__reel-strip--spin) {
+  transform: translateY(var(--reel-stop, 0px));
+}
+
+.slot-machine__reel-strip--spin {
+  animation: slot-reel-spin var(--reel-duration, 2200ms) cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+}
+
+@keyframes slot-reel-spin {
+  0% {
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  20% {
+    filter: blur(2px);
+  }
+  85% {
+    transform: translateY(-520px);
+    filter: blur(1px);
+  }
+  100% {
+    transform: translateY(var(--reel-stop, 0px));
+    filter: blur(0);
+  }
+}
+
+.slot-machine__reel-cell {
+  flex: 0 0 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: linear-gradient(180deg, #0a0d12 0%, #040608 100%);
+  border-bottom: 1px solid rgba(30, 41, 59, 0.8);
+}
+
+.slot-machine__reel-cell:nth-child(4n + 1) { color: #93c5fd; text-shadow: 0 0 10px rgba(147, 197, 253, 0.5); }
+.slot-machine__reel-cell:nth-child(4n + 2) { color: #86efac; text-shadow: 0 0 10px rgba(134, 239, 172, 0.4); }
+.slot-machine__reel-cell:nth-child(4n + 3) { color: #fcd34d; text-shadow: 0 0 10px rgba(252, 211, 77, 0.4); }
+.slot-machine__reel-cell:nth-child(4n) { color: #f9a8d4; text-shadow: 0 0 10px rgba(249, 168, 212, 0.4); }
+
+/* Línea de pago: neón */
+.slot-machine__payline {
+  height: 4px;
+  margin: -2px 0 10px;
+  background: linear-gradient(90deg, transparent, #60a5fa, #c084fc, #60a5fa, transparent);
+  border-radius: 2px;
+  box-shadow: 0 0 12px rgba(96, 165, 250, 0.7), 0 0 24px rgba(96, 165, 250, 0.3);
+}
+
+/* Panel resultado */
+.slot-machine__result {
+  min-height: 76px;
+  padding: 12px 14px;
+  background: #06080a;
+  border-radius: 8px;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.slot-machine__placeholder {
+  color: #64748b;
+  text-align: center;
+  padding: 0.5rem 0;
+  font-size: 0.8rem;
+}
+
+.slot-machine__content-type {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.slot-machine__content-type--link { color: #93c5fd; }
+.slot-machine__content-type--video { color: #86efac; }
+.slot-machine__content-type--audio { color: #fcd34d; }
+.slot-machine__content-type--nota { color: #f9a8d4; }
+
+.slot-machine__content-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #f1f5f9;
+  margin-bottom: 4px;
+}
+
+.slot-machine__content-media {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.slot-machine__content-media--video {
+  font-style: italic;
+}
+
+.slot-machine__audio {
+  width: 100%;
+  height: 32px;
+  margin-top: 4px;
+  border-radius: 4px;
+}
+
+.slot-machine__content-preview {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* Palanca retro y realista: base metálica, brazo con textura, mango esférico */
+.slot-machine__lever {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 58px;
+  height: 100%;
+  min-height: 220px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+
+.slot-machine__lever:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.slot-machine__lever-base {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 28px;
+  background: linear-gradient(180deg, #5a6268 0%, #3d4348 25%, #2d3238 60%, #1a1d21 100%);
+  border-radius: 8px 8px 0 0;
+  border: 2px solid #2d3238;
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    inset 0 3px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.slot-machine__lever-base::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #25282d;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.slot-machine__lever-arm {
+  width: 16px;
+  height: 78px;
+  background: repeating-linear-gradient(
+    90deg,
+    #4a5056 0px,
+    #4a5056 2px,
+    #3a3f44 2px,
+    #3a3f44 4px
+  );
+  border-radius: 3px;
+  border: 1px solid #2d3238;
+  box-shadow:
+    4px 0 10px rgba(0, 0, 0, 0.6),
+    -1px 0 1px rgba(255, 255, 255, 0.06),
+    inset 2px 0 3px rgba(0, 0, 0, 0.4);
+  transform-origin: center bottom;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.slot-machine__lever-handle {
+  display: block;
+  width: 44px;
+  height: 44px;
+  margin: -5px 0 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 38% 32%,
+    #b8bcc4,
+    #8a8f96 25%,
+    #5c6168 50%,
+    #3d4248 75%,
+    #2a2d32 100%
+  );
+  border: 5px solid #3d4248;
+  box-shadow:
+    4px 4px 12px rgba(0, 0, 0, 0.65),
+    -2px -2px 6px rgba(255, 255, 255, 0.08),
+    inset 0 4px 10px rgba(255, 255, 255, 0.2),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 0, 0, 0.3);
+  transform-origin: center top;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.slot-machine__lever:hover:not(:disabled) .slot-machine__lever-arm {
+  filter: brightness(1.08);
+}
+
+.slot-machine__lever:hover:not(:disabled) .slot-machine__lever-handle {
+  filter: brightness(1.12);
+  box-shadow:
+    4px 4px 12px rgba(0, 0, 0, 0.65),
+    inset 0 4px 12px rgba(255, 255, 255, 0.25),
+    0 0 20px rgba(96, 165, 250, 0.2);
+}
+
+.slot-machine__lever--down .slot-machine__lever-arm {
+  transform: rotate(48deg);
+}
+
+.slot-machine__lever--down .slot-machine__lever-handle {
+  transform: rotate(48deg) translateY(4px);
+}
+
+.slot-machine__label {
+  margin-top: 14px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: #475569;
+}

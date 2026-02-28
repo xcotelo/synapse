@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Route, Routes } from "react-router-dom";
 import { useUser } from "../../common/components/UserContext";
 import { Login, Register } from "../../user";

@@ -291,7 +291,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>es.udc.fi.dc.fd.Application</mainClass>
+					<mainClass>synapse.Application</mainClass>
 				</configuration>
 			</plugin>
 

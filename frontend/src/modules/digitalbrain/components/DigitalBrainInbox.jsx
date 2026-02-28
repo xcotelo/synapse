@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 import { createInboxEntry, loadInbox, saveInbox, loadNotes, saveNotes, createNoteFromEntry } from "../digitalBrainStorage";
 import { appFetch, fetchConfig } from "../../../backend/appFetch";
+import "./FileDropZone.css";
 
 // Collemos o input do usuario e gárdase como entrada pendente
 const DigitalBrainInbox = () => {
@@ -10,6 +11,8 @@ const DigitalBrainInbox = () => {
   const [input, setInput] = useState("");
   // Lista de entradas pendentes almacenadas en localStorage
   const [inbox, setInbox] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
   const navigate = useNavigate();
 
   // Cargamos as entradas xa gardadas no localStorage ao montar o componente
@@ -44,7 +47,7 @@ const DigitalBrainInbox = () => {
           // Crear nota procesada automáticamente
           const notes = loadNotes();
           const inbox = loadInbox();
-          
+
           const note = createNoteFromEntry(entry, {
             title: response.title || entry.rawContent.substring(0, 50),
             destination: response.destination || "apunte",
@@ -56,7 +59,7 @@ const DigitalBrainInbox = () => {
           // Guardar nota y eliminar del inbox
           const updatedNotes = [note, ...notes];
           const updatedInbox = inbox.filter((item) => item.id !== entry.id);
-          
+
           saveNotes(updatedNotes);
           saveInbox(updatedInbox);
           setInbox(updatedInbox);
@@ -97,25 +100,37 @@ const DigitalBrainInbox = () => {
 
   // Sube un archivo (mp3/mp4) y lo procesa con IA generando directamente una nota
   const handleFileUpload = (event) => {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
+    // Procesar cada archivo seleccionado
+    Array.from(files).forEach(file => processFile(file));
+
+    // Permitir volver a seleccionar el mismo archivo si es necesario
+    event.target.value = "";
+  };
+
+  // Función genérica para procesar un archivo
+  const processFile = (file) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    // Crear la entrada en el inbox inmediatamente para que aparezca siempre en "pendientes de procesar"
-    const notes = loadNotes();
+    // Crear la entrada en el inbox inmediatamente
     const inbox = loadInbox();
 
+    let fileType = "nota";
+    if (file.type) {
+      if (file.type.startsWith("video")) {
+        fileType = "video";
+      } else if (file.type.startsWith("audio")) {
+        fileType = "audio";
+      }
+    }
+
     const inboxEntry = {
-      id: Date.now().toString(),
+      id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
       rawContent: `Archivo subido: ${file.name}`,
-      type:
-        file.type && file.type.startsWith("audio")
-          ? "audio"
-          : file.type && file.type.startsWith("video")
-          ? "video"
-          : "nota",
+      type: fileType,
       createdAt: new Date().toISOString(),
       source: "upload",
       status: "inbox",
@@ -146,7 +161,7 @@ const DigitalBrainInbox = () => {
         const updatedNotes = [note, ...notes];
         saveNotes(updatedNotes);
 
-        // Si el procesado fue correcto, eliminamos la entrada del inbox (igual que con texto/URLs)
+        // Si el procesado fue correcto, eliminamos la entrada del inbox
         const currentInbox = loadInbox();
         const cleanedInbox = currentInbox.filter((item) => item.id !== inboxEntry.id);
         saveInbox(cleanedInbox);
@@ -156,9 +171,43 @@ const DigitalBrainInbox = () => {
         console.error("Error procesando archivo con IA:", error);
       }
     );
+  };
 
-    // Permitir volver a seleccionar el mismo archivo si es necesario
-    event.target.value = "";
+  // Handlers para Drag and Drop robustos para evitar "convulsiones" (flickering)
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (dragCounter.current === 1) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Importante: no quitar esto, permite el drop
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      Array.from(files).forEach(file => processFile(file));
+    }
   };
 
   const getTypeBadgeColor = (type) => {
@@ -193,8 +242,8 @@ const DigitalBrainInbox = () => {
             <h2 className="card-title mb-0">
               <span style={{ fontSize: "1.8rem" }}>🧠</span> Cerebro Digital – Inbox
             </h2>
-            <Link 
-              to="/brain/knowledge" 
+            <Link
+              to="/brain/knowledge"
               className="btn btn-outline-primary btn-lg"
             >
               <span>📚</span> Ver Notas Clasificadas
@@ -231,21 +280,78 @@ const DigitalBrainInbox = () => {
               <button type="submit" className="btn btn-primary btn-lg px-4">
                 <span>✨</span> Añadir y procesar con IA
               </button>
-              <div>
-                <label className="btn btn-outline-secondary btn-lg mb-0">
-                  <span>📎</span> Añadir mp3/mp4
-                  <input
-                    type="file"
-                    accept="audio/mpeg,video/mp4"
-                    onChange={handleFileUpload}
-                    style={{ display: "none" }}
-                  />
-                </label>
-                <small className="d-block text-muted mt-1">
-                  Los audios se analizarán por metadatos (artista, título, etc.) y los vídeos por el contexto del nombre del archivo.
-                </small>
-              </div>
             </div>
+
+            <div
+              className={`file-drop-zone ${isDragging ? "dragging" : ""}`}
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById("file-input-hidden").click()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  document.getElementById("file-input-hidden").click();
+                }
+              }}
+              tabIndex="0"
+              role="button"
+              aria-label="Subir archivos"
+              style={{
+                marginTop: "1.5rem",
+                position: "relative",
+                minHeight: "180px",
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: isDragging ? "2px solid #007bff" : "2px dashed #007bff",
+                borderRadius: "12px",
+                backgroundColor: isDragging ? "rgba(0, 123, 255, 0.08)" : "#fafafa",
+                transition: "background-color 0.2s ease",
+                cursor: "pointer",
+                padding: "20px",
+                outline: "none",
+                overflow: "hidden"
+              }}
+            >
+              {/* Overlay invisible que captura todos los eventos durante el drag para evitar parpadeos */}
+              {isDragging && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 10,
+                    pointerEvents: "none"
+                  }}
+                />
+              )}
+
+              <div className="file-drop-zone-content" style={{ textAlign: "center", zIndex: 2, pointerEvents: "none" }}>
+                <div className="file-drop-zone-icon" style={{ fontSize: "3.5rem", marginBottom: "0.5rem" }}>
+                  {isDragging ? "🎁" : "📁"}
+                </div>
+                <div className="file-drop-zone-text" style={{ fontSize: "1.25rem", fontWeight: "700", color: "#007bff" }}>
+                  {isDragging ? "¡Sueltalo aquí mismo!" : "Arrastra tus archivos aquí"}
+                </div>
+                <div className="file-drop-zone-subtext" style={{ color: "#555", marginTop: "0.5rem", fontSize: "0.95rem" }}>
+                  O haz clic para explorar tus documentos
+                </div>
+              </div>
+              <input
+                id="file-input-hidden"
+                type="file"
+                multiple
+                onChange={handleFileUpload}
+                style={{ display: "none" }}
+              />
+            </div>
+            <small className="text-muted d-block mt-2">
+              Los archivos se analizarán automáticamente por la IA para extraer su conocimiento.
+            </small>
           </form>
         </div>
       </div>

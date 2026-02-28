@@ -28,7 +28,7 @@ project:
     signKey: WzROun12eUiDvko3UrJ74gNeJz2TWEWPMTh6DxyE8HWXIf4hETUrkM4IUGqqHq66PuVS
     expirationMinutes: 1440
   llama:
-    apiKey: ${LLAMA_API_KEY:your-groq-api-key-here}
+    apiKey: ${API_KEY_LLAMA}
     apiUrl: https://api.groq.com/openai/v1/chat/completions
     model: llama-3.1-70b-versatile
 

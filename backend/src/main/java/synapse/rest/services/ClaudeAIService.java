@@ -24,18 +24,17 @@ import okhttp3.Response;
  */
 @Service
 public class ClaudeAIService {
-
     private static final Logger logger = LoggerFactory.getLogger(ClaudeAIService.class);
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private final OkHttpClient client;
     private final Gson gson;
-    
+
     @Value("${project.llama.apiKey}")
     private String apiKey;
-    
+
     @Value("${project.llama.apiUrl}")
     private String apiUrl;
-    
+
     @Value("${project.llama.model}")
     private String model;
 
@@ -52,8 +51,10 @@ public class ClaudeAIService {
      */
     public ClassificationResult classifyContent(String content) {
         if (content == null || content.trim().isEmpty()) {
-            return createDefaultResult(content);
+            return createDefaultResult();
         }
+
+        logger.info("Clasificando contenido de longitud: {}", content.length());
 
         // Si no hay API key configurada, generar contenido básico del texto
         if (apiKey == null || apiKey.isEmpty() || apiKey.equals("your-groq-api-key-here")) {
@@ -71,19 +72,18 @@ public class ClaudeAIService {
                 return createSmartDefaultResult(content);
             }
             ClassificationResult result = parseClaudeResponse(response, content);
-            
+
             // Validar que el resultado tenga contenido útil
-            if (result.getTitle().equals("Nota") && result.getSummary().isEmpty() && 
-                result.getDetailedContent().contains("Contenido sin procesar")) {
+            if (result.getTitle().equals("Nota") && result.getSummary().isEmpty() &&
+                    result.getDetailedContent().contains("Contenido sin procesar")) {
                 logger.warn("Resultado parece ser por defecto, generando contenido inteligente");
                 return createSmartDefaultResult(content);
             }
-            
+
             logger.info("Resultado parseado - título: '{}', tags: {}", result.getTitle(), result.getTags().length);
             return result;
         } catch (Exception e) {
             logger.error("Error al clasificar contenido con LLaMA 3: {}", e.getMessage(), e);
-            logger.error("Stack trace completo:", e);
             return createSmartDefaultResult(content);
         }
     }
@@ -93,30 +93,34 @@ public class ClaudeAIService {
      */
     private String buildClassificationPrompt(String content) {
         String contentPreview = content.substring(0, Math.min(content.length(), 15000));
-        boolean isVideo = content.contains("VIDEO") || content.contains("VIDEO DE YOUTUBE") || 
-                         content.contains("CANAL:") || content.contains("TÍTULO DEL VIDEO:");
-        
+        boolean isVideo = content.contains("VIDEO") || content.contains("VIDEO DE YOUTUBE") ||
+                content.contains("CANAL:") || content.contains("TÍTULO DEL VIDEO:");
+
         return "Analiza el siguiente contenido y genera un JSON con la clasificación. " +
-               "SÉ ESPECÍFICO Y PRECISO. NO uses etiquetas genéricas como 'general'.\n\n" +
-               "CONTENIDO:\n" + contentPreview + "\n\n" +
-               "REGLAS OBLIGATORIAS:\n" +
-               "1. TÍTULO: Crea un título descriptivo y específico basado en el contenido real (máx 120 caracteres)\n" +
-               "2. SUMMARY: Resumen detallado de 200-800 caracteres explicando QUÉ enseña, QUÉ conceptos cubre, QUÉ tecnologías menciona\n" +
-               "3. DETAILEDCONTENT: Documento Markdown completo (mín 500 caracteres) con:\n" +
-               "   - Título principal\n" +
-               "   - Resumen ejecutivo\n" +
-               "   - Puntos clave por secciones\n" +
-               "   - Conceptos importantes\n" +
-               "   - Tecnologías/frameworks mencionados\n" +
-               "   - Conclusiones o takeaways\n" +
-               "4. TYPE: 'video', 'articulo', 'tutorial', 'codigo', 'documentacion', 'investigacion', o 'nota'\n" +
-               "5. DESTINATION: 'apunte', 'idea', 'recurso', o 'tarea'\n" +
-               "6. TAGS: Array con 4-6 etiquetas ESPECÍFICAS extraídas del contenido. " +
-               "Ejemplos: 'react-hooks', 'futbol-espanol', 'sanidad-publica', 'algoritmos-grafos'. " +
-               "PROHIBIDO usar 'general', 'varios', 'otros', 'tecnologia', 'programacion'.\n\n" +
-               (isVideo ? "ES UN VIDEO: Analiza el título y descripción para extraer temas, tecnologías y conceptos específicos.\n\n" : "") +
-               "Responde SOLO con JSON válido, sin texto adicional:\n" +
-               "{\"type\":\"tipo\",\"title\":\"título\",\"summary\":\"resumen\",\"detailedContent\":\"# Título\\n\\n## Resumen\\n\\n...\",\"destination\":\"apunte\",\"tags\":[\"tag1\",\"tag2\",\"tag3\",\"tag4\"]}";
+                "SÉ ESPECÍFICO Y PRECISO. NO uses etiquetas genéricas como 'general'.\n\n" +
+                "CONTENIDO:\n" + contentPreview + "\n\n" +
+                "REGLAS OBLIGATORIAS:\n" +
+                "1. TÍTULO: Crea un título descriptivo y específico basado en el contenido real (máx 120 caracteres)\n"
+                +
+                "2. SUMMARY: Resumen detallado de 200-800 caracteres explicando QUÉ enseña, QUÉ conceptos cubre, QUÉ tecnologías menciona\n"
+                +
+                "3. DETAILEDCONTENT: Documento Markdown completo (mín 500 caracteres) con:\n" +
+                "   - Título principal\n" +
+                "   - Resumen ejecutivo\n" +
+                "   - Puntos clave por secciones\n" +
+                "   - Conceptos importantes\n" +
+                "   - Tecnologías/frameworks mencionados\n" +
+                "   - Conclusiones o takeaways\n" +
+                "4. TYPE: 'video', 'articulo', 'tutorial', 'codigo', 'documentacion', 'investigacion', o 'nota'\n" +
+                "5. DESTINATION: 'apunte', 'idea', 'recurso', o 'tarea'\n" +
+                "6. TAGS: Array con 4-6 etiquetas ESPECÍFICAS extraídas del contenido. " +
+                "Ejemplos: 'react-hooks', 'futbol-espanol', 'sanidad-publica', 'algoritmos-grafos'. " +
+                "PROHIBIDO usar 'general', 'varios', 'otros', 'tecnologia', 'programacion'.\n\n" +
+                (isVideo ? "ES UN VIDEO: Analiza el título y descripción para extraer temas, tecnologías y conceptos específicos.\n\n"
+                        : "")
+                +
+                "Responde SOLO con JSON válido, sin texto adicional:\n" +
+                "{\"type\":\"tipo\",\"title\":\"título\",\"summary\":\"resumen\",\"detailedContent\":\"# Título\\n\\n## Resumen\\n\\n...\",\"destination\":\"apunte\",\"tags\":[\"tag1\",\"tag2\",\"tag3\",\"tag4\"]}";
     }
 
     /**
@@ -127,13 +131,15 @@ public class ClaudeAIService {
         requestBody.addProperty("model", model);
         requestBody.addProperty("max_tokens", 4000);
         requestBody.addProperty("temperature", 0.7);
-        
+
+        logger.info("Llamando a la API de Groq: {} con modelo: {}", apiUrl, model);
+
         JsonArray messages = new JsonArray();
         JsonObject message = new JsonObject();
         message.addProperty("role", "user");
         message.addProperty("content", prompt);
         messages.add(message);
-        
+
         requestBody.add("messages", messages);
 
         RequestBody body = RequestBody.create(requestBody.toString(), JSON);
@@ -147,14 +153,15 @@ public class ClaudeAIService {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 String errorBody = response.body() != null ? response.body().string() : "";
-                logger.error("Error en respuesta de Groq API: {} - {}", response.code(), errorBody);
+                logger.error("Error en respuesta de Groq API: HTTP {} - Body: {}", response.code(), errorBody);
                 throw new IOException("Unexpected code: " + response.code() + " - " + errorBody);
             }
-            
+
             String responseBody = response.body().string();
+            logger.info("Respuesta exitosa de Groq (longitud: {})", responseBody.length());
             logger.debug("Respuesta completa de Groq: {}", responseBody);
             JsonObject jsonResponse = gson.fromJson(responseBody, JsonObject.class);
-            
+
             // Extraer el contenido de la respuesta (formato OpenAI/Groq)
             JsonArray choices = jsonResponse.getAsJsonArray("choices");
             if (choices != null && choices.size() > 0) {
@@ -166,7 +173,7 @@ public class ClaudeAIService {
                     return content;
                 }
             }
-            
+
             logger.warn("No se encontró contenido en la respuesta de Groq");
             return "";
         }
@@ -178,87 +185,88 @@ public class ClaudeAIService {
     private ClassificationResult parseClaudeResponse(String response, String originalContent) {
         try {
             logger.debug("Parseando respuesta, longitud: {}", response.length());
-            
+
             // Intentar extraer JSON de la respuesta
             String jsonStr = extractJSON(response);
             logger.debug("JSON extraído: {}", jsonStr.substring(0, Math.min(jsonStr.length(), 200)));
-            
+
             JsonObject json = gson.fromJson(jsonStr, JsonObject.class);
-            
+
             String type = json.has("type") ? json.get("type").getAsString() : "nota";
             String title = json.has("title") ? json.get("title").getAsString() : "Nota";
             String summary = json.has("summary") ? json.get("summary").getAsString() : "";
             String detailedContent = json.has("detailedContent") ? json.get("detailedContent").getAsString() : "";
             String destination = json.has("destination") ? json.get("destination").getAsString() : "apunte";
-            
+
             List<String> tags = new ArrayList<>();
             if (json.has("tags") && json.get("tags").isJsonArray()) {
                 JsonArray tagsArray = json.getAsJsonArray("tags");
                 for (int i = 0; i < tagsArray.size(); i++) {
                     String tag = tagsArray.get(i).getAsString();
                     // Filtrar etiquetas genéricas
-                    if (!tag.equalsIgnoreCase("general") && !tag.equalsIgnoreCase("varios") && 
-                        !tag.equalsIgnoreCase("otros") && !tag.trim().isEmpty()) {
+                    if (!tag.equalsIgnoreCase("general") && !tag.equalsIgnoreCase("varios") &&
+                            !tag.equalsIgnoreCase("otros") && !tag.trim().isEmpty()) {
                         tags.add(tag);
                     }
                 }
             }
-            
+
             // Si no hay tags válidas, intentar generar algunas del contenido
             if (tags.isEmpty()) {
                 tags = generateTagsFromContent(originalContent, title, summary);
             }
-            
+
             // Si no hay detailedContent, crear uno detallado
             if (detailedContent.isEmpty() || detailedContent.length() < 200) {
                 detailedContent = buildDetailedContentFromSummary(title, summary, originalContent);
             }
-            
+
             // Asegurar que el summary tenga contenido
             if (summary.isEmpty() && !originalContent.isEmpty()) {
                 summary = originalContent.substring(0, Math.min(originalContent.length(), 500)) + "...";
             }
-            
-            logger.debug("Resultado final - título: '{}', tags: {}, summary length: {}", 
-                        title, tags.size(), summary.length());
-            
-            return new ClassificationResult(type, title, summary, detailedContent, destination, tags.toArray(new String[0]));
+
+            logger.debug("Resultado final - título: '{}', tags: {}, summary length: {}",
+                    title, tags.size(), summary.length());
+
+            return new ClassificationResult(type, title, summary, detailedContent, destination,
+                    tags.toArray(new String[0]));
         } catch (Exception e) {
             logger.error("Error al parsear respuesta de LLaMA 3", e);
             logger.error("Respuesta que causó el error: {}", response);
             return createSmartDefaultResult(originalContent);
         }
     }
-    
+
     /**
      * Genera etiquetas básicas del contenido cuando la IA no las proporciona
      */
     private List<String> generateTagsFromContent(String content, String title, String summary) {
         List<String> tags = new ArrayList<>();
         String allText = (title + " " + summary + " " + content).toLowerCase();
-        
+
         // Detectar temas específicos
-        if (allText.contains("futbol") || allText.contains("fútbol") || allText.contains("deporte") || 
-            allText.contains("liga") || allText.contains("equipo")) {
+        if (allText.contains("futbol") || allText.contains("fútbol") || allText.contains("deporte") ||
+                allText.contains("liga") || allText.contains("equipo")) {
             tags.add("deportes");
             if (allText.contains("español") || allText.contains("españa")) {
                 tags.add("futbol-espanol");
             }
         }
-        if (allText.contains("sanidad") || allText.contains("salud") || allText.contains("medicina") || 
-            allText.contains("mir") || allText.contains("hospital")) {
+        if (allText.contains("sanidad") || allText.contains("salud") || allText.contains("medicina") ||
+                allText.contains("mir") || allText.contains("hospital")) {
             tags.add("sanidad");
             if (allText.contains("publica") || allText.contains("pública")) {
                 tags.add("sanidad-publica");
             }
         }
-        if (allText.contains("historia") || allText.contains("histórico") || allText.contains("rey") || 
-            allText.contains("23f") || allText.contains("desclasificacion")) {
+        if (allText.contains("historia") || allText.contains("histórico") || allText.contains("rey") ||
+                allText.contains("23f") || allText.contains("desclasificacion")) {
             tags.add("historia");
             tags.add("politica");
         }
         if (allText.contains("tecnologia") || allText.contains("tecnología") || allText.contains("programacion") ||
-            allText.contains("software") || allText.contains("aplicacion")) {
+                allText.contains("software") || allText.contains("aplicacion")) {
             tags.add("tecnologia");
         }
         if (allText.contains("sociedad") || allText.contains("noticia") || allText.contains("actualidad")) {
@@ -268,10 +276,10 @@ public class ClaudeAIService {
             tags.add("video");
         }
         if (allText.contains("articulo") || allText.contains("artículo") || allText.contains("noticia") ||
-            allText.contains("cadena ser") || allText.contains("el país")) {
+                allText.contains("cadena ser") || allText.contains("el país")) {
             tags.add("articulo");
         }
-        
+
         // Extraer palabras clave del título
         if (title != null && !title.isEmpty()) {
             String[] titleWords = title.toLowerCase().split("[\\s|]+");
@@ -280,39 +288,39 @@ public class ClaudeAIService {
                 if (word.length() > 4 && !tags.contains(word) && tags.size() < 6) {
                     // Evitar palabras muy comunes
                     if (!word.equals("sobre") && !word.equals("cuando") && !word.equals("desde") &&
-                        !word.equals("hasta") && !word.equals("después") && !word.equals("nota")) {
+                            !word.equals("hasta") && !word.equals("después") && !word.equals("nota")) {
                         tags.add(word);
                     }
                 }
             }
         }
-        
+
         // Si aún no hay tags, usar una genérica pero específica
         if (tags.isEmpty()) {
             tags.add("contenido");
         }
-        
+
         return tags;
     }
-    
+
     /**
      * Construye contenido detallado cuando la IA no lo proporciona
      */
     private String buildDetailedContentFromSummary(String title, String summary, String originalContent) {
         StringBuilder content = new StringBuilder();
         content.append("# ").append(title).append("\n\n");
-        
+
         if (!summary.isEmpty()) {
             content.append("## Resumen\n\n").append(summary).append("\n\n");
         }
-        
+
         content.append("## Contenido original\n\n");
         String preview = originalContent.substring(0, Math.min(originalContent.length(), 2000));
         content.append(preview);
         if (originalContent.length() > 2000) {
             content.append("\n\n... (contenido truncado)");
         }
-        
+
         return content.toString();
     }
 
@@ -323,17 +331,17 @@ public class ClaudeAIService {
         if (text == null || text.trim().isEmpty()) {
             return "{}";
         }
-        
+
         // Buscar el primer { y el último }
         int start = text.indexOf('{');
         int end = text.lastIndexOf('}');
-        
+
         if (start != -1 && end != -1 && end > start) {
             String json = text.substring(start, end + 1);
             logger.debug("JSON extraído: {}", json.substring(0, Math.min(json.length(), 300)));
             return json;
         }
-        
+
         // Si no hay JSON, intentar buscar entre ```json o ```
         int jsonStart = text.indexOf("```json");
         if (jsonStart != -1) {
@@ -343,7 +351,7 @@ public class ClaudeAIService {
                 return text.substring(jsonStart, jsonEnd).trim();
             }
         }
-        
+
         // Buscar entre ```
         int codeStart = text.indexOf("```");
         if (codeStart != -1) {
@@ -356,7 +364,7 @@ public class ClaudeAIService {
                 }
             }
         }
-        
+
         logger.warn("No se pudo extraer JSON válido de la respuesta");
         return text;
     }
@@ -364,15 +372,12 @@ public class ClaudeAIService {
     /**
      * Crea un resultado por defecto cuando no se puede usar LLaMA 3
      */
-    private ClassificationResult createDefaultResult(String content) {
-        if (content == null || content.trim().isEmpty()) {
-            return new ClassificationResult("nota", "Nota", "", 
-                "# Nota\n\n## Contenido\n\nContenido sin procesar.", 
-                "apunte", new String[]{"general"});
-        }
-        return createSmartDefaultResult(content);
+    private ClassificationResult createDefaultResult() {
+        return new ClassificationResult("nota", "Nota", "",
+                "# Nota\n\n## Contenido\n\nContenido sin procesar.",
+                "apunte", new String[] { "general" });
     }
-    
+
     /**
      * Crea un resultado inteligente basado en el contenido cuando la IA falla
      */
@@ -381,23 +386,22 @@ public class ClaudeAIService {
         String title = extractTitleFromContent(content);
         String summary = extractSummaryFromContent(content);
         List<String> tags = generateTagsFromContent(content, title, summary);
-        
+
         // Construir contenido detallado
         String detailedContent = buildDetailedContentFromSummary(title, summary, content);
-        
+
         // Detectar tipo
         String type = detectTypeFromContent(content);
-        
+
         return new ClassificationResult(
-            type,
-            title,
-            summary,
-            detailedContent,
-            "apunte",
-            tags.toArray(new String[0])
-        );
+                type,
+                title,
+                summary,
+                detailedContent,
+                "apunte",
+                tags.toArray(new String[0]));
     }
-    
+
     /**
      * Extrae un título del contenido
      */
@@ -405,18 +409,19 @@ public class ClaudeAIService {
         if (content == null || content.trim().isEmpty()) {
             return "Nota";
         }
-        
+
         // Si hay "Título:" al inicio, extraerlo
-        if (content.startsWith("Título:") || content.contains("Título:")) {
+        if (content.contains("Título:")) {
             int titleStart = content.indexOf("Título:") + 7;
             int titleEnd = content.indexOf("\n", titleStart);
-            if (titleEnd == -1) titleEnd = Math.min(titleStart + 120, content.length());
+            if (titleEnd == -1)
+                titleEnd = Math.min(titleStart + 120, content.length());
             String title = content.substring(titleStart, titleEnd).trim();
             if (!title.isEmpty() && title.length() <= 120) {
                 return title;
             }
         }
-        
+
         // Si es una URL, usar parte de la URL como título
         if (content.startsWith("http://") || content.startsWith("https://")) {
             try {
@@ -426,7 +431,7 @@ public class ClaudeAIService {
                 return "Enlace";
             }
         }
-        
+
         // Usar las primeras palabras del contenido
         String[] lines = content.split("\n");
         for (String line : lines) {
@@ -435,7 +440,7 @@ public class ClaudeAIService {
                 return line;
             }
         }
-        
+
         // Último recurso: primeras 120 caracteres
         String firstLine = content.trim().split("\n")[0];
         if (firstLine.length() > 120) {
@@ -443,7 +448,7 @@ public class ClaudeAIService {
         }
         return firstLine.isEmpty() ? "Nota" : firstLine;
     }
-    
+
     /**
      * Extrae un resumen del contenido
      */
@@ -451,21 +456,22 @@ public class ClaudeAIService {
         if (content == null || content.trim().isEmpty()) {
             return "";
         }
-        
+
         // Si hay "Descripción:" o "Resumen:", extraerlo
-        String[] keywords = {"Descripción:", "Resumen:", "Summary:"};
+        String[] keywords = { "Descripción:", "Resumen:", "Summary:" };
         for (String keyword : keywords) {
             if (content.contains(keyword)) {
                 int start = content.indexOf(keyword) + keyword.length();
                 int end = content.indexOf("\n\n", start);
-                if (end == -1) end = Math.min(start + 800, content.length());
+                if (end == -1)
+                    end = Math.min(start + 800, content.length());
                 String summary = content.substring(start, end).trim();
                 if (summary.length() >= 50) {
                     return summary;
                 }
             }
         }
-        
+
         // Usar las primeras líneas como resumen
         String[] lines = content.split("\n");
         StringBuilder summary = new StringBuilder();
@@ -485,7 +491,7 @@ public class ClaudeAIService {
                 break;
             }
         }
-        
+
         String result = summary.toString().trim();
         if (result.length() < 50) {
             // Si es muy corto, usar más contenido
@@ -494,21 +500,22 @@ public class ClaudeAIService {
                 result = result.substring(0, 497) + "...";
             }
         }
-        
+
         return result;
     }
-    
+
     /**
      * Detecta el tipo de contenido
      */
     private String detectTypeFromContent(String content) {
-        if (content == null) return "nota";
-        
+        if (content == null)
+            return "nota";
+
         String lower = content.toLowerCase();
         if (lower.contains("video") || lower.contains("youtube") || lower.contains("vimeo")) {
             return "video";
         }
-        if (content.startsWith("http://") || content.startsWith("https://")) {
+        if (content.startsWith("http://") || content.startsWith("https://") || content.startsWith("www.")) {
             return "link";
         }
         if (lower.contains("```") || lower.contains("function") || lower.contains("class ")) {
@@ -539,7 +546,8 @@ public class ClaudeAIService {
             this.tags = tags;
         }
 
-        public ClassificationResult(String type, String title, String summary, String detailedContent, String destination, String[] tags) {
+        public ClassificationResult(String type, String title, String summary, String detailedContent,
+                String destination, String[] tags) {
             this.type = type;
             this.title = title;
             this.summary = summary;

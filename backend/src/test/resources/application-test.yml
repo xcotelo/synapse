@@ -6,7 +6,7 @@ logging:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/synapse
+    url: jdbc:postgresql://localhost:5432/synapse_test
     driver-class-name: org.postgresql.Driver
     username: synapse
     password: 1234

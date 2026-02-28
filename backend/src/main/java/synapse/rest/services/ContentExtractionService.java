@@ -1,5 +1,7 @@
 package synapse.rest.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import org.jsoup.Jsoup;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ContentExtractionService {
+    private static final Logger logger = LoggerFactory.getLogger(ContentExtractionService.class);
 
     private static final int TIMEOUT_MS = 10000;
     private static final int MAX_CONTENT_LENGTH = 50000; // Limitar contenido extraído
@@ -42,6 +45,7 @@ public class ContentExtractionService {
                 return new ExtractedContent(urlString, "", urlString, "text");
             }
         } catch (Exception e) {
+            logger.error("Error al extraer contenido de la URL {}: {}", urlString, e.getMessage(), e);
             // Si falla la extracción, devolvemos la URL original
             return new ExtractedContent(urlString, "", "Error al extraer contenido: " + e.getMessage(), contentType);
         }
@@ -52,7 +56,7 @@ public class ContentExtractionService {
      */
     private String detectContentType(String url) {
         String lower = url.toLowerCase();
-        
+
         if (lower.contains("youtube.com") || lower.contains("youtu.be")) {
             return "video";
         }
@@ -65,7 +69,7 @@ public class ContentExtractionService {
         if (lower.startsWith("http://") || lower.startsWith("https://")) {
             return "link";
         }
-        
+
         return "text";
     }
 
@@ -78,6 +82,8 @@ public class ContentExtractionService {
                 .timeout(TIMEOUT_MS)
                 .followRedirects(true)
                 .get();
+
+        logger.info("Página web conectada: {}. Título: {}", urlString, doc.title());
 
         // Extraer título
         String title = "";
@@ -101,7 +107,7 @@ public class ContentExtractionService {
 
         // Extraer contenido principal
         StringBuilder content = new StringBuilder();
-        
+
         // Intentar encontrar el contenido principal
         Element mainContent = doc.selectFirst("main, article, [role=main], .content, .post, .entry-content");
         if (mainContent != null) {
@@ -142,10 +148,13 @@ public class ContentExtractionService {
             // Para YouTube, intentar extraer información completa de la página
             if (urlString.contains("youtube.com") || urlString.contains("youtu.be")) {
                 Document doc = Jsoup.connect(urlString)
-                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                        .userAgent(
+                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
                         .timeout(TIMEOUT_MS)
                         .followRedirects(true)
                         .get();
+
+                logger.info("Video de YouTube conectado: {}. Título: {}", urlString, doc.title());
 
                 // Extraer título (múltiples fuentes)
                 Element ogTitle = doc.selectFirst("meta[property=og:title]");
@@ -188,22 +197,22 @@ public class ContentExtractionService {
                 StringBuilder fullContent = new StringBuilder();
                 fullContent.append("VIDEO DE YOUTUBE\n");
                 fullContent.append("==================\n\n");
-                
+
                 if (!title.isEmpty()) {
                     fullContent.append("TÍTULO DEL VIDEO: ").append(title).append("\n\n");
                 }
-                
+
                 if (!channelName.isEmpty()) {
                     fullContent.append("CANAL: ").append(channelName).append("\n\n");
                 }
-                
+
                 if (!description.isEmpty()) {
                     fullContent.append("DESCRIPCIÓN DEL VIDEO:\n");
                     fullContent.append(description).append("\n\n");
                 }
-                
+
                 fullContent.append("URL: ").append(urlString).append("\n");
-                
+
                 // Intentar extraer información adicional de los scripts JSON-LD
                 Elements jsonLdScripts = doc.select("script[type=application/ld+json]");
                 for (Element script : jsonLdScripts) {
@@ -214,9 +223,9 @@ public class ContentExtractionService {
                         break;
                     }
                 }
-                
+
                 content = fullContent.toString();
-                
+
                 // Si no tenemos título, usar la URL
                 if (title.isEmpty()) {
                     title = "Video de YouTube";
@@ -240,9 +249,9 @@ public class ContentExtractionService {
                 }
 
                 content = "VIDEO\n" +
-                         "TÍTULO: " + title + "\n\n" +
-                         "DESCRIPCIÓN: " + description + "\n\n" +
-                         "URL: " + urlString;
+                        "TÍTULO: " + title + "\n\n" +
+                        "DESCRIPCIÓN: " + description + "\n\n" +
+                        "URL: " + urlString;
             }
         } catch (Exception e) {
             title = "Video";

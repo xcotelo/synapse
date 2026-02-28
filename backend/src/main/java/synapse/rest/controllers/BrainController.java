@@ -1,5 +1,8 @@
 package synapse.rest.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +23,7 @@ import synapse.rest.services.ContentExtractionService;
 @RestController
 @RequestMapping("/api/brain")
 public class BrainController {
+    private static final Logger logger = LoggerFactory.getLogger(BrainController.class);
 
     @Autowired
     private ContentExtractionService contentExtractionService;
@@ -30,45 +34,58 @@ public class BrainController {
     @PostMapping("/suggest")
     @ResponseStatus(HttpStatus.OK)
     public BrainSuggestionDto suggest(@RequestBody BrainSuggestParamsDto params) {
+        logger.info("Recibida petición de sugerencia para contenido: {}", params.getContent());
 
         String inputContent = params.getContent() == null ? "" : params.getContent().trim();
 
         if (inputContent.isEmpty()) {
-            return new BrainSuggestionDto("nota", "Nota", "", "apunte", new String[]{"general"});
+            return new BrainSuggestionDto("nota", "Nota", "", "apunte", new String[] { "general" });
         }
 
         // 1. Extraer contenido si es una URL
         String contentToAnalyze = inputContent;
         ContentExtractionService.ExtractedContent extracted = null;
-        
+
         if (isUrl(inputContent)) {
-            extracted = contentExtractionService.extractContent(inputContent);
-            // Combinar título, descripción y contenido para el análisis
-            StringBuilder fullContent = new StringBuilder();
-            if (!extracted.getTitle().isEmpty()) {
-                fullContent.append("Título: ").append(extracted.getTitle()).append("\n\n");
+            String urlToExtract = inputContent;
+            if (urlToExtract.toLowerCase().startsWith("www.")) {
+                urlToExtract = "http://" + urlToExtract;
             }
-            if (!extracted.getDescription().isEmpty()) {
-                fullContent.append("Descripción: ").append(extracted.getDescription()).append("\n\n");
-            }
-            if (!extracted.getContent().isEmpty()) {
-                fullContent.append("Contenido: ").append(extracted.getContent());
-            }
-            contentToAnalyze = fullContent.toString();
-            
-            // Si la extracción falló, usar el contenido original
-            if (contentToAnalyze.trim().isEmpty()) {
+            try {
+                extracted = contentExtractionService.extractContent(urlToExtract);
+                // Combinar título, descripción y contenido para el análisis
+                StringBuilder fullContent = new StringBuilder();
+                if (!extracted.getTitle().isEmpty()) {
+                    fullContent.append("Título: ").append(extracted.getTitle()).append("\n\n");
+                }
+                if (!extracted.getDescription().isEmpty()) {
+                    fullContent.append("Descripción: ").append(extracted.getDescription()).append("\n\n");
+                }
+                if (!extracted.getContent().isEmpty()) {
+                    fullContent.append("Contenido: ").append(extracted.getContent());
+                }
+                contentToAnalyze = fullContent.toString();
+
+                // Si la extracción falló, usar el contenido original
+                if (contentToAnalyze.trim().isEmpty()) {
+                    contentToAnalyze = inputContent;
+                }
+            } catch (Exception e) {
+                logger.error("Error al extraer contenido de la URL {}: {}", inputContent, e.getMessage());
+                // Si falla la extracción, usar el contenido original
                 contentToAnalyze = inputContent;
             }
+            logger.info("Contenido extraído de URL: {}", contentToAnalyze);
         }
 
-        // 2. Usar LLaMA 3 para clasificar
+        logger.info("Enviando contenido a la IA para clasificación...");
         ClaudeAIService.ClassificationResult classification = claudeAIService.classifyContent(contentToAnalyze);
 
-        // 3. Si extrajimos contenido de una URL, usar el título extraído si LLaMA 3 no proporcionó uno mejor
+        // 3. Si extrajimos contenido de una URL, usar el título extraído si LLaMA 3 no
+        // proporcionó uno mejor
         String finalTitle = classification.getTitle();
-        if (extracted != null && !extracted.getTitle().isEmpty() && 
-            (finalTitle == null || finalTitle.isEmpty() || finalTitle.equals("Nota"))) {
+        if (extracted != null && !extracted.getTitle().isEmpty() &&
+                (finalTitle == null || finalTitle.isEmpty() || finalTitle.equals("Nota"))) {
             finalTitle = extracted.getTitle();
         }
 
@@ -79,13 +96,12 @@ public class BrainController {
         }
 
         return new BrainSuggestionDto(
-            finalType,
-            finalTitle != null ? finalTitle : "Nota",
-            classification.getSummary(),
-            classification.getDetailedContent(),
-            classification.getDestination(),
-            classification.getTags()
-        );
+                finalType,
+                finalTitle != null ? finalTitle : "Nota",
+                classification.getSummary(),
+                classification.getDetailedContent(),
+                classification.getDestination(),
+                classification.getTags());
     }
 
     /**
@@ -96,7 +112,7 @@ public class BrainController {
             return false;
         }
         String trimmed = content.trim().toLowerCase();
-        return trimmed.startsWith("http://") || trimmed.startsWith("https://");
+        return trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("www.");
     }
 
 }

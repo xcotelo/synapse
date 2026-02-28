@@ -13,6 +13,10 @@ public class BrainSuggestionDto {
     private String destination; // apunte, idea, recurso, tarea...
     private String[] tags;     // etiquetas sugeridas
 
+    // Opcional: URL al recurso multimedia asociado (audio/vídeo) y su tipo MIME
+    private String mediaUrl;
+    private String mediaContentType;
+
     public BrainSuggestionDto() {
     }
 
@@ -31,6 +35,18 @@ public class BrainSuggestionDto {
         this.detailedContent = detailedContent;
         this.destination = destination;
         this.tags = tags;
+    }
+
+    public BrainSuggestionDto(String type, String title, String summary, String detailedContent, String destination,
+            String[] tags, String mediaUrl, String mediaContentType) {
+        this.type = type;
+        this.title = title;
+        this.summary = summary;
+        this.detailedContent = detailedContent;
+        this.destination = destination;
+        this.tags = tags;
+        this.mediaUrl = mediaUrl;
+        this.mediaContentType = mediaContentType;
     }
 
     public String getType() {
@@ -79,5 +95,21 @@ public class BrainSuggestionDto {
 
     public void setDetailedContent(String detailedContent) {
         this.detailedContent = detailedContent;
+    }
+
+    public String getMediaUrl() {
+        return mediaUrl;
+    }
+
+    public void setMediaUrl(String mediaUrl) {
+        this.mediaUrl = mediaUrl;
+    }
+
+    public String getMediaContentType() {
+        return mediaContentType;
+    }
+
+    public void setMediaContentType(String mediaContentType) {
+        this.mediaContentType = mediaContentType;
     }
 }

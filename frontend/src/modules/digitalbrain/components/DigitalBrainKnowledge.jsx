@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { exportNotesAsMarkdown, loadNotes, saveNotes, toggleNoteReadStatus } from "../digitalBrainStorage";
+import { exportNotesAsMarkdown, loadNotes, saveNotes, toggleNoteReadStatus, deleteNoteById } from "../digitalBrainStorage";
 import MarkdownRenderer from "./MarkdownRenderer";
 
 // Pantalla para navegar el conocimiento ya procesado: aquí solo
@@ -9,21 +9,42 @@ import MarkdownRenderer from "./MarkdownRenderer";
 const DigitalBrainKnowledge = () => {
   // Notas procesadas cargadas desde localStorage
   const [notes, setNotes] = useState([]);
-  // Texto de búsqueda libre
-  const [query, setQuery] = useState("");
-  // Filtro por etiqueta concreta
-  const [tagFilter, setTagFilter] = useState("");
   // Id de la nota actualmente seleccionada en la lista
   const [selectedId, setSelectedId] = useState(null);
+  // Categoría actualmente seleccionada
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Resumen por categorías: web, vídeos, música, otras
+  const categorySummary = useMemo(() => {
+    const summary = {
+      web: 0,
+      videos: 0,
+      musica: 0,
+      otras: 0,
+    };
+
+    notes.forEach((note) => {
+      const type = note.type || "";
+      const hasAudio = note.media && note.media.contentType && note.media.contentType.startsWith("audio/");
+
+      if (type === "link") {
+        summary.web += 1;
+      } else if (type === "video") {
+        summary.videos += 1;
+      } else if (hasAudio) {
+        summary.musica += 1;
+      } else {
+        summary.otras += 1;
+      }
+    });
+
+    return summary;
+  }, [notes]);
 
   // Cargamos todas las notas una vez al montar el componente
   useEffect(() => {
     const loadedNotes = loadNotes();
     setNotes(loadedNotes);
-    // Si no hay nota seleccionada y hay notas, seleccionar la primera
-    if (!selectedId && loadedNotes.length > 0) {
-      setSelectedId(loadedNotes[0].id);
-    }
   }, []);
   
   // Actualizar selectedNote cuando cambian las notas
@@ -34,45 +55,36 @@ const DigitalBrainKnowledge = () => {
         // Si la nota seleccionada ya no existe, seleccionar la primera
         setSelectedId(notes[0].id);
       }
-    } else if (notes.length > 0) {
-      // Si no hay nota seleccionada pero hay notas, seleccionar la primera
-      setSelectedId(notes[0].id);
     }
   }, [notes, selectedId]);
 
-  // Conjunto de todas las etiquetas existentes, para el desplegable
-  const allTags = useMemo(() => {
-    const set = new Set();
-    notes.forEach((n) => {
-      (n.tags || []).forEach((t) => set.add(t));
-    });
-    return Array.from(set).sort();
-  }, [notes]);
+  const categorizeNote = (note) => {
+    const type = note.type || "";
+    const isAudio =
+      note.media &&
+      note.media.contentType &&
+      note.media.contentType.startsWith("audio/");
 
-  // Aplicamos filtros de texto y etiqueta sobre la lista de notas, y ordenamos (leídas al final)
+    if (type === "link") return "web";
+    if (type === "video") return "videos";
+    if (isAudio) return "musica";
+    return "otras";
+  };
+
+  // Notas filtradas por categoría (y ordenadas: no leídas primero)
   const filteredNotes = useMemo(() => {
-    const filtered = notes.filter((note) => {
-      const matchesQuery = query
-        ? (note.title || "").toLowerCase().includes(query.toLowerCase()) ||
-          (note.content || "").toLowerCase().includes(query.toLowerCase())
-        : true;
+    if (!selectedCategory) {
+      return [];
+    }
 
-      const matchesTag = tagFilter
-        ? (note.tags || []).includes(tagFilter)
-        : true;
+    const filtered = notes.filter((note) => categorizeNote(note) === selectedCategory);
 
-      return matchesQuery && matchesTag;
-    });
-    
-    // Ordenar: no leídas primero, luego leídas (ambas ordenadas por fecha, más recientes primero)
     return filtered.sort((a, b) => {
-      // Si una está leída y la otra no, la no leída va primero
       if (a.isRead && !b.isRead) return 1;
       if (!a.isRead && b.isRead) return -1;
-      // Si ambas tienen el mismo estado de lectura, ordenar por fecha (más recientes primero)
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
-  }, [notes, query, tagFilter]);
+  }, [notes, selectedCategory]);
 
   // Nota seleccionada que mostramos en detalle a la derecha
   const selectedNote = useMemo(() => {
@@ -83,6 +95,33 @@ const DigitalBrainKnowledge = () => {
     // Si la nota seleccionada ya no está en la lista filtrada, usar la primera disponible
     return found || (filteredNotes.length > 0 ? filteredNotes[0] : null);
   }, [filteredNotes, selectedId]);
+
+  // Si cambia la categoría y la nota seleccionada ya no pertenece, seleccionar la primera de la categoría
+  useEffect(() => {
+    if (!selectedCategory) {
+      setSelectedId(null);
+      return;
+    }
+    if (filteredNotes.length === 0) {
+      setSelectedId(null);
+      return;
+    }
+    const stillExists = filteredNotes.some((n) => n.id === selectedId);
+    if (!stillExists) {
+      setSelectedId(filteredNotes[0].id);
+    }
+  }, [selectedCategory, filteredNotes, selectedId]);
+
+  const handleDeleteSelected = () => {
+    if (!selectedNote) return;
+    const updatedNotes = deleteNoteById(selectedNote.id);
+    setNotes(updatedNotes);
+    if (updatedNotes.length > 0) {
+      setSelectedId(updatedNotes[0].id);
+    } else {
+      setSelectedId(null);
+    }
+  };
 
   // Genera y descarga un único fichero Markdown con todas las notas
   const handleExport = () => {
@@ -134,29 +173,75 @@ const DigitalBrainKnowledge = () => {
         </p>
       ) : (
         <div className="row">
-          <div className="col-12 col-lg-4 mb-3">
-            <div className="mb-2">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Buscar por texto..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
+          <div className="col-12 mb-3">
+            <div className="row g-3">
+              <div className="col-6 col-md-3">
+                <button
+                  type="button"
+                  className={`card text-center shadow-sm w-100 ${selectedCategory === "web" ? "border-primary" : ""}`}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setSelectedCategory((prev) => (prev === "web" ? null : "web"))}
+                >
+                  <div className="card-body">
+                    <h6 className="card-title mb-1">WEB</h6>
+                    <div className="display-6">{categorySummary.web}</div>
+                  </div>
+                </button>
+              </div>
+              <div className="col-6 col-md-3">
+                <button
+                  type="button"
+                  className={`card text-center shadow-sm w-100 ${selectedCategory === "videos" ? "border-primary" : ""}`}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setSelectedCategory((prev) => (prev === "videos" ? null : "videos"))}
+                >
+                  <div className="card-body">
+                    <h6 className="card-title mb-1">VÍDEOS</h6>
+                    <div className="display-6">{categorySummary.videos}</div>
+                  </div>
+                </button>
+              </div>
+              <div className="col-6 col-md-3">
+                <button
+                  type="button"
+                  className={`card text-center shadow-sm w-100 ${selectedCategory === "musica" ? "border-primary" : ""}`}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setSelectedCategory((prev) => (prev === "musica" ? null : "musica"))}
+                >
+                  <div className="card-body">
+                    <h6 className="card-title mb-1">MÚSICA</h6>
+                    <div className="display-6">{categorySummary.musica}</div>
+                  </div>
+                </button>
+              </div>
+              <div className="col-6 col-md-3">
+                <button
+                  type="button"
+                  className={`card text-center shadow-sm w-100 ${selectedCategory === "otras" ? "border-primary" : ""}`}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setSelectedCategory((prev) => (prev === "otras" ? null : "otras"))}
+                >
+                  <div className="card-body">
+                    <h6 className="card-title mb-1">OTRAS</h6>
+                    <div className="display-6">{categorySummary.otras}</div>
+                  </div>
+                </button>
+              </div>
             </div>
-            <div className="mb-2">
-              <select
-                className="form-select"
-                value={tagFilter}
-                onChange={(e) => setTagFilter(e.target.value)}
-              >
-                <option value="">Todas las etiquetas</option>
-                {allTags.map((tag) => (
-                  <option key={tag} value={tag}>
-                    {tag}
-                  </option>
-                ))}
-              </select>
+          </div>
+          {selectedCategory && (
+          <div className="col-12 col-lg-4 mb-3">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <div className="fw-semibold text-uppercase">
+                {selectedCategory === "web"
+                  ? "Web"
+                  : selectedCategory === "videos"
+                  ? "Vídeos"
+                  : selectedCategory === "musica"
+                  ? "Música"
+                  : "Otras"}
+              </div>
+              <span className="badge bg-secondary">{filteredNotes.length}</span>
             </div>
             <ul className="list-group" style={{ maxHeight: "50vh", overflowY: "auto" }}>
               {filteredNotes.map((note) => (
@@ -168,31 +253,23 @@ const DigitalBrainKnowledge = () => {
                   onClick={() => setSelectedId(note.id)}
                   style={{ 
                     cursor: "pointer",
-                    opacity: note.isRead ? 0.6 : 1,
-                    backgroundColor: note.isRead ? "#f8f9fa" : "inherit",
-                    textDecoration: note.isRead ? "line-through" : "none",
+                    opacity: 1,
+                    backgroundColor: "inherit",
+                    textDecoration: "none",
                   }}
                 >
                   <div className="d-flex justify-content-between align-items-start">
                     <div className="flex-grow-1">
                       <div className="d-flex align-items-center gap-2 mb-1">
-                        <input
-                          type="checkbox"
-                          checked={note.isRead || false}
-                          onChange={(e) => handleToggleRead(note.id, e)}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{ cursor: "pointer", marginTop: "2px" }}
-                          title={note.isRead ? "Marcar como no leída" : "Marcar como leída"}
-                        />
-                        <div className={`fw-bold ${note.isRead ? "text-muted" : ""}`} style={{ textDecoration: note.isRead ? "line-through" : "none" }}>
+                        <div className="fw-bold">
                           {note.title || "Nota sin título"}
                         </div>
                       </div>
-                      <small className={`d-block ${note.isRead ? "text-muted" : ""}`} style={{ textDecoration: note.isRead ? "line-through" : "none" }}>
+                      <small className="d-block">
                         {note.destination} • {note.type}
                       </small>
                     </div>
-                    <small className="text-muted ms-2" style={{ textDecoration: note.isRead ? "line-through" : "none" }}>
+                    <small className="text-muted ms-2">
                       {new Date(note.createdAt).toLocaleDateString()}
                     </small>
                   </div>
@@ -200,7 +277,9 @@ const DigitalBrainKnowledge = () => {
               ))}
             </ul>
           </div>
+          )}
 
+          {selectedCategory && (
           <div className="col-12 col-lg-8">
             {selectedNote ? (
               <>
@@ -208,24 +287,55 @@ const DigitalBrainKnowledge = () => {
                   <h3 className={`h5 mb-0 ${selectedNote.isRead ? "text-muted" : ""}`} style={{ textDecoration: selectedNote.isRead ? "line-through" : "none" }}>
                     {selectedNote.title || "Nota sin título"}
                   </h3>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      checked={selectedNote.isRead || false}
-                      onChange={(e) => handleToggleRead(selectedNote.id, e)}
-                      id={`read-checkbox-${selectedNote.id}`}
-                      style={{ cursor: "pointer", width: "1.2rem", height: "1.2rem" }}
-                    />
-                    <label 
-                      className="form-check-label ms-2" 
-                      htmlFor={`read-checkbox-${selectedNote.id}`}
-                      style={{ cursor: "pointer", userSelect: "none" }}
-                    >
-                      {selectedNote.isRead ? "Leída" : "Marcar como leída"}
-                    </label>
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="form-check mb-0">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={selectedNote.isRead || false}
+                        onChange={(e) => handleToggleRead(selectedNote.id, e)}
+                        id={`read-checkbox-${selectedNote.id}`}
+                        style={{ cursor: "pointer", width: "1.2rem", height: "1.2rem" }}
+                      />
+                      <label
+                        className="form-check-label ms-2"
+                        htmlFor={`read-checkbox-${selectedNote.id}`}
+                        style={{ cursor: "pointer", userSelect: "none" }}
+                      >
+                        {selectedNote.isRead ? "Leída" : "Marcar como leída"}
+                      </label>
+                    </div>
+                    <div className="form-check mb-0">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id={`delete-checkbox-${selectedNote.id}`}
+                        onChange={handleDeleteSelected}
+                        style={{ cursor: "pointer", width: "1.2rem", height: "1.2rem" }}
+                      />
+                      <label
+                        className="form-check-label ms-2 text-danger"
+                        htmlFor={`delete-checkbox-${selectedNote.id}`}
+                        style={{ cursor: "pointer", userSelect: "none" }}
+                      >
+                        Borrar este conocimiento
+                      </label>
+                    </div>
                   </div>
                 </div>
+                {selectedNote.media && selectedNote.media.url && (
+                  <div className="mb-3">
+                    {selectedNote.media.contentType && selectedNote.media.contentType.startsWith("audio/") ? (
+                      <audio controls style={{ width: "100%" }} src={selectedNote.media.url}>
+                        Your browser does not support the audio element.
+                      </audio>
+                    ) : selectedNote.media.contentType && selectedNote.media.contentType.startsWith("video/") ? (
+                      <video controls style={{ width: "100%", maxHeight: "400px" }} src={selectedNote.media.url}>
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : null}
+                  </div>
+                )}
                 <div className="mb-3">
                   <div className="d-flex align-items-center gap-2 mb-2">
                     <span className={`badge bg-${selectedNote.destination === "apunte" ? "primary" : selectedNote.destination === "idea" ? "info" : selectedNote.destination === "recurso" ? "success" : "warning"}`}>
@@ -265,6 +375,7 @@ const DigitalBrainKnowledge = () => {
               <p className="text-muted mb-0">No hay ninguna nota seleccionada.</p>
             )}
           </div>
+          )}
         </div>
       )}
     </div>

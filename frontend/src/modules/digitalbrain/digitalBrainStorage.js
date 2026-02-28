@@ -87,7 +87,7 @@ export const createInboxEntry = (rawContent, source = 'manual') => {
 };
 
 // Construye una nota procesada a partir de una entrada del inbox
-export const createNoteFromEntry = (entry, { title, destination, tags, structuredContent }) => {
+export const createNoteFromEntry = (entry, { title, destination, tags, structuredContent, mediaUrl, mediaContentType }) => {
   return {
     id: `note-${Date.now().toString()}`,
     entryId: entry.id,
@@ -98,7 +98,16 @@ export const createNoteFromEntry = (entry, { title, destination, tags, structure
     type: entry.type,
     createdAt: nowIso(),
     isRead: false, // Por defecto, las notas no están leídas
+    media: mediaUrl ? { url: mediaUrl, contentType: mediaContentType || '' } : undefined,
   };
+};
+
+// Elimina una nota concreta por id
+export const deleteNoteById = (noteId) => {
+  const notes = loadNotes();
+  const updatedNotes = notes.filter((note) => note.id !== noteId);
+  saveNotes(updatedNotes);
+  return updatedNotes;
 };
 
 // Marca una nota como leída o no leída

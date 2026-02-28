@@ -18,8 +18,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   servlet:
     multipart:
-      max-file-size: 10MB     # Tamaño máximo de cada archivo
-      max-request-size: 10MB   # Tamaño máximo de la solicitud
+      max-file-size: 50MB     # Tamaño máximo de cada archivo
+      max-request-size: 50MB   # Tamaño máximo de la solicitud
 server:
   servlet:
     context-path: @project.contextPath@

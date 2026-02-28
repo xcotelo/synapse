@@ -17,6 +17,22 @@ const DigitalBrainInbox = () => {
     setInbox(loadInbox());
   }, []);
 
+  // Mantener sincronizado el inbox con localStorage al volver a la pestaña/ventana
+  useEffect(() => {
+    const refreshInbox = () => setInbox(loadInbox());
+
+    window.addEventListener("focus", refreshInbox);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        refreshInbox();
+      }
+    });
+
+    return () => {
+      window.removeEventListener("focus", refreshInbox);
+    };
+  }, []);
+
   // Procesa automáticamente una entrada del inbox
   const processEntryAutomatically = (entry) => {
     // Llamar al backend para obtener sugerencias de IA
@@ -76,6 +92,66 @@ const DigitalBrainInbox = () => {
   // Navega a la pantalla de procesado para esa entrada
   const handleProcess = (id) => {
     navigate(`/brain/process/${id}`);
+  };
+
+  // Sube un archivo (mp3/mp4) y lo procesa con IA generando directamente una nota
+  const handleFileUpload = (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // Crear la entrada en el inbox inmediatamente para que aparezca siempre en "pendientes de procesar"
+    const notes = loadNotes();
+    const inbox = loadInbox();
+
+    const inboxEntry = {
+      id: Date.now().toString(),
+      rawContent: `Archivo subido: ${file.name}`,
+      type: file.type && file.type.startsWith("video") ? "video" : "nota",
+      createdAt: new Date().toISOString(),
+      source: "upload",
+      status: "inbox",
+    };
+
+    const updatedInbox = [inboxEntry, ...inbox];
+    saveInbox(updatedInbox);
+    setInbox(updatedInbox);
+
+    appFetch(
+      "/brain/suggest/file",
+      fetchConfig("POST", formData),
+      (response) => {
+        if (!response) return;
+        const notes = loadNotes();
+        const note = createNoteFromEntry(inboxEntry, {
+          title: response.title || file.name,
+          destination: response.destination || "apunte",
+          tags: response.tags || [],
+          structuredContent:
+            response.detailedContent ||
+            `# ${response.title || file.name}\n\n## Resumen\n\n${response.summary || "Contenido generado a partir de los metadatos del archivo."}`,
+          mediaUrl: response.mediaUrl,
+          mediaContentType: response.mediaContentType || file.type,
+        });
+
+        const updatedNotes = [note, ...notes];
+        saveNotes(updatedNotes);
+
+        // Si el procesado fue correcto, eliminamos la entrada del inbox (igual que con texto/URLs)
+        const currentInbox = loadInbox();
+        const cleanedInbox = currentInbox.filter((item) => item.id !== inboxEntry.id);
+        saveInbox(cleanedInbox);
+        setInbox(cleanedInbox);
+      },
+      (error) => {
+        console.error("Error procesando archivo con IA:", error);
+      }
+    );
+
+    // Permitir volver a seleccionar el mismo archivo si es necesario
+    event.target.value = "";
   };
 
   const getTypeBadgeColor = (type) => {
@@ -144,9 +220,25 @@ const DigitalBrainInbox = () => {
                 💡 Tip: Puedes pegar URLs de páginas web o videos. El sistema extraerá el contenido automáticamente.
               </small>
             </div>
-            <button type="submit" className="btn btn-primary btn-lg px-4">
-              <span>✨</span> Añadir y procesar con IA
-            </button>
+            <div className="d-flex flex-wrap gap-3 align-items-center">
+              <button type="submit" className="btn btn-primary btn-lg px-4">
+                <span>✨</span> Añadir y procesar con IA
+              </button>
+              <div>
+                <label className="btn btn-outline-secondary btn-lg mb-0">
+                  <span>📎</span> Añadir mp3/mp4
+                  <input
+                    type="file"
+                    accept="audio/mpeg,video/mp4"
+                    onChange={handleFileUpload}
+                    style={{ display: "none" }}
+                  />
+                </label>
+                <small className="d-block text-muted mt-1">
+                  Los audios se analizarán por metadatos (artista, título, etc.) y los vídeos por el contexto del nombre del archivo.
+                </small>
+              </div>
+            </div>
           </form>
         </div>
       </div>

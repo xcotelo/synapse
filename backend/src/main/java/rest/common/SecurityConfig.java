@@ -84,6 +84,8 @@ public class SecurityConfig {
                 .requestMatchers(antMatcher("/api/league/*/userInvitationsAccept")).hasRole(USER)
                 .requestMatchers(antMatcher("/api/league/*/updateMainLineUp")).hasRole(USER)
                 .requestMatchers(antMatcher("/ws/**")).permitAll()
+                // Cerebro digital: de momento permitimos el endpoint de sugerencias
+                .requestMatchers(antMatcher("/api/brain/suggest")).permitAll()
                 .requestMatchers(antMatcher("/actuator/**")).permitAll()
                 .anyRequest().authenticated()
             )

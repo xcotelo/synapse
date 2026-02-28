@@ -78,7 +78,7 @@ Se conecta con otras notas
 * Backend: (ej. FastAPI / Node.js)
 * Base de datos: SQL (MySQL / SQLite)
 * Formato de notas: Markdown
-* (Opcional) Integración de IA para:
+* Integración de IA para:
 
   * Clasificación automática
   * Resúmenes

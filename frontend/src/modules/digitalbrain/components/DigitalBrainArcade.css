@@ -42,13 +42,17 @@
   color: #64748b;
 }
 
-/* ——— Cabinet exterior (más realista: planos, biseles, profundidad, vibra retro) ——— */
+/* ——— Cabinet exterior: dos planos (pantalla vertical + botones a 90°) ——— */
 .arcade-cabinet {
   max-width: 520px;
   width: 100%;
-  background: linear-gradient(180deg, #352540 0%, #2a1e35 15%, #221a2a 40%, #1a1420 70%, #120e18 100%);
-  border-radius: 8px 8px 6px 6px;
   padding: 0;
+  position: relative;
+  /* Recuadro exterior: transición visual entre plano de pantalla (vertical) y plano de botones (90°) */
+  /* Fondo en dos tramos: tramo vertical (pantalla) y tramo “horizontal” (controles) con otro tono */
+  background:
+    linear-gradient(180deg, #352540 0%, #2a1e35 15%, #221a2a 45%, #1e1828 55%, #1a1420 70%, #120e18 100%);
+  border-radius: 8px 8px 6px 6px;
   box-shadow:
     0 4px 0 #0d0a12,
     0 8px 0 #08060c,
@@ -103,34 +107,106 @@
   margin-top: 4px;
 }
 
-/* Marco de pantalla (biseles tipo CRT, marco grueso realista) */
+/* Marco de pantalla: envuelve la pantalla CRT (altura la define .arcade-cabinet__screen) */
 .arcade-cabinet__screen-frame {
   margin: 0 12px;
-  padding: 14px;
-  background: linear-gradient(180deg, #252028 0%, #1a181e 30%, #0f0e12 100%);
-  border-radius: 4px;
-  border: 5px solid #0a080c;
+  padding: 18px 16px 20px;
+  background: linear-gradient(180deg, #2a272e 0%, #1f1d24 25%, #16151a 60%, #0e0d12 100%);
+  border-radius: 8px 8px 0 0;
+  border: 6px solid #0a080c;
+  border-bottom-width: 4px;
+  border-bottom-color: #0d0b10;
   box-shadow:
-    inset 0 0 40px rgba(0, 0, 0, 0.8),
-    inset 0 4px 0 rgba(255, 255, 255, 0.02),
-    0 2px 0 #151318,
-    0 4px 12px rgba(0, 0, 0, 0.5);
+    inset 0 0 50px rgba(0, 0, 0, 0.85),
+    inset 0 6px 12px rgba(0, 0, 0, 0.5),
+    inset 0 4px 0 rgba(255, 255, 255, 0.03),
+    0 3px 0 #121118,
+    0 6px 16px rgba(0, 0, 0, 0.6);
+  position: relative;
 }
 
-/* Pantalla (degradado púrpura-azul tipo espacio/noche, cristal CRT) */
+/* Arista de 90°: unión entre pantalla (vertical) y panel de botones (horizontal); bisel que simula el canto */
+.arcade-cabinet__edge {
+  height: 12px;
+  margin: 0 6px;
+  background: linear-gradient(
+    180deg,
+    #0a080c 0%,
+    #121018 20%,
+    #1a1822 45%,
+    #16141c 55%,
+    #0e0c12 100%
+  );
+  box-shadow:
+    inset 0 3px 4px rgba(0, 0, 0, 0.6),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.04),
+    0 3px 6px rgba(0, 0, 0, 0.5);
+  border-top: 1px solid #0d0b10;
+  border-bottom: 1px solid #08060a;
+  border-left: 2px solid #0a080c;
+  border-right: 2px solid #0a080c;
+  flex-shrink: 0;
+}
+
+/* Pantalla CRT: altura que se ajusta al tamaño de la ventana + scroll cuando hay muchos elementos */
 .arcade-cabinet__screen {
-  min-height: 280px;
-  max-height: 400px;
+  position: relative;
+  min-height: 180px;
+  height: clamp(180px, calc(100vh - 440px), 320px);
+  max-height: 320px;
   overflow-y: auto;
+  overflow-x: hidden;
   background: linear-gradient(180deg, #4a3f6a 0%, #3d3560 25%, #2e2850 60%, #1e1a38 100%);
-  border-radius: 2px;
+  border-radius: 6px;
   padding: 1rem;
   color: #e2e8f0;
   font-family: "Courier New", monospace;
+  /* Sombra interior que simula el abombado: bordes más oscuros como en CRT */
   box-shadow:
-    inset 0 0 60px rgba(0, 0, 0, 0.35),
-    inset 0 2px 0 rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.4);
+    inset 0 0 80px rgba(0, 0, 0, 0.25),
+    inset 25px 0 50px -15px rgba(0, 0, 0, 0.35),
+    inset -25px 0 50px -15px rgba(0, 0, 0, 0.35),
+    inset 0 25px 50px -15px rgba(0, 0, 0, 0.3),
+    inset 0 -25px 50px -15px rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+/* Overlay de cristal curvo: oscurece bordes, centro más luminoso (reflejo típico CRT) */
+.arcade-cabinet__screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: radial-gradient(
+    ellipse 85% 80% at 50% 45%,
+    transparent 30%,
+    rgba(0, 0, 0, 0.08) 60%,
+    rgba(0, 0, 0, 0.22) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Reflejo sutil en el centro del cristal (brillo del tubo) */
+.arcade-cabinet__screen::after {
+  content: "";
+  position: absolute;
+  inset: 15% 20% 40% 20%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 100% 100% at 50% 30%,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 55%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Contenido de la pantalla por encima del overlay de cristal */
+.arcade-cabinet__screen > * {
+  position: relative;
+  z-index: 2;
 }
 
 /* Contenido de pantalla (legible sobre fondo púrpura-azul) */
@@ -216,19 +292,94 @@
   border-radius: 4px;
 }
 
-/* ——— Panel de controles (superficie realista, bisel, más separación joystick-botones) ——— */
-.arcade-cabinet__controls {
+/* Contenedor del panel de controles + caras laterales (perspectiva cónica) */
+.arcade-cabinet__controls-wrap {
+  position: relative;
   margin: 0 6px 6px;
-  padding: 1.5rem 1.5rem 1.75rem;
-  background: linear-gradient(180deg, #2e2e36 0%, #24242a 25%, #1c1c20 60%, #16161a 100%);
-  border-radius: 0 0 6px 6px;
+}
+
+/* Cara lateral izquierda: triángulo (diagonal hacia afuera, más ancho abajo) */
+.arcade-cabinet__controls-side--left {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6%;
+  max-width: 22px;
+  background: linear-gradient(90deg, #121218 0%, #1a1a22 60%, transparent 100%);
+  clip-path: polygon(0 0, 100% 0, 0 100%, 0 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Cara lateral derecha */
+.arcade-cabinet__controls-side--right {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6%;
+  max-width: 22px;
+  background: linear-gradient(270deg, #121218 0%, #1a1a22 60%, transparent 100%);
+  clip-path: polygon(100% 0, 0 0, 100% 100%, 100% 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ——— Panel de controles: perspectiva cónica (laterales en diagonal desde la pantalla hacia abajo) ——— */
+.arcade-cabinet__controls {
+  position: relative;
+  z-index: 1;
+  /* Más padding arriba para que la flecha superior no se corte */
+  padding: 2.75rem 1.5rem 2rem;
+  /* Gradiente que acerca: más claro arriba, más oscuro abajo (se aleja) */
+  background: linear-gradient(180deg, #3a3a44 0%, #2e2e36 25%, #222228 55%, #141418 100%);
+  border-radius: 0 0 10px 10px;
   border: 3px solid #0a0a0c;
-  border-top: 4px solid #121218;
+  border-top: 5px solid #222228;
   box-shadow:
-    inset 0 0 25px rgba(0, 0, 0, 0.5),
-    inset 0 3px 0 rgba(255, 255, 255, 0.04),
-    0 2px 0 #0c0c0e;
-  perspective: 500px;
+    inset 0 0 40px rgba(0, 0, 0, 0.5),
+    inset 0 5px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -10px 25px rgba(0, 0, 0, 0.45),
+    0 5px 0 #0a0a0c,
+    0 10px 30px rgba(0, 0, 0, 0.55),
+    0 4px 0 #12121a;
+  perspective: 280px;
+  transform-style: preserve-3d;
+  position: relative;
+  overflow: visible;
+  /* Perspectiva cónica hacia afuera: más estrecho arriba, más ancho abajo; laterales en diagonal */
+  clip-path: polygon(4% 0, 96% 0, 100% 100%, 0 100%);
+}
+
+/* Borde frontal (arista superior que “mira” al usuario) */
+.arcade-cabinet__controls::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 0;
+  height: 6px;
+  background: linear-gradient(180deg, #4a4a56 0%, #363642 60%, transparent 100%);
+  border-radius: 4px 4px 0 0;
+  pointer-events: none;
+  z-index: 1;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Borde inferior “grosor” del panel (espesor físico; ancho completo porque el panel se abre hacia abajo) */
+.arcade-cabinet__controls::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 10px;
+  background: linear-gradient(180deg, #0c0c10 0%, #060608 100%);
+  border-radius: 0 0 6px 6px;
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .arcade-cabinet__controls-inner {
@@ -236,122 +387,222 @@
   align-items: center;
   justify-content: center;
   gap: 6rem;
-  transform: rotateX(20deg);
+  /* Inclinación suave para que la flecha de arriba no se corte y se vea el relieve */
+  transform: rotateX(24deg) translateZ(16px);
   transform-origin: center center;
+  transform-style: preserve-3d;
+  min-height: 100px;
 }
 
-/* Flechas arriba / abajo (sustituyen al joystick) */
+/* Flechas: triángulos amarillos con relieve retro (margen arriba para que ▲ no se corte) */
 .arcade-arrows {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
 }
 
 .arcade-arrow {
-  width: 48px;
-  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 52px;
+  min-height: 56px;
   padding: 0;
   border: none;
-  border-radius: 8px;
+  background: transparent;
   cursor: pointer;
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
-  border: 2px solid #1e40af;
-  box-shadow:
-    0 3px 0 #0c0c0f,
-    0 4px 10px rgba(0, 0, 0, 0.4),
-    inset 0 2px 0 rgba(255, 255, 255, 0.25);
-  transition: transform 0.06s ease, box-shadow 0.06s ease;
+  transition: transform 0.08s ease, filter 0.1s ease;
 }
 
-.arcade-arrow:hover {
-  filter: brightness(1.1);
+.arcade-arrow:active,
+.arcade-arrow.arcade-arrow--pressed {
+  transform: translateY(4px);
 }
 
-.arcade-arrow:active {
-  transform: translateY(2px);
-  box-shadow:
-    0 1px 0 #0c0c0f,
-    inset 0 2px 4px rgba(0, 0, 0, 0.2);
+/* Triángulo amarillo con relieve (borde oscuro + sombra + brillo) */
+.arcade-arrow__triangle {
+  display: block;
+  width: 0;
+  height: 0;
+  transition: filter 0.12s ease;
 }
 
+/* Triángulo hacia arriba: más relieve (borde grueso + sombra profunda + brillo) */
+.arcade-arrow--up .arcade-arrow__triangle {
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-bottom: 34px solid #facc15;
+  filter:
+    drop-shadow(0 4px 0 #8b6914)
+    drop-shadow(0 5px 0 #b45309)
+    drop-shadow(0 6px 12px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25))
+    drop-shadow(0 2px 0 rgba(255, 236, 180, 0.95));
+}
+
+.arcade-arrow--up:hover .arcade-arrow__triangle {
+  filter:
+    drop-shadow(0 4px 0 #8b6914)
+    drop-shadow(0 5px 0 #b45309)
+    drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 2px 0 rgba(255, 245, 220, 1))
+    brightness(1.1);
+}
+
+.arcade-arrow--up:active .arcade-arrow__triangle,
+.arcade-arrow--up.arcade-arrow--pressed .arcade-arrow__triangle {
+  filter:
+    drop-shadow(0 1px 0 #b45309)
+    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+/* Triángulo hacia abajo: mismo relieve, borde superior oscuro */
+.arcade-arrow--down .arcade-arrow__triangle {
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-top: 34px solid #facc15;
+  filter:
+    drop-shadow(0 -4px 0 #8b6914)
+    drop-shadow(0 -5px 0 #b45309)
+    drop-shadow(0 6px 12px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25))
+    drop-shadow(0 -2px 0 rgba(255, 236, 180, 0.95));
+}
+
+.arcade-arrow--down:hover .arcade-arrow__triangle {
+  filter:
+    drop-shadow(0 -4px 0 #8b6914)
+    drop-shadow(0 -5px 0 #b45309)
+    drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 -2px 0 rgba(255, 245, 220, 1))
+    brightness(1.1);
+}
+
+.arcade-arrow--down:active .arcade-arrow__triangle,
+.arcade-arrow--down.arcade-arrow--pressed .arcade-arrow__triangle {
+  filter:
+    drop-shadow(0 -1px 0 #b45309)
+    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+/* Símbolo solo para lectores de pantalla */
 .arcade-arrow__symbol {
-  font-size: 1.25rem;
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  line-height: 1;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-/* Botones A y B (colores vivos tipo recreativa: azul y rojo, relieve con brillo arriba) */
+/* Botones A y B: disposición en diagonal tipo máquina arcade real */
 .arcade-buttons {
   display: flex;
-  gap: 1.25rem;
-  flex-wrap: wrap;
+  flex-direction: row;
+  align-items: center;
   justify-content: center;
+  gap: 1rem;
+  transform: rotate(-25deg);
+  transform-origin: center center;
+}
+
+/* B abajo-izquierda, A arriba-derecha (orden en DOM: A, B → visual: B más abajo si usamos align-items: flex-end y margin) */
+.arcade-buttons .arcade-btn--a {
+  margin-bottom: 10px;
+  margin-left: 4px;
+}
+
+.arcade-buttons .arcade-btn--b {
+  margin-top: 10px;
+  margin-right: 4px;
 }
 
 .arcade-btn {
   position: relative;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: none;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   font-family: "Courier New", monospace;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.1s ease;
+  transition: transform 0.07s ease, box-shadow 0.07s ease, filter 0.12s ease;
+  /* Relieve marcado: base gruesa + sombra exterior + brillo superior */
   box-shadow:
-    0 4px 0 #0c0c0f,
-    0 5px 10px rgba(0, 0, 0, 0.4),
-    inset 0 2px 0 rgba(255, 255, 255, 0.4);
+    0 6px 0 #0a0a0c,
+    0 7px 0 rgba(0, 0, 0, 0.4),
+    0 8px 16px rgba(0, 0, 0, 0.5),
+    0 10px 24px rgba(0, 0, 0, 0.25),
+    inset 0 3px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .arcade-btn::before {
   content: "";
   position: absolute;
-  inset: 2px;
+  inset: 3px;
   border-radius: 50%;
   pointer-events: none;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.2),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.1);
 }
 
 .arcade-btn:active,
 .arcade-btn--pressed {
-  transform: translateY(3px);
+  transform: translateY(5px);
   box-shadow:
-    0 1px 0 #0c0c0f,
-    0 2px 6px rgba(0, 0, 0, 0.4),
-    inset 0 2px 4px rgba(0, 0, 0, 0.15);
+    0 1px 0 #0a0a0c,
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 .arcade-btn:active::before,
 .arcade-btn--pressed::before {
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    inset 0 1px 4px rgba(0, 0, 0, 0.35),
+    inset 0 0 8px rgba(0, 0, 0, 0.2);
 }
 
 /* A = azul vivo (como en el panel de la ref) */
 .arcade-btn--a {
-  background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 40%, #2563eb 100%);
+  background: linear-gradient(180deg, #7ab4ff 0%, #60a5fa 25%, #3b82f6 55%, #2563eb 100%);
   color: #fff;
   border: 2px solid #1e40af;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
 /* B = rojo vivo */
 .arcade-btn--b {
-  background: linear-gradient(180deg, #f87171 0%, #ef4444 40%, #dc2626 100%);
+  background: linear-gradient(180deg, #fca5a5 0%, #f87171 25%, #ef4444 55%, #dc2626 100%);
   color: #fff;
   border: 2px solid #991b1b;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
 .arcade-btn:hover:not(.arcade-btn--pressed) {
-  filter: brightness(1.15);
+  filter: brightness(1.12);
+  box-shadow:
+    0 6px 0 #0a0a0c,
+    0 7px 0 rgba(0, 0, 0, 0.4),
+    0 9px 20px rgba(0, 0, 0, 0.5),
+    0 12px 28px rgba(0, 0, 0, 0.3),
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Texto de los botones recto (contrarresta la rotación del contenedor diagonal) */
+.arcade-btn__label {
+  display: inline-block;
+  transform: rotate(25deg);
 }

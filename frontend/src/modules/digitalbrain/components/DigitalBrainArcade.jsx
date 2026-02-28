@@ -32,14 +32,23 @@ const DigitalBrainArcade = () => {
   const [selectedNote, setSelectedNote] = useState(null);
   const [buttonAPressed, setButtonAPressed] = useState(false);
   const [buttonBPressed, setButtonBPressed] = useState(false);
+  const [arrowUpPressed, setArrowUpPressed] = useState(false);
+  const [arrowDownPressed, setArrowDownPressed] = useState(false);
   const keyRepeatRef = useRef(null);
   const detailContentRef = useRef(null);
+  const selectedItemRef = useRef(null);
 
   const SCROLL_STEP = 56;
 
   useEffect(() => {
     setNotes(loadNotes());
   }, []);
+
+  /* Mantener el elemento seleccionado visible: hacer scroll en la pantalla cuando cambia la selección */
+  useEffect(() => {
+    if (viewMode !== "menu" && viewMode !== "list") return;
+    selectedItemRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [selectedIndex, viewMode]);
 
   const filteredNotes = useMemo(() => {
     if (!category) return [];
@@ -93,6 +102,7 @@ const DigitalBrainArcade = () => {
       const key = e.key?.toLowerCase();
       if (key === "w") {
         e.preventDefault();
+        setArrowUpPressed(true);
         if (viewMode === "detail") {
           scrollDetailContent("up");
           if (keyRepeatRef.current) clearTimeout(keyRepeatRef.current);
@@ -116,6 +126,7 @@ const DigitalBrainArcade = () => {
         }
       } else if (key === "s") {
         e.preventDefault();
+        setArrowDownPressed(true);
         if (viewMode === "detail") {
           scrollDetailContent("down");
           if (keyRepeatRef.current) clearTimeout(keyRepeatRef.current);
@@ -150,7 +161,14 @@ const DigitalBrainArcade = () => {
 
     const onKeyUp = (e) => {
       const key = e.key?.toLowerCase();
-      if (key === "w" || key === "s") {
+      if (key === "w") {
+        setArrowUpPressed(false);
+        if (keyRepeatRef.current) {
+          clearTimeout(keyRepeatRef.current);
+          keyRepeatRef.current = null;
+        }
+      } else if (key === "s") {
+        setArrowDownPressed(false);
         if (keyRepeatRef.current) {
           clearTimeout(keyRepeatRef.current);
           keyRepeatRef.current = null;
@@ -200,6 +218,7 @@ const DigitalBrainArcade = () => {
                   {MENU_OPTIONS.map((opt, i) => (
                     <li
                       key={opt.id}
+                      ref={i === selectedIndex ? selectedItemRef : null}
                       className={`arcade-screen__item ${i === selectedIndex ? "arcade-screen__item--selected" : ""}`}
                     >
                       {opt.label}
@@ -222,6 +241,7 @@ const DigitalBrainArcade = () => {
                     {filteredNotes.map((note, i) => (
                       <li
                         key={note.id}
+                        ref={i === selectedIndex ? selectedItemRef : null}
                         className={`arcade-screen__item ${i === selectedIndex ? "arcade-screen__item--selected" : ""}`}
                       >
                         {(note.title || "Sin título").slice(0, 40)}
@@ -250,23 +270,31 @@ const DigitalBrainArcade = () => {
           </div>
         </div>
 
+        {/* Arista de 90° entre pantalla (vertical) y panel de botones (horizontal) */}
+        <div className="arcade-cabinet__edge" aria-hidden />
+
+        <div className="arcade-cabinet__controls-wrap">
+          <div className="arcade-cabinet__controls-side arcade-cabinet__controls-side--left" aria-hidden />
+          <div className="arcade-cabinet__controls-side arcade-cabinet__controls-side--right" aria-hidden />
         <div className="arcade-cabinet__controls">
           <div className="arcade-cabinet__controls-inner">
           <div className="arcade-arrows" role="group" aria-label="Flechas arriba y abajo">
             <button
               type="button"
-              className="arcade-arrow arcade-arrow--up"
+              className={`arcade-arrow arcade-arrow--up ${arrowUpPressed ? "arcade-arrow--pressed" : ""}`}
               onClick={() => handleJoystickMouseDown("up")}
               aria-label="Arriba"
             >
+              <span className="arcade-arrow__triangle" aria-hidden />
               <span className="arcade-arrow__symbol" aria-hidden>▲</span>
             </button>
             <button
               type="button"
-              className="arcade-arrow arcade-arrow--down"
+              className={`arcade-arrow arcade-arrow--down ${arrowDownPressed ? "arcade-arrow--pressed" : ""}`}
               onClick={() => handleJoystickMouseDown("down")}
               aria-label="Abajo"
             >
+              <span className="arcade-arrow__triangle" aria-hidden />
               <span className="arcade-arrow__symbol" aria-hidden>▼</span>
             </button>
           </div>
@@ -282,7 +310,7 @@ const DigitalBrainArcade = () => {
               }}
               aria-label="Botón A - Aceptar"
             >
-              A
+              <span className="arcade-btn__label">A</span>
             </button>
             <button
               type="button"
@@ -294,10 +322,11 @@ const DigitalBrainArcade = () => {
               }}
               aria-label="Botón B - Atrás"
             >
-              B
+              <span className="arcade-btn__label">B</span>
             </button>
           </div>
           </div>
+        </div>
         </div>
       </div>
 

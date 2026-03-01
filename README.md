@@ -246,22 +246,6 @@ processing_logs              info_just_process_links
 
 ---
 
-## 🧪 Testing
-
-```bash
-# Tests backend (JUnit 5 + H2 in-memory)
-mvn test
-
-# Tests frontend (React Testing Library)
-cd frontend && yarn test
-
-# Cobertura (JaCoCo)
-mvn verify
-# Informe en target/site/jacoco/index.html
-```
-
----
-
 ## 📁 Estructura del Proyecto
 
 ```

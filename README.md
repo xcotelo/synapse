@@ -306,7 +306,3 @@ synapse/
 | Diego Viqueira Sebe | d.vsebe@udc.es |
 
 ---
-
-## 📄 Licencia
-
-Este proyecto está licenciado bajo la [GNU General Public License v3.0](LICENSE).

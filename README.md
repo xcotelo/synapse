@@ -1,6 +1,6 @@
 <div align="center">
 <a href="https://git.io/typing-svg">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&duration=3000&pause=200&color=00FFA3&vCenter=true&random=false&width=600&lines=Synapse+-+Motor+de+Crecimiento+Personal;Digital+Brain+%7C+Segundo+Cerebro" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&duration=3000&pause=200&color=00FFA3&vCenter=true&random=false&width=600&lines=Synapse+-+Motor+de+Crecimiento+Personal" alt="Typing SVG" />
 </a>
 
 
@@ -13,6 +13,7 @@
 Aplicación web full-stack de Gestión de Conocimiento Personal (PKM) que optimiza la captura, organización y aprendizaje activo de información mediante procesamiento asistido por inteligencia artificial.
 
 </div>
+
 ---
 
 ## Índice

@@ -4,6 +4,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   buildTrendsReport,
   deleteNoteById,
+  downloadNoteAsFile,
+  downloadNoteDocument,
   exportNotesAsMarkdown,
   loadInbox,
   loadNotes,
@@ -351,6 +353,18 @@ const DigitalBrainKnowledge = () => {
   useEffect(() => {
     setSelectedTag(null);
   }, [selectedCategory]);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key?.toLowerCase() !== "d" || !selectedNote) return;
+      const target = e.target;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      e.preventDefault();
+      downloadNoteAsFile(selectedNote);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedNote]);
 
   const handleDeleteSelected = () => {
     const noteToDelete = selectedNote ?? notes.find((n) => n.id === selectedId);
@@ -894,6 +908,21 @@ const DigitalBrainKnowledge = () => {
                             </label>
                           </div>
 
+                          {selectedNote.type !== "link" &&
+                            selectedNote.media?.url &&
+                            !(selectedNote.type === "audio" || (selectedNote.media?.contentType && selectedNote.media.contentType.startsWith("audio/"))) &&
+                            !(selectedNote.type === "video" || (selectedNote.media?.contentType && selectedNote.media.contentType.startsWith("video/"))) &&
+                            !extractYouTubeId(selectedNote.content) &&
+                            !extractYouTubeId(selectedNote.title) && (
+                              <button
+                                type="button"
+                                className="btn btn-outline-primary btn-sm"
+                                onClick={() => downloadNoteDocument(selectedNote)}
+                              >
+                                Descargar documento
+                              </button>
+                            )}
+
                           <button
                             type="button"
                             className="btn btn-outline-danger btn-sm"
@@ -901,6 +930,7 @@ const DigitalBrainKnowledge = () => {
                           >
                             Borrar este conocimiento
                           </button>
+                          <span className="small text-muted ms-1 align-self-center">[D] Markdown</span>
                         </div>
                       </div>
                     </div>

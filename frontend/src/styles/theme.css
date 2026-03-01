@@ -201,6 +201,12 @@ body {
   background: #030406;
 }
 
+/* En arcade no hay header: la página usa todo el espacio desde arriba */
+.synapse-main:has(.arcade-page) {
+  padding-top: 0;
+  padding-bottom: 1rem;
+}
+
 .synapse-app:has(.slot-page) .slot-page,
 .synapse-app:has(.arcade-page) .arcade-page {
   overscroll-behavior: none;

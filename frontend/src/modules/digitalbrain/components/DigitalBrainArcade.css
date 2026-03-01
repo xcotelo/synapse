@@ -1,10 +1,11 @@
-/* ——— Página Arcade: máquina recreativa oscura y retro ——— */
+/* ——— Página Arcade: máquina recreativa oscura y retro (aprovecha todo el espacio sin header) ——— */
 .arcade-page {
-  min-height: calc(100vh - 96px);
+  min-height: 100vh;
   width: 100%;
+  box-sizing: border-box;
   background: linear-gradient(180deg, #0a0b0f 0%, #060709 50%, #030406 100%);
   color: #e2e8f0;
-  padding: 1rem 1rem 2rem;
+  padding: 0.5rem 1rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -40,6 +41,164 @@
   margin-top: 1rem;
   font-size: 0.75rem;
   color: #64748b;
+}
+
+/* Contenedor principal: tres columnas para que la máquina esté siempre centrada */
+.arcade-page__main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  flex-wrap: nowrap;
+}
+
+/* Columna izquierda: mismo peso que la derecha; el radar aparece aquí a la izquierda de la máquina */
+.arcade-page__main-left {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 1rem;
+}
+
+/* Máquina siempre en el centro (entre left y right) */
+.arcade-page__main .arcade-cabinet {
+  flex: 0 0 auto;
+}
+
+/* Columna derecha: mismo peso que la izquierda para centrar la máquina */
+.arcade-page__main-right {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* ——— Panel radar: entrada y salida con la misma animación (salida = entrada a la inversa) ——— */
+.arcade-radar-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  opacity: 0;
+  transform: translateX(-28px);
+  transition:
+    opacity 0.45s ease-out,
+    transform 0.45s ease-out;
+}
+
+/* Entrada: de transparente y desplazado a la izquierda → visible y en su sitio */
+.arcade-radar-panel--visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Salida: misma animación que la entrada pero a la inversa (se desvanece y se desliza a la izquierda) */
+.arcade-radar-panel--leaving {
+  opacity: 0;
+  transform: translateX(-28px);
+  pointer-events: none;
+  transition:
+    opacity 0.45s ease-in,
+    transform 0.45s ease-in;
+}
+
+.arcade-radar-panel__title {
+  font-family: "Courier New", monospace;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  color: #fbbf24;
+  text-align: center;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+}
+
+.arcade-radar-panel__chart {
+  position: relative;
+  width: 340px;
+  height: 340px;
+  padding: 16px;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #0c0e14 0%, #08090d 100%);
+  border: 3px solid #1e293b;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(34, 197, 94, 0.15),
+    0 0 20px rgba(34, 197, 94, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+/* Efecto CRT / scanlines sutil */
+.arcade-radar-panel__chart::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.12) 2px,
+    rgba(0, 0, 0, 0.12) 4px
+  );
+  pointer-events: none;
+  border-radius: 4px;
+}
+
+.arcade-radar-panel__svg {
+  width: 300px;
+  height: 300px;
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.25));
+}
+
+.arcade-radar-panel__ring {
+  stroke: #22c55e;
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.arcade-radar-panel__ring:nth-child(4) {
+  opacity: 0.85;
+}
+
+.arcade-radar-panel__axis {
+  stroke: #22c55e;
+  stroke-width: 1;
+  opacity: 0.6;
+}
+
+.arcade-radar-panel__polygon--previous {
+  fill: rgba(251, 191, 36, 0.08);
+  stroke: #f59e0b;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.arcade-radar-panel__polygon--recent {
+  fill: rgba(34, 197, 94, 0.12);
+  stroke: #22c55e;
+  stroke-width: 2;
+}
+
+.arcade-radar-panel__label {
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  fill: #94a3b8;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+}
+
+.arcade-radar-panel__empty {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-align: center;
+  margin: 0.5rem 0;
 }
 
 /* ——— Cabinet exterior: dos planos (pantalla vertical + botones a 90°) ——— */
@@ -123,6 +282,251 @@
     0 3px 0 #121118,
     0 6px 16px rgba(0, 0, 0, 0.6);
   position: relative;
+}
+
+/* ——— Acciones arriba a la derecha: notificaciones + cerrar sesión ——— */
+.arcade-screen-frame__actions {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.arcade-logout-wrap,
+.arcade-notif-wrap {
+  position: static;
+}
+
+.arcade-logout-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: linear-gradient(180deg, #1a1a22 0%, #0e0e14 100%);
+  border: 2px solid #3d2828;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 0 #0a080c,
+    0 0 0 1px rgba(0, 0, 0, 0.4);
+  transition: filter 0.1s, box-shadow 0.1s;
+}
+
+.arcade-logout-trigger:hover {
+  filter: brightness(1.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 12px rgba(239, 68, 68, 0.35),
+    0 2px 0 #0a080c;
+}
+
+.arcade-logout-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
+}
+
+.arcade-logout-trigger:hover .arcade-logout-icon {
+  color: #f87171;
+  filter: drop-shadow(0 0 6px rgba(248, 113, 113, 0.7));
+}
+
+/* ——— Notificaciones (primer botón a la derecha) ——— */
+
+.arcade-notif-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: linear-gradient(180deg, #1a1a22 0%, #0e0e14 100%);
+  border: 2px solid #2a2840;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 0 #0a080c,
+    0 0 0 1px rgba(0, 0, 0, 0.4);
+  transition: filter 0.1s, box-shadow 0.1s;
+}
+
+.arcade-notif-trigger:hover {
+  filter: brightness(1.15);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 12px rgba(251, 191, 36, 0.25),
+    0 2px 0 #0a080c;
+}
+
+.arcade-notif-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #22c55e;
+  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.6));
+}
+
+.arcade-notif-trigger:hover .arcade-notif-icon {
+  color: #4ade80;
+  filter: drop-shadow(0 0 6px rgba(74, 222, 128, 0.8));
+}
+
+.arcade-notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  font-size: 9px;
+  font-weight: 800;
+  font-family: "Courier New", monospace;
+  line-height: 14px;
+  text-align: center;
+  color: #0a0a0e;
+  background: #fbbf24;
+  border: 1px solid #0a080c;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+}
+
+.arcade-notif-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  max-width: 280px;
+  max-height: 240px;
+  background: linear-gradient(180deg, #1a1822 0%, #121018 50%, #0e0c14 100%);
+  border: 3px solid #0a080c;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.6),
+    0 4px 0 #08060a,
+    0 8px 24px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(251, 191, 36, 0.1);
+  font-family: "Courier New", monospace;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.arcade-notif-dropdown__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border-bottom: 2px solid #1e1a28;
+}
+
+.arcade-notif-dropdown__title {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+.arcade-notif-dropdown__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.arcade-notif-dropdown__btn {
+  padding: 4px 8px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-family: "Courier New", monospace;
+  color: #e2e8f0;
+  background: linear-gradient(180deg, #3d3548 0%, #2a2435 100%);
+  border: 1px solid #1e1a28;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #0a080c;
+}
+
+.arcade-notif-dropdown__btn:hover {
+  filter: brightness(1.1);
+}
+
+.arcade-notif-dropdown__btn--clear {
+  color: #94a3b8;
+}
+
+.arcade-notif-dropdown__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.arcade-notif-dropdown__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  font-size: 0.7rem;
+  text-align: left;
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  border-left: 3px solid #22c55e;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.arcade-notif-dropdown__item:hover {
+  background: rgba(251, 191, 36, 0.15);
+  border-left-color: #fbbf24;
+}
+
+.arcade-notif-dropdown__item--read {
+  opacity: 0.75;
+  border-left-color: #64748b;
+}
+
+.arcade-notif-dropdown__item-title {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.arcade-notif-dropdown__item-time {
+  font-size: 0.6rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.arcade-notif-dropdown__empty {
+  padding: 12px;
+  font-size: 0.7rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.arcade-notif-dropdown__hint {
+  padding: 6px 10px;
+  font-size: 0.55rem;
+  color: #475569;
+  border-top: 1px solid #1e1a28;
 }
 
 /* Arista de 90°: unión entre pantalla (vertical) y panel de botones (horizontal); bisel que simula el canto */
@@ -247,6 +651,28 @@
   font-size: 0.85rem;
   color: #94a3b8;
   margin: 1rem 0;
+}
+
+/* Pantalla de notificaciones: ítem con título y fecha */
+.arcade-screen__item--notif {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.arcade-screen__item-notif-title {
+  font-size: 0.8rem;
+}
+
+.arcade-screen__item-notif-time {
+  font-size: 0.6rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.arcade-screen__item--read .arcade-screen__item-notif-title {
+  opacity: 0.75;
 }
 
 .arcade-screen__hint {
@@ -605,4 +1031,154 @@
 .arcade-btn__label {
   display: inline-block;
   transform: rotate(25deg);
+}
+
+/* ——— Modal de reproducción: ampliación de pantalla arcade (misma vibra que la máquina) ——— */
+.arcade-media-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+/* Fondo: aparece suavemente */
+.arcade-media-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  cursor: pointer;
+  animation: arcade-modal-backdrop-in 0.35s ease-out;
+}
+
+@keyframes arcade-modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Marco: sale desde la pantalla de la arcade (escala desde el centro) */
+.arcade-media-modal__frame {
+  position: relative;
+  z-index: 1;
+  width: 96vw;
+  max-width: 1600px;
+  height: 90vh;
+  max-height: 920px;
+  background: linear-gradient(180deg, #2a2532 0%, #1e1a26 30%, #15121a 70%, #0e0c12 100%);
+  border: 6px solid #0a080c;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 2px rgba(60, 40, 80, 0.4),
+    0 10px 0 #08060c,
+    0 24px 60px rgba(0, 0, 0, 0.75),
+    inset 0 2px 0 rgba(255, 255, 255, 0.04);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  transform-origin: 50% 50%;
+  animation: arcade-modal-frame-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes arcade-modal-frame-in {
+  from {
+    transform: scale(0.25);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.arcade-media-modal__bezel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #1a181e 0%, #0f0e12 100%);
+  border: 6px solid #0a080c;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
+}
+
+.arcade-media-modal__screen {
+  flex: 1;
+  min-height: 0;
+  max-height: 100%;
+  background: #0a0a0e;
+  border-radius: 6px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arcade-media-modal__screen--audio {
+  aspect-ratio: auto;
+  min-height: 180px;
+  padding: 2rem;
+}
+
+.arcade-media-modal__iframe,
+.arcade-media-modal__video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: none;
+}
+
+.arcade-media-modal__audio-wrap {
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 560px;
+}
+
+.arcade-media-modal__title {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #c4b5e0;
+  margin: 0 0 1rem;
+  letter-spacing: 0.05em;
+}
+
+.arcade-media-modal__audio {
+  width: 100%;
+  height: 48px;
+}
+
+.arcade-media-modal__close {
+  display: block;
+  margin: 1rem auto 0;
+  padding: 0.5rem 1.25rem;
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  background: linear-gradient(180deg, #3d3548 0%, #2a2435 100%);
+  border: 2px solid #1e1a28;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #0a080c;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+
+.arcade-media-modal__close:hover {
+  filter: brightness(1.1);
+}
+
+.arcade-media-modal__close:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #0a080c;
 }

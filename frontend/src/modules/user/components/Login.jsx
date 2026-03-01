@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { login } from '../../../backend/userService';
 import { useUser } from "../../common/components/UserContext";
 import { Errors } from "../../common";
+import { playLoginSuccessSound, warmupUiAudio } from "../../common/sounds";
 
 const Login = () => {
   const { logIn, logOut } = useUser();
@@ -17,12 +18,15 @@ const Login = () => {
     event.preventDefault();
 
     if (form.checkValidity()) {
+      warmupUiAudio();
       login(
         userName.trim(),
         password,
         (authenticatedUser) => {
           logIn(authenticatedUser.userDto.userName, Number(authenticatedUser.userDto.id));
-          navigate('/brain/inbox');
+          // Play sound and navigate after a short delay so sound starts
+          playLoginSuccessSound();
+          setTimeout(() => navigate('/brain/inbox'), 600);
         },
         errors => {
           if (typeof errors === 'string') {
@@ -46,9 +50,9 @@ const Login = () => {
   }, []);
 
   return (
-    <div className="synapse-auth-page">
+    <div className="synapse-auth-page synapse-auth-page--retro">
       <div className="col-11 col-sm-8 col-md-6 col-lg-4 synapse-animate-in synapse-animate-in-delay-2">
-        <div className="card synapse-auth-card">
+        <div className="card synapse-auth-card synapse-auth-card--retro">
           <div className="card-header">
             <h3 className="mb-1">Bienvenido</h3>
             <p className="mb-0">Conecta tu cerebro digital</p>

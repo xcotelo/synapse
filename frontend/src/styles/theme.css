@@ -24,6 +24,12 @@
   --synapse-success: #059669;
   --synapse-warning: #d97706;
 
+  /* Retro (Slot / arcade) accents */
+  --synapse-retro-title-top: #fcd34d;
+  --synapse-retro-title-bottom: var(--synapse-warning);
+  --synapse-retro-title-glow-1: rgba(252, 211, 77, 0.65);
+  --synapse-retro-title-glow-2: rgba(217, 119, 6, 0.45);
+
   --synapse-text: #0f172a;
   --synapse-text-secondary: #475569;
   --synapse-text-muted: #64748b;
@@ -545,6 +551,23 @@ body {
   overflow-y: auto;
 }
 
+.synapse-dashboard__content:has(.synapse-brain-page--retro-stage) {
+  background: #08090c;
+}
+
+/* Propagate dark background up through all ancestor layers for retro Inbox */
+.synapse-app:has(.synapse-brain-page--retro-stage) {
+  background: #08090c;
+}
+
+.synapse-app:has(.synapse-brain-page--retro-stage)::before {
+  display: none;
+}
+
+.synapse-main:has(.synapse-brain-page--retro-stage) {
+  background: #08090c;
+}
+
 /* ========== Footer ========== */
 .synapse-footer {
   position: fixed;
@@ -743,6 +766,42 @@ body {
   animation: synapse-gradient-shift 16s ease infinite;
 }
 
+/* Retro skin (Slot-like) for login zone */
+.synapse-auth-page--retro {
+  background: linear-gradient(180deg, #0a0b0f 0%, #060709 50%, #030406 100%);
+  background-size: auto;
+  animation: none;
+  color: #e2e8f0;
+}
+
+.synapse-auth-page--retro::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #0a0b0f 0%, #060709 50%, #030406 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.synapse-auth-page--retro::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(96, 165, 250, 0.10), transparent 55%),
+    radial-gradient(circle at 20% 90%, rgba(217, 70, 239, 0.07), transparent 60%),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.02) 0,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+  z-index: -1;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
 .synapse-auth-page > div {
   width: 100%;
   max-width: 420px;
@@ -759,6 +818,14 @@ body {
   animation: synapse-scale-in 0.5s var(--synapse-spring) both;
 }
 
+.synapse-auth-card--retro {
+  border-radius: 16px;
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(96, 165, 250, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
 .synapse-auth-card .card-header {
   background: linear-gradient(135deg, var(--synapse-primary) 0%, var(--synapse-primary-hover) 100%);
   color: var(--synapse-text-inverse);
@@ -766,6 +833,49 @@ body {
   text-align: center;
   border: none;
   position: relative;
+}
+
+.synapse-auth-card--retro .card-header {
+  background: linear-gradient(180deg, #0f1419 0%, #080a0d 100%);
+  color: #e2e8f0;
+  border: 2px solid rgba(96, 165, 250, 0.4);
+  border-bottom: none;
+  padding: 1.35rem 1.5rem 1.1rem;
+  box-shadow:
+    0 0 20px rgba(96, 165, 250, 0.18),
+    inset 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.synapse-auth-card--retro .card-header::after {
+  background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.55), rgba(217, 70, 239, 0.35), rgba(96, 165, 250, 0.55), transparent);
+  height: 2px;
+  opacity: 0.9;
+}
+
+.synapse-auth-card--retro .card-header h3 {
+  color: var(--synapse-retro-title-top);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 18px var(--synapse-retro-title-glow-1),
+    0 0 40px var(--synapse-retro-title-glow-2);
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .synapse-auth-card--retro .card-header h3 {
+    background: linear-gradient(180deg, var(--synapse-retro-title-top) 0%, var(--synapse-retro-title-bottom) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow:
+      0 0 18px var(--synapse-retro-title-glow-1),
+      0 0 40px var(--synapse-retro-title-glow-2);
+  }
+}
+
+.synapse-auth-card--retro .card-header p {
+  color: #94a3b8;
+  opacity: 1;
 }
 
 .synapse-auth-card .card-header::after {
@@ -801,12 +911,26 @@ body {
   backdrop-filter: blur(8px);
 }
 
+.synapse-auth-card--retro .card-body {
+  background: linear-gradient(165deg, #1a1d24 0%, #0f1115 40%, #08090c 100%);
+  color: #e2e8f0;
+  backdrop-filter: none;
+}
+
 .synapse-auth-card .form-label {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--synapse-primary);
   margin-bottom: 0.4rem;
   letter-spacing: 0.01em;
+}
+
+.synapse-auth-card--retro .form-label {
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
 }
 
 .synapse-auth-card .form-control {
@@ -816,9 +940,28 @@ body {
   transition: border-color var(--synapse-ease), box-shadow var(--synapse-ease);
 }
 
+.synapse-auth-card--retro .form-control {
+  background: #f8fafc;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  color: #000;
+  border-radius: 10px;
+}
+
+.synapse-auth-card--retro .form-control::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
 .synapse-auth-card .form-control:focus {
   border-color: var(--synapse-primary-light);
   box-shadow: 0 0 0 3px var(--synapse-accent-soft);
+}
+
+.synapse-auth-card--retro .form-control:focus {
+  background: #ffffff;
+  color: #000;
+  border-color: rgba(96, 165, 250, 0.7);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18), 0 0 16px rgba(96, 165, 250, 0.12);
 }
 
 .synapse-auth-card .btn-primary {
@@ -828,6 +971,11 @@ body {
   font-weight: 600;
   padding: 0.65rem 1.25rem;
   transition: transform var(--synapse-ease), box-shadow var(--synapse-ease);
+}
+
+.synapse-auth-card--retro .btn-primary,
+.synapse-auth-card--retro .synapse-btn-primary {
+  box-shadow: 0 0 18px rgba(96, 165, 250, 0.25), 0 6px 22px rgba(0, 0, 0, 0.45);
 }
 
 .synapse-auth-card .btn-primary:hover {
@@ -843,9 +991,17 @@ body {
   transition: color var(--synapse-ease);
 }
 
+.synapse-auth-card--retro a {
+  color: #93c5fd;
+}
+
 .synapse-auth-card a:hover {
   color: var(--synapse-primary-light);
   text-decoration: underline;
+}
+
+.synapse-auth-card--retro a:hover {
+  color: #60a5fa;
 }
 
 /* ========== Alertas ========== */
@@ -900,6 +1056,40 @@ body {
 .synapse-app .form-select:focus {
   border-color: var(--synapse-primary);
   box-shadow: 0 0 0 3px var(--synapse-accent-soft);
+}
+
+/* ========== Auth retro overrides (readability) ========== */
+/* Ensure retro auth inputs remain readable even inside .synapse-app */
+.synapse-app .synapse-auth-card--retro .form-control {
+  background: #f8fafc;
+  color: #000;
+  caret-color: #000;
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+.synapse-app .synapse-auth-card--retro .form-control::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.synapse-app .synapse-auth-card--retro .form-control:focus {
+  background: #ffffff;
+  color: #000;
+  border-color: rgba(96, 165, 250, 0.7);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18), 0 0 16px rgba(96, 165, 250, 0.12);
+}
+
+.synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill,
+.synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill:hover,
+.synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000;
+  box-shadow: 0 0 0 1000px #f8fafc inset;
+  caret-color: #000;
+}
+
+.synapse-auth-card--retro .text-muted {
+  color: #cbd5e1 !important;
+  opacity: 0.9;
 }
 
 /* ========== Brain pages ========== */
@@ -1008,6 +1198,139 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
+}
+
+/* ========== Inbox: retro/arcade variant ========== */
+.synapse-brain-page--retro-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 2.5rem 0 4rem;
+  background: #08090c;
+}
+
+.synapse-brain-page--retro {
+  position: relative;
+  border-radius: var(--synapse-radius-lg);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  background: linear-gradient(165deg, #1a1d24 0%, #0f1115 40%, #08090c 100%);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.synapse-brain-page--retro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.035) 0px,
+    rgba(255, 255, 255, 0.035) 1px,
+    rgba(0, 0, 0, 0) 3px,
+    rgba(0, 0, 0, 0) 6px
+  );
+  opacity: 0.16;
+}
+
+.synapse-brain-page--retro::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(80% 60% at 50% 20%, rgba(96, 165, 250, 0.22), transparent 60%);
+  opacity: 0.35;
+}
+
+.inbox-page--retro {
+  position: relative;
+  z-index: 1;
+}
+
+.inbox-page--retro .inbox-hero__title {
+  color: var(--synapse-retro-title-top);
+  text-shadow:
+    0 0 18px var(--synapse-retro-title-glow-1),
+    0 0 40px var(--synapse-retro-title-glow-2);
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .inbox-page--retro .inbox-hero__title {
+    background: linear-gradient(180deg, var(--synapse-retro-title-top) 0%, var(--synapse-retro-title-bottom) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+.inbox-page--retro .inbox-hero__subtitle {
+  color: #cbd5e1;
+  opacity: 0.95;
+}
+
+.inbox-page--retro .inbox-hero__action {
+  background: rgba(2, 3, 4, 0.65);
+  border-color: rgba(96, 165, 250, 0.25);
+  color: #e2e8f0;
+}
+
+.inbox-page--retro .inbox-hero__action:hover {
+  background: rgba(96, 165, 250, 0.18);
+  border-color: rgba(96, 165, 250, 0.55);
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(96, 165, 250, 0.22);
+}
+
+.inbox-page--retro .inbox-capture,
+.inbox-page--retro .inbox-list-section {
+  background: rgba(2, 3, 4, 0.55) !important;
+  border-color: rgba(96, 165, 250, 0.18) !important;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
+.inbox-page--retro .inbox-capture__label,
+.inbox-page--retro .inbox-capture__hint {
+  color: #cbd5e1;
+}
+
+.inbox-page--retro .inbox-capture__textarea {
+  background: #020304;
+  color: #e2e8f0;
+  caret-color: #e2e8f0;
+  border-color: rgba(96, 165, 250, 0.28);
+}
+
+.inbox-page--retro .inbox-capture__textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.inbox-page--retro .inbox-capture__textarea:focus {
+  border-color: rgba(96, 165, 250, 0.75);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2), 0 0 16px rgba(96, 165, 250, 0.12);
+}
+
+.inbox-page--retro .inbox-capture__mic-btn {
+  background: rgba(2, 3, 4, 0.55);
+  border-color: rgba(96, 165, 250, 0.25);
+  color: #e2e8f0;
+}
+
+.inbox-page--retro .inbox-capture__mic-btn:hover:not(:disabled) {
+  background: rgba(96, 165, 250, 0.14);
+  border-color: rgba(96, 165, 250, 0.55);
+  color: #ffffff;
+}
+
+.inbox-page--retro .synapse-inbox-item:hover,
+.inbox-page--retro .inbox-item:hover {
+  background: rgba(96, 165, 250, 0.12);
+}
+
+.inbox-page--retro .synapse-inbox-item--selected {
+  background: rgba(96, 165, 250, 0.14);
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.65);
 }
 
 .inbox-hero {
@@ -1173,6 +1496,72 @@ body {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--synapse-border);
   background: var(--synapse-surface);
+}
+
+/* Retro overrides for the list toolbar + filters (avoid white blocks) */
+.inbox-page--retro .inbox-list-section__toolbar {
+  background: rgba(2, 3, 4, 0.55) !important;
+  border-bottom-color: rgba(96, 165, 250, 0.18) !important;
+  color: #e2e8f0 !important;
+}
+
+.inbox-page--retro .inbox-list-section__filters {
+  background: transparent !important;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .badge.bg-primary {
+  background: rgba(96, 165, 250, 0.35) !important;
+}
+
+.inbox-page--retro .inbox-list-section__filters .form-label,
+.inbox-page--retro .inbox-list-section__toolbar .form-label,
+.inbox-page--retro .inbox-list-section__toolbar .small {
+  color: #cbd5e1;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .form-control,
+.inbox-page--retro .inbox-list-section__toolbar .form-select {
+  background: #020304;
+  color: #e2e8f0;
+  caret-color: #e2e8f0;
+  border-color: rgba(96, 165, 250, 0.28);
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .form-control::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .form-control:focus,
+.inbox-page--retro .inbox-list-section__toolbar .form-select:focus {
+  border-color: rgba(96, 165, 250, 0.75);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2), 0 0 16px rgba(96, 165, 250, 0.12);
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .btn-outline-danger {
+  border-color: rgba(248, 113, 113, 0.7);
+  color: #fecaca;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .btn-outline-danger:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.85);
+  color: #ffffff;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .btn-outline-secondary {
+  border-color: rgba(96, 165, 250, 0.35);
+  color: #e2e8f0;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .btn-outline-secondary:hover:not(:disabled) {
+  background: rgba(96, 165, 250, 0.12);
+  border-color: rgba(96, 165, 250, 0.55);
+  color: #ffffff;
+}
+
+.inbox-page--retro .inbox-list-section__empty {
+  color: #cbd5e1;
 }
 
 .inbox-list-section__filters {

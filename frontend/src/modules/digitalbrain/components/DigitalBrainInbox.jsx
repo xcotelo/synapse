@@ -428,8 +428,9 @@ const DigitalBrainInbox = () => {
   };
 
   return (
-    <div className="container synapse-brain-page">
-      <div className="inbox-page synapse-animate-in">
+    <div className="synapse-brain-page--retro-stage">
+      <div className="synapse-brain-page synapse-brain-page--retro">
+        <div className="inbox-page inbox-page--retro synapse-animate-in">
         {/* Hero: título + enlace a Conocimiento */}
         <header className="inbox-hero">
           <div className="inbox-hero__title-wrap">
@@ -544,7 +545,7 @@ const DigitalBrainInbox = () => {
         <section className="inbox-list-section synapse-animate-in synapse-animate-in-delay-2">
           <div className="inbox-list-section__toolbar">
             <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-              <h2 className="h6 mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+              <h2 className="h6 mb-0 fw-bold d-flex align-items-center gap-2">
                 <span aria-hidden>📥</span>
                 Pendientes de procesar
                 {inbox.length > 0 && (
@@ -601,7 +602,7 @@ const DigitalBrainInbox = () => {
             </div>
             <div className="inbox-list-section__filters row g-2">
               <div className="col-12 col-md-4">
-                <label className="form-label small text-muted mb-1">Buscar</label>
+                <label className="form-label small mb-1">Buscar</label>
                 <input
                   className="form-control form-control-sm"
                   value={query}
@@ -610,7 +611,7 @@ const DigitalBrainInbox = () => {
                 />
               </div>
               <div className="col-6 col-md-4">
-                <label className="form-label small text-muted mb-1">Tipo</label>
+                <label className="form-label small mb-1">Tipo</label>
                 <select
                   className="form-select form-select-sm"
                   value={typeFilter}
@@ -627,7 +628,7 @@ const DigitalBrainInbox = () => {
                 </select>
               </div>
               <div className="col-6 col-md-4">
-                <label className="form-label small text-muted mb-1">Orden</label>
+                <label className="form-label small mb-1">Orden</label>
                 <select
                   className="form-select form-select-sm"
                   value={sortOrder}
@@ -639,7 +640,7 @@ const DigitalBrainInbox = () => {
               </div>
             </div>
             {(query.trim() || typeFilter !== "all") && (
-              <div className="small text-muted mt-2">
+              <div className="small mt-2">
                 Mostrando {filteredInbox.length} de {inbox.length}.
               </div>
             )}
@@ -648,8 +649,8 @@ const DigitalBrainInbox = () => {
           {inbox.length === 0 ? (
             <div className="inbox-list-section__empty synapse-animate-in">
               <div className="inbox-list-section__empty-icon" aria-hidden>📭</div>
-              <p className="text-muted mb-1">No hay entradas en el inbox.</p>
-              <p className="text-muted small mb-3">Añade contenido arriba o arrastra archivos.</p>
+              <p className="mb-1">No hay entradas en el inbox.</p>
+              <p className="small mb-3">Añade contenido arriba o arrastra archivos.</p>
               {notesCount > 0 && (
                 <Link to="/brain/knowledge" className="btn btn-primary btn-sm">
                   Ver {notesCount} nota{notesCount !== 1 ? "s" : ""} clasificada{notesCount !== 1 ? "s" : ""}
@@ -686,7 +687,7 @@ const DigitalBrainInbox = () => {
                           >
                             {item.type}
                           </span>
-                          <small className="text-muted ms-2">
+                          <small className="ms-2">
                             {new Date(item.createdAt).toLocaleString("es-ES", {
                               day: "2-digit",
                               month: "short",
@@ -709,7 +710,7 @@ const DigitalBrainInbox = () => {
                           {item.rawContent.length > 200 ? (
                             <>
                               {item.rawContent.substring(0, 200)}...
-                              <span className="text-muted small"> (mostrar más)</span>
+                              <span className="small"> (mostrar más)</span>
                             </>
                           ) : (
                             item.rawContent
@@ -729,7 +730,7 @@ const DigitalBrainInbox = () => {
                                   {item.linkPreview.title || "Vista previa"}
                                 </div>
                                 {item.linkPreview.description && (
-                                  <div className="small text-muted mt-1">
+                                  <div className="small mt-1">
                                     {item.linkPreview.description}
                                   </div>
                                 )}
@@ -773,6 +774,7 @@ const DigitalBrainInbox = () => {
             </div>
           )}
         </section>
+        </div>
       </div>
     </div>
   );

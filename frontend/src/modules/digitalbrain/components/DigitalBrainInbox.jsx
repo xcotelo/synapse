@@ -419,7 +419,7 @@ const DigitalBrainInbox = () => {
               Captura texto, enlaces o ideas. La IA analiza y sugiere; tú decides cuándo convertirlo en conocimiento.
             </p>
           </div>
-          <Link to="/brain/knowledge" className="inbox-hero__action">
+          <Link to="/brain/arcade" className="inbox-hero__action">
             <span aria-hidden>📚</span> Ver notas clasificadas
             {notesCount > 0 && (
               <span className="badge bg-primary rounded-pill">{notesCount}</span>
@@ -624,7 +624,7 @@ const DigitalBrainInbox = () => {
               <p className="mb-1">No hay entradas en el inbox.</p>
               <p className="small mb-3">Añade contenido arriba o arrastra archivos.</p>
               {notesCount > 0 && (
-                <Link to="/brain/knowledge" className="btn btn-primary btn-sm">
+                <Link to="/brain/arcade" className="btn btn-primary btn-sm">
                   Ver {notesCount} nota{notesCount !== 1 ? "s" : ""} clasificada{notesCount !== 1 ? "s" : ""}
                 </Link>
               )}

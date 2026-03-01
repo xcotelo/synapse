@@ -1,16 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useNotifications } from "../../common/components/NotificationContext";
 import { useUser } from "../../common/components/UserContext";
 import {
   buildTrendsReport,
+  deleteNoteById,
   downloadNoteAsFile,
   downloadNoteDocument,
   extractFirstUrl,
   extractYouTubeId,
   loadInbox,
   loadNotes,
+  toggleNoteReadStatus,
 } from "../digitalBrainStorage";
+import { appFetch, fetchConfig } from "../../../backend/appFetch";
 import MarkdownRenderer from "./MarkdownRenderer";
 import "./DigitalBrainArcade.css";
 
@@ -31,7 +34,7 @@ const MENU_OPTIONS = [
   { id: "videos", label: "VIDEO" },
   { id: "audio", label: "AUDIO" },
   { id: "web", label: "WEB" },
-  { id: "otras", label: "NOTA" },
+  { id: "otras", label: "OTROS" },
 ];
 
 const getYoutubeIdFromNote = (note) => {
@@ -71,6 +74,7 @@ const DigitalBrainArcade = () => {
   const cabinetRef = useRef(null);
 
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { logOut } = useUser();
   const {
     notifications,
@@ -78,6 +82,7 @@ const DigitalBrainArcade = () => {
     markAsRead,
     markAllAsRead,
     clearAll,
+    removeNotificationsForNote,
     requestNotificationPermission,
   } = useNotifications();
 
@@ -115,6 +120,23 @@ const DigitalBrainArcade = () => {
     setNotes(loadNotes());
     setInboxEntries(loadInbox());
   }, []);
+
+  /* Si llegamos con ?noteId=... (p. ej. desde notificación del header), abrir esa nota en detalle en la arcade */
+  useEffect(() => {
+    const noteId = searchParams.get("noteId");
+    if (!noteId || notes.length === 0) return;
+    const note = notes.find((n) => n.id === noteId);
+    if (!note) return;
+    const noteCategory = categorizeNote(note);
+    const notesInCategory = notes.filter((n) => categorizeNote(n) === noteCategory);
+    const idx = notesInCategory.findIndex((n) => n.id === note.id);
+    setRadarExiting(true);
+    setCategory(noteCategory);
+    setSelectedIndex(idx >= 0 ? idx : 0);
+    setSelectedNote(note);
+    setViewMode("detail");
+    setSearchParams({}, { replace: true });
+  }, [notes, searchParams, setSearchParams]);
 
   /* Centrar la vista en la máquina al cargar la página */
   useEffect(() => {
@@ -286,6 +308,83 @@ const DigitalBrainArcade = () => {
     }
   }, [viewMode]);
 
+  const handleToggleRead = useCallback(() => {
+    const noteToToggle = viewMode === "detail" ? selectedNote : (filteredNotes[selectedIndex] ?? null);
+    if (!noteToToggle) return;
+    const updated = toggleNoteReadStatus(noteToToggle.id);
+    setNotes(updated);
+    if (viewMode === "detail") {
+      const next = updated.find((n) => n.id === noteToToggle.id);
+      if (next) setSelectedNote(next);
+    }
+  }, [viewMode, selectedNote, filteredNotes, selectedIndex]);
+
+  const handleDelete = useCallback(() => {
+    const noteToDelete = viewMode === "detail" ? selectedNote : (filteredNotes[selectedIndex] ?? null);
+    if (!noteToDelete) return;
+
+    const deleteNoteLocally = () => {
+      const updated = deleteNoteById(noteToDelete.id);
+      removeNotificationsForNote(noteToDelete.id);
+      setNotes(updated);
+      if (viewMode === "detail") {
+        setViewMode("list");
+        setSelectedNote(null);
+        const stillInCategory = updated.filter((n) => categorizeNote(n) === category);
+        setSelectedIndex(Math.min(selectedIndex, Math.max(0, stillInCategory.length - 1)));
+      } else {
+        const stillInCategory = updated.filter((n) => categorizeNote(n) === category);
+        if (stillInCategory.length === 0) {
+          setViewMode("menu");
+          setCategory(null);
+          setSelectedIndex(0);
+        } else {
+          setSelectedIndex(Math.min(selectedIndex, Math.max(0, stillInCategory.length - 1)));
+        }
+      }
+    };
+
+    const deleteStorageNote = (onDone) => {
+      if (!noteToDelete.storageId) {
+        onDone();
+        return;
+      }
+      appFetch(
+        `/brain/notes/${encodeURIComponent(noteToDelete.storageId)}`,
+        fetchConfig("DELETE"),
+        () => onDone(),
+        () => onDone()
+      );
+    };
+
+    const deleteMediaIfAny = (onDone) => {
+      const mediaUrl = noteToDelete.media?.url ?? "";
+      const marker = "/api/brain/media/";
+      const markerIndex = mediaUrl.indexOf(marker);
+      if (markerIndex === -1) {
+        onDone();
+        return;
+      }
+      const filename = mediaUrl.substring(markerIndex + marker.length).split("?")[0];
+      if (!filename) {
+        onDone();
+        return;
+      }
+      appFetch(
+        `/brain/media/${encodeURIComponent(filename)}`,
+        fetchConfig("DELETE"),
+        () => onDone(),
+        () => onDone()
+      );
+    };
+
+    deleteStorageNote(() => {
+      deleteMediaIfAny(() => {
+        deleteNoteLocally();
+      });
+    });
+  }, [viewMode, selectedNote, filteredNotes, selectedIndex, category, removeNotificationsForNote]);
+
   const scrollDetailContent = useCallback((direction) => {
     const el = detailContentRef.current;
     if (!el) return;
@@ -365,9 +464,13 @@ const DigitalBrainArcade = () => {
         } else if (viewMode === "detail" && selectedNote) {
           downloadNoteAsFile(selectedNote);
         }
-      } else if (key === "l" && viewMode === "notifications") {
+      } else if (key === "l") {
         e.preventDefault();
-        markAllAsRead();
+        if (viewMode === "notifications") {
+          markAllAsRead();
+        } else if ((viewMode === "list" && filteredNotes[selectedIndex]) || (viewMode === "detail" && selectedNote)) {
+          handleToggleRead();
+        }
       } else if (key === "n") {
         e.preventDefault();
         if (viewMode === "notifications") {
@@ -377,9 +480,16 @@ const DigitalBrainArcade = () => {
           setSelectedIndex(0);
           setViewMode("notifications");
         }
-      } else if (key === "x") {
+      } else if (key === "o") {
         e.preventDefault();
         handleLogout();
+      } else if (key === "x") {
+        e.preventDefault();
+        if ((viewMode === "list" && filteredNotes[selectedIndex]) || (viewMode === "detail" && selectedNote)) {
+          handleDelete();
+        } else {
+          handleLogout();
+        }
       }
     };
 
@@ -427,12 +537,6 @@ const DigitalBrainArcade = () => {
 
   return (
     <div className="arcade-page">
-      <div className="arcade-page__back">
-        <Link to="/brain/knowledge" className="arcade-page__back-link">
-          ← Conocimiento
-        </Link>
-      </div>
-
       <div className="arcade-page__main">
         <div className="arcade-page__main-left">
           {(viewMode === "menu" || radarExiting) && (
@@ -537,7 +641,7 @@ const DigitalBrainArcade = () => {
                 type="button"
                 className="arcade-logout-trigger"
                 onClick={handleLogout}
-                title="Cerrar sesión [X]"
+                title="Cerrar sesión [O] o [X] en menú"
               >
                 <span className="arcade-logout-icon" aria-hidden>
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden>
@@ -562,7 +666,7 @@ const DigitalBrainArcade = () => {
                     </li>
                   ))}
                 </ul>
-                <div className="arcade-screen__hint">[A] Aceptar · [B] Atrás</div>
+                <div className="arcade-screen__hint">[A] Aceptar · [B] Atrás · [O] Cerrar sesión</div>
               </div>
             )}
 
@@ -579,7 +683,7 @@ const DigitalBrainArcade = () => {
                       <li
                         key={note.id}
                         ref={i === selectedIndex ? selectedItemRef : null}
-                        className={`arcade-screen__item ${i === selectedIndex ? "arcade-screen__item--selected" : ""}`}
+                        className={`arcade-screen__item ${i === selectedIndex ? "arcade-screen__item--selected" : ""} ${note.isRead ? "arcade-screen__item--read" : ""}`}
                       >
                         {(note.title || "Sin título").slice(0, 40)}
                         {(note.title || "").length > 40 ? "…" : ""}
@@ -587,12 +691,12 @@ const DigitalBrainArcade = () => {
                     ))}
                   </ul>
                 )}
-                <div className="arcade-screen__hint">[A] Ver · [B] Atrás</div>
+                <div className="arcade-screen__hint">[A] Ver · [L] Leído · [X] Eliminar · [B] Atrás · [O] Cerrar sesión</div>
               </div>
             )}
 
             {viewMode === "detail" && selectedNote && (
-              <div className="arcade-screen arcade-screen--detail">
+              <div className={`arcade-screen arcade-screen--detail ${selectedNote.isRead ? "arcade-screen--detail-read" : ""}`}>
                 <div className="arcade-screen__detail-type">{selectedNote.type || "nota"}</div>
                 <div className="arcade-screen__detail-title">{selectedNote.title || "Sin título"}</div>
                 <div ref={detailContentRef} className="arcade-screen__detail-content">
@@ -609,7 +713,7 @@ const DigitalBrainArcade = () => {
                     : selectedNote.type !== "link" && selectedNote.media?.url
                       ? "[A] Descargar doc · "
                       : ""}
-                  [D] Markdown · [W/S] Scroll · [B] Atrás
+                  [D] Markdown · [L] Leído · [X] Eliminar · [W/S] Scroll · [B] Atrás · [O] Cerrar sesión
                 </div>
               </div>
             )}
@@ -641,7 +745,7 @@ const DigitalBrainArcade = () => {
                   </ul>
                 )}
                 <div className="arcade-screen__hint">
-                  [A] Abrir · [B] Atrás · [L] Marcar leídas · [D] Borrar todas
+                  [A] Abrir · [B] Atrás · [L] Marcar leídas · [D] Borrar todas · [O] Cerrar sesión
                 </div>
               </div>
             )}
@@ -712,7 +816,7 @@ const DigitalBrainArcade = () => {
       </div>
 
       <p className="arcade-page__keys">
-        [W/S] Navegar · [A] Aceptar · [B] Atrás · [N] Notificaciones · [X] Cerrar sesión · En notif: [L] Leídas · [D] Borrar · En detalle: [D] Markdown
+        [W/S] Navegar · [A] Aceptar · [B] Atrás · [N] Notificaciones · [O] Cerrar sesión · En lista/detalle: [L] Leído · [X] Eliminar · [D] Markdown · En notif: [L] Leídas · [D] Borrar
       </p>
 
       {/* Modal de reproducción: ampliación de pantalla arcade (audio/video/YouTube) */}

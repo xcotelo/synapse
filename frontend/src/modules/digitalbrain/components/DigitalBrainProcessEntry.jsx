@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker";
+import es from "date-fns/locale/es";
+import "react-datepicker/dist/react-datepicker.css";
+import "./ProcessEntryDatepicker.css";
 import { appFetch, fetchConfig } from "../../../backend/appFetch";
-
 import {
   createNoteFromEntry,
   loadInbox,
@@ -14,6 +17,9 @@ import {
   extractYouTubeId,
 } from "../services/brainService";
 import { useNotifications } from "../../common/components/NotificationContext";
+
+registerLocale("es", es);
+setDefaultLocale("es");
 
 export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAfterSave }) => {
   const { id: idFromParams } = useParams();
@@ -181,11 +187,11 @@ export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAf
       }
     );
 
-    // 5. En modo lote llamamos al callback; si no, ir a conocimiento
+    // 5. En modo lote llamamos al callback; si no, ir a arcade
     if (batchMode && onAfterSave) {
       onAfterSave();
     } else {
-      navigate("/brain/knowledge");
+      navigate("/brain/arcade");
     }
   };
 
@@ -255,7 +261,7 @@ export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAf
   // Mostrar estado de carga mientras se busca la entrada
   if (entry === undefined) {
     return (
-      <div className="container mt-4">
+      <div className="container mt-4 process-entry-page">
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "400px" }}>
           <div className="text-center">
             <div className="spinner-border text-primary mb-3" role="status" style={{ width: "3rem", height: "3rem" }}>
@@ -271,7 +277,7 @@ export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAf
   // Mostrar error si no se encontró la entrada
   if (entry === null) {
     return (
-      <div className="container mt-4">
+      <div className="container mt-4 process-entry-page">
         <div className="alert alert-warning" role="alert">
           <h4 className="alert-heading">⚠️ Entrada no encontrada</h4>
           <p className="mb-0">
@@ -284,7 +290,7 @@ export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAf
   }
 
   return (
-    <div className={`container synapse-brain-page ${batchMode ? "synapse-brain-page--batch" : ""}`} style={{ maxWidth: "1200px" }}>
+    <div className={`container synapse-brain-page process-entry-page ${batchMode ? "synapse-brain-page--batch" : ""}`} style={{ maxWidth: "1200px" }}>
       <div className="d-flex justify-content-between align-items-center mb-4 synapse-animate-in">
         <h2 className="synapse-brain-title mb-0 d-flex align-items-center gap-2">
           <span aria-hidden>🤖</span> Procesar con IA
@@ -470,18 +476,24 @@ export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAf
                   </small>
                 </div>
 
-                <div className="mb-3">
+                <div className="mb-3 process-entry-reminder-wrap">
                   <label htmlFor="reminder-input" className="form-label fw-semibold">
                     Recordatorio
                   </label>
-                  <input
+                  <DatePicker
                     id="reminder-input"
-                    type="datetime-local"
-                    className="form-control"
-                    value={reminderAt}
-                    onChange={(e) => setReminderAt(e.target.value)}
+                    selected={reminderAt ? new Date(reminderAt) : null}
+                    onChange={(d) => setReminderAt(d ? d.toISOString().slice(0, 16) : "")}
                     onFocus={requestNotificationPermission}
-                    min={new Date().toISOString().slice(0, 16)}
+                    minDate={new Date()}
+                    showTimeSelect
+                    timeIntervals={15}
+                    timeCaption="Hora"
+                    dateFormat="dd/MM/yyyy HH:mm"
+                    locale="es"
+                    className="form-control process-entry-datepicker-input"
+                    calendarClassName="process-entry-datepicker-calendar"
+                    placeholderText="dd/mm/aaaa, --:--"
                   />
                   <small className="text-muted">
                     Te avisaremos en el momento exacto con una notificación del sistema.

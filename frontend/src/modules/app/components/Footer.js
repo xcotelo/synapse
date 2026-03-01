@@ -20,12 +20,6 @@ const Footer = () => {
                 Inbox
               </Link>
               <Link
-                to="/brain/knowledge"
-                className={`synapse-footer__link ${location.pathname === "/brain/knowledge" ? "active" : ""}`}
-              >
-                Conocimiento
-              </Link>
-              <Link
                 to="/brain/slot"
                 className={`synapse-footer__link ${location.pathname === "/brain/slot" ? "active" : ""}`}
               >

@@ -106,8 +106,8 @@ const DigitalBrainSlot = () => {
   return (
     <div className="slot-page">
       <div className="slot-page__back">
-        <Link to="/brain/knowledge" className="slot-page__back-link">
-          ← Conocimiento
+        <Link to="/brain/arcade" className="slot-page__back-link">
+          ← Arcade
         </Link>
       </div>
       <div className="slot-page__content">

@@ -671,8 +671,28 @@
   font-weight: 400;
 }
 
+/* Ítem de lista marcado como leído: color retro + tachado */
+.arcade-screen__item--read {
+  color: #64748b;
+  text-decoration: line-through;
+  text-decoration-color: rgba(148, 163, 184, 0.8);
+  background: rgba(30, 41, 59, 0.5);
+  border-left-color: #475569;
+}
+
+.arcade-screen__item--read.arcade-screen__item--selected {
+  color: #94a3b8;
+  background: rgba(251, 191, 36, 0.12);
+  border-left-color: #94a3b8;
+  text-decoration: line-through;
+  text-decoration-color: rgba(148, 163, 184, 0.9);
+}
+
 .arcade-screen__item--read .arcade-screen__item-notif-title {
-  opacity: 0.75;
+  opacity: 0.85;
+  color: #64748b;
+  text-decoration: line-through;
+  text-decoration-color: rgba(148, 163, 184, 0.8);
 }
 
 .arcade-screen__hint {
@@ -696,6 +716,17 @@
   font-weight: 800;
   margin-bottom: 0.5rem;
   color: #f1f5f9;
+}
+
+/* Vista detalle: nota marcada como leída */
+.arcade-screen--detail-read .arcade-screen__detail-type {
+  color: #64748b;
+}
+
+.arcade-screen--detail-read .arcade-screen__detail-title {
+  color: #94a3b8;
+  text-decoration: line-through;
+  text-decoration-color: rgba(148, 163, 184, 0.85);
 }
 
 .arcade-screen__detail-content {

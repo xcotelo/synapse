@@ -54,7 +54,7 @@ const Header = () => {
 
   const handleNotifClick = (notif) => {
     markAsRead(notif.id);
-    navigate(`/brain/knowledge?noteId=${encodeURIComponent(notif.noteId)}`);
+    navigate(`/brain/arcade?noteId=${encodeURIComponent(notif.noteId)}`);
     setNotifOpen(false);
   };
 

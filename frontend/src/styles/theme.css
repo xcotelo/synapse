@@ -192,7 +192,9 @@ body {
 }
 
 .synapse-app:has(.slot-page)::before,
-.synapse-app:has(.arcade-page)::before {
+.synapse-app:has(.arcade-page)::before,
+.synapse-app:has(.process-entry-page)::before,
+.synapse-app:has(.synapse-batch)::before {
   display: none;
 }
 
@@ -543,6 +545,107 @@ body {
   margin-top: 2px;
 }
 
+/* ========== Notificaciones en header: estilo arcade/retro ========== */
+.synapse-header__notif-dropdown {
+  background: linear-gradient(165deg, #1a1d24 0%, #0f1115 40%, #08090c 100%) !important;
+  border: 1px solid rgba(251, 191, 36, 0.3) !important;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(251, 191, 36, 0.08);
+}
+
+.synapse-header__notif-header {
+  background: rgba(15, 17, 21, 0.95) !important;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.2) !important;
+  padding: 12px 16px;
+}
+
+.synapse-header__notif-header .fw-semibold {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fbbf24;
+}
+
+.synapse-header__notif-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.synapse-header__notif-action {
+  font-family: "Courier New", monospace !important;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+.synapse-header__notif-action--primary {
+  color: #0a080c !important;
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%) !important;
+  border: 2px solid #92400e !important;
+}
+
+.synapse-header__notif-action--primary:hover {
+  filter: brightness(1.1);
+  border-color: #b45309 !important;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.35);
+}
+
+.synapse-header__notif-action--secondary {
+  color: #94a3b8 !important;
+  background: transparent !important;
+  border: 2px solid #475569 !important;
+}
+
+.synapse-header__notif-action--secondary:hover {
+  background: rgba(251, 191, 36, 0.1) !important;
+  border-color: rgba(251, 191, 36, 0.5) !important;
+  color: #fbbf24 !important;
+}
+
+.synapse-header__notif-list {
+  background: transparent;
+}
+
+.synapse-header__notif-empty {
+  padding: 24px 16px;
+  font-family: "Courier New", monospace;
+  color: #64748b !important;
+  font-size: 0.875rem;
+}
+
+.synapse-header__notif-item {
+  border-bottom: 1px solid rgba(251, 191, 36, 0.12) !important;
+  padding: 12px 16px;
+  transition: background 0.15s ease;
+}
+
+.synapse-header__notif-item:hover {
+  background: rgba(251, 191, 36, 0.08) !important;
+}
+
+.synapse-header__notif-item.read {
+  opacity: 0.75;
+}
+
+.synapse-header__notif-item.read .synapse-header__notif-item-title {
+  color: #64748b;
+}
+
+.synapse-header__notif-item-title {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #e2e8f0;
+}
+
+.synapse-header__notif-item-time {
+  font-family: "Courier New", monospace;
+  font-size: 0.75rem;
+  color: #64748b !important;
+  margin-top: 4px;
+}
+
 /* ========== Dashboard: sidebar + content ========== */
 .synapse-dashboard {
   display: flex;
@@ -557,12 +660,16 @@ body {
   overflow-y: auto;
 }
 
-.synapse-dashboard__content:has(.synapse-brain-page--retro-stage) {
+.synapse-dashboard__content:has(.synapse-brain-page--retro-stage),
+.synapse-dashboard__content:has(.process-entry-page),
+.synapse-dashboard__content:has(.synapse-batch) {
   background: #08090c;
 }
 
-/* Propagate dark background up through all ancestor layers for retro Inbox */
-.synapse-app:has(.synapse-brain-page--retro-stage) {
+/* Propagate dark background up through all ancestor layers for retro Inbox / process */
+.synapse-app:has(.synapse-brain-page--retro-stage),
+.synapse-app:has(.process-entry-page),
+.synapse-app:has(.synapse-batch) {
   background: #08090c;
 }
 
@@ -844,7 +951,7 @@ body {
 .synapse-auth-card--retro .card-header {
   background: linear-gradient(180deg, #0f1419 0%, #080a0d 100%);
   color: #e2e8f0;
-  border: 2px solid rgba(96, 165, 250, 0.4);
+  border: 2px solid rgba(251, 191, 36, 0.3);
   border-bottom: none;
   padding: 1.35rem 1.5rem 1.1rem;
   box-shadow:
@@ -853,33 +960,33 @@ body {
 }
 
 .synapse-auth-card--retro .card-header::after {
-  background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.55), rgba(217, 70, 239, 0.35), rgba(96, 165, 250, 0.55), transparent);
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.4), rgba(251, 191, 36, 0.6), rgba(251, 191, 36, 0.4), transparent);
   height: 2px;
   opacity: 0.9;
 }
 
 .synapse-auth-card--retro .card-header h3 {
-  color: var(--synapse-retro-title-top);
-  letter-spacing: 0.14em;
+  font-family: "Courier New", monospace;
+  color: #fbbf24;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-shadow:
-    0 0 18px var(--synapse-retro-title-glow-1),
-    0 0 40px var(--synapse-retro-title-glow-2);
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
 }
 
 @supports (-webkit-background-clip: text) or (background-clip: text) {
   .synapse-auth-card--retro .card-header h3 {
-    background: linear-gradient(180deg, var(--synapse-retro-title-top) 0%, var(--synapse-retro-title-bottom) 100%);
+    background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    text-shadow:
-      0 0 18px var(--synapse-retro-title-glow-1),
-      0 0 40px var(--synapse-retro-title-glow-2);
+    text-shadow: none;
   }
 }
 
 .synapse-auth-card--retro .card-header p {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
   color: #94a3b8;
   opacity: 1;
 }
@@ -932,11 +1039,12 @@ body {
 }
 
 .synapse-auth-card--retro .form-label {
+  font-family: "Courier New", monospace;
   color: #94a3b8;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
 }
 
 .synapse-auth-card .form-control {
@@ -947,10 +1055,12 @@ body {
 }
 
 .synapse-auth-card--retro .form-control {
-  background: #f8fafc;
-  border: 1px solid rgba(96, 165, 250, 0.35);
-  color: #000;
-  border-radius: 10px;
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  background: #0f1115;
+  border: 1px solid #2a2840;
+  color: #e2e8f0;
+  border-radius: 6px;
 }
 
 .synapse-auth-card--retro .form-control::placeholder {
@@ -964,10 +1074,10 @@ body {
 }
 
 .synapse-auth-card--retro .form-control:focus {
-  background: #ffffff;
-  color: #000;
-  border-color: rgba(96, 165, 250, 0.7);
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18), 0 0 16px rgba(96, 165, 250, 0.12);
+  background: #0f1115;
+  color: #e2e8f0;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
 }
 
 .synapse-auth-card .btn-primary {
@@ -981,7 +1091,23 @@ body {
 
 .synapse-auth-card--retro .btn-primary,
 .synapse-auth-card--retro .synapse-btn-primary {
-  box-shadow: 0 0 18px rgba(96, 165, 250, 0.25), 0 6px 22px rgba(0, 0, 0, 0.45);
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%);
+  border: 2px solid #92400e;
+  color: #0a080c;
+  border-radius: 6px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 0 #78350f, inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.synapse-auth-card--retro .btn-primary:hover,
+.synapse-auth-card--retro .synapse-btn-primary:hover {
+  filter: brightness(1.1);
+  color: #0a080c;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #78350f, inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .synapse-auth-card .btn-primary:hover {
@@ -998,7 +1124,9 @@ body {
 }
 
 .synapse-auth-card--retro a {
-  color: #93c5fd;
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  color: #fbbf24;
 }
 
 .synapse-auth-card a:hover {
@@ -1007,7 +1135,7 @@ body {
 }
 
 .synapse-auth-card--retro a:hover {
-  color: #60a5fa;
+  color: #fcd34d;
 }
 
 /* ========== Alertas ========== */
@@ -1064,13 +1192,12 @@ body {
   box-shadow: 0 0 0 3px var(--synapse-accent-soft);
 }
 
-/* ========== Auth retro overrides (readability) ========== */
-/* Ensure retro auth inputs remain readable even inside .synapse-app */
+/* ========== Auth retro overrides (arcade style inside .synapse-app) ========== */
 .synapse-app .synapse-auth-card--retro .form-control {
-  background: #f8fafc;
-  color: #000;
-  caret-color: #000;
-  border-color: rgba(96, 165, 250, 0.35);
+  background: #0f1115;
+  color: #e2e8f0;
+  caret-color: #fbbf24;
+  border-color: #2a2840;
 }
 
 .synapse-app .synapse-auth-card--retro .form-control::placeholder {
@@ -1079,23 +1206,25 @@ body {
 }
 
 .synapse-app .synapse-auth-card--retro .form-control:focus {
-  background: #ffffff;
-  color: #000;
-  border-color: rgba(96, 165, 250, 0.7);
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18), 0 0 16px rgba(96, 165, 250, 0.12);
+  background: #0f1115;
+  color: #e2e8f0;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
 }
 
 .synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill,
 .synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill:hover,
 .synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill:focus {
-  -webkit-text-fill-color: #000;
-  box-shadow: 0 0 0 1000px #f8fafc inset;
-  caret-color: #000;
+  -webkit-text-fill-color: #e2e8f0;
+  box-shadow: 0 0 0 1000px #0f1115 inset;
+  caret-color: #fbbf24;
 }
 
-.synapse-auth-card--retro .text-muted {
-  color: #cbd5e1 !important;
-  opacity: 0.9;
+.synapse-auth-card--retro .text-muted,
+.synapse-auth-card--retro small {
+  font-family: "Courier New", monospace;
+  color: #94a3b8 !important;
+  opacity: 0.95;
 }
 
 /* ========== Brain pages ========== */
@@ -1717,6 +1846,51 @@ body {
   color: #0a080c;
 }
 
+/* Vista previa de enlace en ítems del inbox (pendientes): estilo arcade */
+.inbox-page--retro .inbox-item .p-2.border.rounded.bg-light,
+.inbox-page--retro .inbox-item div.bg-light.rounded {
+  background: rgba(15, 17, 21, 0.9) !important;
+  border: 1px solid rgba(251, 191, 36, 0.3) !important;
+  color: #cbd5e1;
+  font-family: "Courier New", monospace;
+}
+
+.inbox-page--retro .inbox-item .p-2.border.rounded.bg-light .small.fw-semibold,
+.inbox-page--retro .inbox-item div.bg-light.rounded .small.fw-semibold {
+  color: #fbbf24;
+}
+
+.inbox-page--retro .inbox-item .p-2.border.rounded.bg-light .small.mt-1,
+.inbox-page--retro .inbox-item div.bg-light.rounded .small.mt-1 {
+  color: #94a3b8;
+}
+
+/* Botón "Cargar vista previa" dentro del ítem */
+.inbox-page--retro .inbox-item .btn-outline-secondary {
+  border: 2px solid #475569;
+  color: #94a3b8;
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+}
+
+.inbox-page--retro .inbox-item .btn-outline-secondary:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+}
+
+.inbox-page--retro .inbox-item .btn-outline-secondary:disabled {
+  opacity: 0.7;
+  color: #64748b;
+}
+
+/* Mensaje de error al cargar vista previa */
+.inbox-page--retro .inbox-item .text-danger {
+  color: #f87171 !important;
+  font-family: "Courier New", monospace;
+  font-size: 0.8rem;
+}
+
 .inbox-list-section__filters {
   display: flex;
   flex-wrap: wrap;
@@ -1747,6 +1921,354 @@ body {
 
 .inbox-item:hover {
   background: var(--synapse-accent-soft);
+}
+
+/* ========== Process entry page: arcade/retro variant ========== */
+.process-entry-page {
+  font-family: "Courier New", monospace;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.synapse-main:has(.process-entry-page),
+.synapse-main:has(.synapse-batch) {
+  background: #08090c;
+}
+
+.process-entry-page .synapse-brain-title {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fbbf24;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.3);
+}
+
+.process-entry-page .synapse-brain-card,
+.process-entry-page .card {
+  background: linear-gradient(165deg, #1a1d24 0%, #0f1115 40%, #08090c 100%);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.process-entry-page .synapse-brain-card .card-header,
+.process-entry-page .card .card-header {
+  background: rgba(15, 17, 21, 0.9);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+  color: #e2e8f0;
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.process-entry-page .synapse-brain-card .card-body,
+.process-entry-page .card .card-body {
+  color: #cbd5e1;
+}
+
+.process-entry-page .form-label {
+  font-family: "Courier New", monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #94a3b8;
+}
+
+.process-entry-page .form-control {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  background: #0f1115;
+  border: 1px solid #2a2840;
+  color: #e2e8f0;
+  border-radius: 4px;
+}
+
+.process-entry-page .form-control:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
+  background: #0f1115;
+  color: #e2e8f0;
+}
+
+.process-entry-page .form-control::placeholder {
+  color: #64748b;
+}
+
+/* Input fecha/hora: icono de calendario en blanco y acento ámbar en el picker nativo */
+.process-entry-page input[type="datetime-local"] {
+  accent-color: #fbbf24;
+}
+
+.process-entry-page input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+.process-entry-page .process-entry-reminder-wrap .react-datepicker-wrapper {
+  display: block;
+  width: 100%;
+}
+
+.process-entry-page .process-entry-reminder-wrap .react-datepicker-wrapper input {
+  width: 100%;
+}
+
+.process-entry-page .process-entry-reminder-wrap small.text-muted {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.process-entry-page textarea.form-control {
+  font-family: "Courier New", monospace;
+  caret-color: #fbbf24;
+}
+
+.process-entry-page .text-muted,
+.process-entry-page small.text-muted {
+  color: #64748b !important;
+  font-family: "Courier New", monospace;
+}
+
+.process-entry-page .btn-primary,
+.process-entry-page .synapse-brain-btn.btn-primary {
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%);
+  border: 2px solid #92400e;
+  color: #0a080c;
+  font-weight: 700;
+  font-family: "Courier New", monospace;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 0 #78350f, inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.process-entry-page .btn-primary:hover,
+.process-entry-page .synapse-brain-btn.btn-primary:hover {
+  filter: brightness(1.1);
+  color: #0a080c;
+}
+
+.process-entry-page .btn-outline-primary {
+  background: transparent;
+  border: 2px solid rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+}
+
+.process-entry-page .btn-outline-primary:hover {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: #fbbf24;
+  color: #fcd34d;
+}
+
+.process-entry-page .btn-outline-secondary {
+  background: transparent;
+  border: 2px solid #475569;
+  color: #94a3b8;
+  font-family: "Courier New", monospace;
+}
+
+.process-entry-page .btn-outline-secondary:hover {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.process-entry-page .btn-outline-info {
+  background: transparent;
+  border: 2px solid rgba(34, 211, 238, 0.5);
+  color: #22d3ee;
+  font-family: "Courier New", monospace;
+}
+
+.process-entry-page .btn-outline-info:hover {
+  background: rgba(34, 211, 238, 0.15);
+  border-color: #22d3ee;
+  color: #67e8f9;
+}
+
+.process-entry-page .btn-info {
+  background: linear-gradient(180deg, #67e8f9 0%, #22d3ee 50%, #06b6d4 100%);
+  border: 2px solid #0e7490;
+  color: #0c4a6e;
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+}
+
+.process-entry-page .btn-info:hover {
+  filter: brightness(1.1);
+  color: #0c4a6e;
+}
+
+.process-entry-page .badge {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.process-entry-page .badge.bg-primary,
+.process-entry-page .badge.bg-info {
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 100%) !important;
+  color: #0a080c !important;
+}
+
+.process-entry-page .badge.bg-success {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%) !important;
+  color: #052e16 !important;
+}
+
+.process-entry-page .badge.bg-secondary,
+.process-entry-page .badge.bg-warning {
+  background: #475569 !important;
+  color: #e2e8f0 !important;
+}
+
+.process-entry-page .badge.bg-danger {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%) !important;
+  color: #fff !important;
+}
+
+.process-entry-page .p-3.bg-light.rounded,
+.process-entry-page [class*="bg-light"].rounded {
+  background: #0f1115 !important;
+  border: 1px solid #2a2840;
+  color: #cbd5e1;
+}
+
+.process-entry-page .bg-primary.bg-opacity-10,
+.process-entry-page .p-3.bg-primary.bg-opacity-10 {
+  background: rgba(251, 191, 36, 0.12) !important;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  color: #fcd34d;
+}
+
+.process-entry-page .bg-success.bg-opacity-10,
+.process-entry-page .p-3.bg-success.bg-opacity-10 {
+  background: rgba(34, 197, 94, 0.12) !important;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+
+.process-entry-page .spinner-border.text-primary {
+  color: #fbbf24 !important;
+}
+
+.process-entry-page .text-primary {
+  color: #fbbf24 !important;
+}
+
+.process-entry-page .alert-warning {
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fcd34d;
+}
+
+.process-entry-page .alert-warning .alert-heading {
+  color: #fbbf24;
+}
+
+.process-entry-page .alert-warning .alert-link {
+  color: #fcd34d;
+}
+
+.process-entry-page .alert-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.process-entry-page .alert-danger .alert-link {
+  color: #f87171;
+}
+
+.process-entry-page .border-success {
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+.process-entry-page .list-group-item {
+  background: transparent !important;
+  border-color: rgba(251, 191, 36, 0.15) !important;
+  color: #cbd5e1;
+}
+
+.process-entry-page .list-group-item .badge.bg-success {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%) !important;
+}
+
+.process-entry-page .list-group-item .badge.bg-danger {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%) !important;
+}
+
+.process-entry-page .list-group-item .badge.bg-warning {
+  background: #eab308 !important;
+  color: #0a080c !important;
+}
+
+.process-entry-page .p-2.rounded.bg-white,
+.process-entry-page .bg-white.bg-opacity-50 {
+  background: rgba(15, 17, 21, 0.8) !important;
+  border-color: #2a2840 !important;
+  color: #cbd5e1;
+}
+
+.process-entry-page .p-2.rounded.bg-info.bg-opacity-10,
+.process-entry-page .border-info {
+  background: rgba(34, 211, 238, 0.1) !important;
+  border-color: rgba(34, 211, 238, 0.35) !important;
+  color: #a5f3fc;
+}
+
+.process-entry-page .btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+.process-entry-page .rounded-4[style*="backdropFilter"],
+.process-entry-page .mt-4.p-4.rounded-4 {
+  background: rgba(15, 17, 21, 0.9) !important;
+  border: 1px solid rgba(251, 191, 36, 0.2) !important;
+  color: #cbd5e1;
+}
+
+.process-entry-page .mt-4.p-4.rounded-4 .h6 {
+  color: #fbbf24;
+}
+
+/* Loading / not found states (process entry) */
+.process-entry-page .container.mt-4 .text-muted {
+  color: #64748b !important;
+}
+
+.process-entry-page .container.mt-4 .spinner-border.text-primary {
+  color: #fbbf24 !important;
+}
+
+/* Batch process page: arcade styling */
+.synapse-main:has(.synapse-batch) .synapse-batch__progress-text {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #94a3b8;
+}
+
+.synapse-main:has(.synapse-batch) .synapse-batch__progress-bar {
+  background: #1e293b;
+  border: 1px solid #2a2840;
+  border-radius: 999px;
+}
+
+.synapse-main:has(.synapse-batch) .synapse-batch__progress-fill {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  border-radius: 999px;
+}
+
+.synapse-main:has(.synapse-batch) .synapse-batch__viewport {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.synapse-main:has(.synapse-batch) .synapse-batch__card {
+  background: transparent;
 }
 
 /* Respetar preferencia de movimiento reducido */

@@ -1252,91 +1252,169 @@ body {
 .inbox-page--retro {
   position: relative;
   z-index: 1;
+  font-family: "Courier New", monospace;
 }
 
+.inbox-page--retro .btn,
+.inbox-page--retro button {
+  font-family: "Courier New", monospace;
+}
+
+/* Título y subtítulo: tipografía arcade (como marquee de la arcade) */
 .inbox-page--retro .inbox-hero__title {
-  color: var(--synapse-retro-title-top);
-  text-shadow:
-    0 0 18px var(--synapse-retro-title-glow-1),
-    0 0 40px var(--synapse-retro-title-glow-2);
-}
-
-@supports (-webkit-background-clip: text) or (background-clip: text) {
-  .inbox-page--retro .inbox-hero__title {
-    background: linear-gradient(180deg, var(--synapse-retro-title-top) 0%, var(--synapse-retro-title-bottom) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
+  font-family: "Courier New", monospace;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: #fbbf24;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+  margin: 0 0 0.25rem 0;
+  text-transform: uppercase;
 }
 
 .inbox-page--retro .inbox-hero__subtitle {
-  color: #cbd5e1;
+  font-family: "Courier New", monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
   opacity: 0.95;
 }
 
 .inbox-page--retro .inbox-hero__action {
-  background: rgba(2, 3, 4, 0.65);
-  border-color: rgba(96, 165, 250, 0.25);
-  color: #e2e8f0;
+  background: linear-gradient(180deg, #1a1a22 0%, #0e0e14 100%);
+  border: 2px solid #2a2840;
+  color: #fbbf24;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 0 #0a080c;
 }
 
 .inbox-page--retro .inbox-hero__action:hover {
-  background: rgba(96, 165, 250, 0.18);
-  border-color: rgba(96, 165, 250, 0.55);
-  color: #ffffff;
-  box-shadow: 0 0 18px rgba(96, 165, 250, 0.22);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fcd34d;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 12px rgba(251, 191, 36, 0.25),
+    0 2px 0 #0a080c;
 }
 
+/* Inbox estilo arcade: misma paleta que la página arcade (#0a080c, #fbbf24, #22c55e, #ef4444) */
 .inbox-page--retro .inbox-capture,
 .inbox-page--retro .inbox-list-section {
-  background: rgba(2, 3, 4, 0.55) !important;
-  border-color: rgba(96, 165, 250, 0.18) !important;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+  background: linear-gradient(180deg, #1a1822 0%, #121018 50%, #0e0c14 100%) !important;
+  border: 2px solid #2a2840;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.4),
+    0 4px 0 #0a080c,
+    0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
-.inbox-page--retro .inbox-capture__label,
+.inbox-page--retro .inbox-capture__label {
+  font-family: "Courier New", monospace;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #c4b5e0;
+  text-transform: uppercase;
+}
+
 .inbox-page--retro .inbox-capture__hint {
-  color: #cbd5e1;
+  font-family: "Courier New", monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: #64748b;
 }
 
 .inbox-page--retro .inbox-capture__textarea {
-  background: #020304;
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  background: #0a0a0e;
   color: #e2e8f0;
-  caret-color: #e2e8f0;
-  border-color: rgba(96, 165, 250, 0.28);
+  caret-color: #fbbf24;
+  border: 2px solid #2a2840;
+  border-radius: 4px;
 }
 
 .inbox-page--retro .inbox-capture__textarea::placeholder {
-  color: #94a3b8;
+  color: #64748b;
   opacity: 1;
 }
 
 .inbox-page--retro .inbox-capture__textarea:focus {
-  border-color: rgba(96, 165, 250, 0.75);
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2), 0 0 16px rgba(96, 165, 250, 0.12);
+  border-color: rgba(251, 191, 36, 0.6);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15), 0 0 12px rgba(251, 191, 36, 0.1);
 }
 
+/* Botón nota de voz: estilo trigger arcade */
 .inbox-page--retro .inbox-capture__mic-btn {
-  background: rgba(2, 3, 4, 0.55);
-  border-color: rgba(96, 165, 250, 0.25);
-  color: #e2e8f0;
+  background: linear-gradient(180deg, #1a1a22 0%, #0e0e14 100%);
+  border: 2px solid #2a2840;
+  color: #22c55e;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 0 #0a080c,
+    0 0 0 1px rgba(0, 0, 0, 0.4);
 }
 
 .inbox-page--retro .inbox-capture__mic-btn:hover:not(:disabled) {
-  background: rgba(96, 165, 250, 0.14);
-  border-color: rgba(96, 165, 250, 0.55);
-  color: #ffffff;
+  filter: brightness(1.15);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 12px rgba(251, 191, 36, 0.25),
+    0 2px 0 #0a080c;
+}
+
+.inbox-page--retro .inbox-capture__mic-btn--recording {
+  background: linear-gradient(180deg, #2a1a1a 0%, #1a0e0e 100%);
+  border-color: #ef4444;
+  color: #f87171;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 0 #0a080c,
+    0 0 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Botón "Añadir al inbox": estilo arcade (acento ámbar) */
+.inbox-page--retro .inbox-capture .btn-primary,
+.inbox-page--retro .inbox-capture .synapse-brain-btn {
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 30%, #f59e0b 70%, #d97706 100%);
+  border: 2px solid #92400e;
+  color: #0a080c;
+  font-family: "Courier New", monospace;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 4px 0 #0a080c,
+    0 5px 0 rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+.inbox-page--retro .inbox-capture .btn-primary:hover,
+.inbox-page--retro .inbox-capture .synapse-brain-btn:hover {
+  filter: brightness(1.08);
+  box-shadow:
+    0 4px 0 #0a080c,
+    0 0 16px rgba(251, 191, 36, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4);
 }
 
 .inbox-page--retro .synapse-inbox-item:hover,
 .inbox-page--retro .inbox-item:hover {
-  background: rgba(96, 165, 250, 0.12);
+  background: rgba(251, 191, 36, 0.08);
 }
 
 .inbox-page--retro .synapse-inbox-item--selected {
-  background: rgba(96, 165, 250, 0.14);
-  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.65);
+  background: rgba(251, 191, 36, 0.12);
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.4);
 }
 
 .inbox-hero {
@@ -1484,6 +1562,7 @@ body {
 
 .inbox-capture__mic-icon {
   flex-shrink: 0;
+  filter: brightness(0) invert(1);
 }
 
 .inbox-capture__mic-error {
@@ -1504,10 +1583,10 @@ body {
   background: var(--synapse-surface);
 }
 
-/* Retro overrides for the list toolbar + filters (avoid white blocks) */
+/* Toolbar y filtros: paleta arcade */
 .inbox-page--retro .inbox-list-section__toolbar {
-  background: rgba(2, 3, 4, 0.55) !important;
-  border-bottom-color: rgba(96, 165, 250, 0.18) !important;
+  background: rgba(10, 8, 12, 0.6) !important;
+  border-bottom-color: #2a2840 !important;
   color: #e2e8f0 !important;
 }
 
@@ -1516,58 +1595,126 @@ body {
 }
 
 .inbox-page--retro .inbox-list-section__toolbar .badge.bg-primary {
-  background: rgba(96, 165, 250, 0.35) !important;
+  background: rgba(251, 191, 36, 0.25) !important;
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.4);
 }
 
 .inbox-page--retro .inbox-list-section__filters .form-label,
 .inbox-page--retro .inbox-list-section__toolbar .form-label,
 .inbox-page--retro .inbox-list-section__toolbar .small {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #cbd5e1;
+}
+
+/* Ítems de la lista: tipografía como lista de la arcade */
+.inbox-page--retro .inbox-item,
+.inbox-page--retro .synapse-inbox-item,
+.inbox-page--retro .synapse-inbox-item__checkbox-label {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.inbox-page--retro .inbox-list-section__empty {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
   color: #cbd5e1;
 }
 
 .inbox-page--retro .inbox-list-section__toolbar .form-control,
 .inbox-page--retro .inbox-list-section__toolbar .form-select {
-  background: #020304;
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #0a0a0e;
   color: #e2e8f0;
-  caret-color: #e2e8f0;
-  border-color: rgba(96, 165, 250, 0.28);
+  caret-color: #fbbf24;
+  border: 2px solid #2a2840;
+  border-radius: 4px;
 }
 
 .inbox-page--retro .inbox-list-section__toolbar .form-control::placeholder {
-  color: #94a3b8;
+  color: #64748b;
   opacity: 1;
 }
 
 .inbox-page--retro .inbox-list-section__toolbar .form-control:focus,
 .inbox-page--retro .inbox-list-section__toolbar .form-select:focus {
-  border-color: rgba(96, 165, 250, 0.75);
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2), 0 0 16px rgba(96, 165, 250, 0.12);
+  border-color: rgba(251, 191, 36, 0.5);
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.15);
+}
+
+/* Botones toolbar: estilo arcade */
+.inbox-page--retro .inbox-list-section__toolbar .btn-primary {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 40%, #16a34a 100%);
+  border: 2px solid #14532d;
+  color: #0a080c;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  box-shadow: 0 3px 0 #0a080c, inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 3px 0 #0a080c, 0 0 12px rgba(34, 197, 94, 0.35);
 }
 
 .inbox-page--retro .inbox-list-section__toolbar .btn-outline-danger {
-  border-color: rgba(248, 113, 113, 0.7);
-  color: #fecaca;
+  border: 2px solid #7f1d1d;
+  color: #f87171;
+  background: transparent;
 }
 
 .inbox-page--retro .inbox-list-section__toolbar .btn-outline-danger:hover:not(:disabled) {
-  background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.85);
-  color: #ffffff;
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #fca5a5;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
 }
 
 .inbox-page--retro .inbox-list-section__toolbar .btn-outline-secondary {
-  border-color: rgba(96, 165, 250, 0.35);
+  border: 2px solid #2a2840;
   color: #e2e8f0;
+  background: linear-gradient(180deg, #1a1a22 0%, #0e0e14 100%);
 }
 
 .inbox-page--retro .inbox-list-section__toolbar .btn-outline-secondary:hover:not(:disabled) {
-  background: rgba(96, 165, 250, 0.12);
-  border-color: rgba(96, 165, 250, 0.55);
-  color: #ffffff;
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.15);
 }
 
-.inbox-page--retro .inbox-list-section__empty {
-  color: #cbd5e1;
+/* Botones dentro de ítems del listado (Procesar, Conocimiento, etc.): paleta arcade */
+.inbox-page--retro .inbox-list-section .btn-outline-primary,
+.inbox-page--retro .inbox-list-section .btn-sm.btn-outline-primary {
+  border: 2px solid rgba(34, 197, 94, 0.5);
+  color: #22c55e;
+  background: transparent;
+}
+
+.inbox-page--retro .inbox-list-section .btn-outline-primary:hover:not(:disabled),
+.inbox-page--retro .inbox-list-section .btn-sm.btn-outline-primary:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+  color: #4ade80;
+}
+
+.inbox-page--retro .inbox-list-section a.btn-primary,
+.inbox-page--retro .inbox-list-section .btn-primary.btn-sm {
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%);
+  border: 2px solid #92400e;
+  color: #0a080c;
+  font-weight: 700;
+}
+
+.inbox-page--retro .inbox-list-section a.btn-primary:hover,
+.inbox-page--retro .inbox-list-section .btn-primary.btn-sm:hover {
+  filter: brightness(1.1);
+  color: #0a080c;
 }
 
 .inbox-list-section__filters {

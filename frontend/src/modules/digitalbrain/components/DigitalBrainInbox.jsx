@@ -92,26 +92,6 @@ const DigitalBrainInbox = () => {
     saveInbox([]);
   };
 
-  const handleDiscardOlderThan = (days) => {
-    if (inbox.length === 0) return;
-    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-    const older = inbox.filter((i) => {
-      const t = Date.parse(i.createdAt);
-      return Number.isFinite(t) ? t < cutoff : false;
-    });
-    if (older.length === 0) {
-      window.alert(`No hay entradas de más de ${days} días.`);
-      return;
-    }
-    const ok = window.confirm(
-      `Vas a descartar ${older.length} entradas de más de ${days} días. ¿Continuar?`
-    );
-    if (!ok) return;
-    const updated = inbox.filter((i) => !older.some((o) => o.id === i.id));
-    setInbox(updated);
-    saveInbox(updated);
-  };
-
   // Navega a la pantalla de procesado para esa entrada
   const handleProcess = (id) => {
     navigate(`/brain/process/${id}`);
@@ -582,14 +562,6 @@ const DigitalBrainInbox = () => {
                     )}
                   </>
                 )}
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-danger"
-                  onClick={() => handleDiscardOlderThan(30)}
-                  disabled={inbox.length === 0}
-                >
-                  Descartar &gt; 30d
-                </button>
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-danger"

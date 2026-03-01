@@ -1,5 +1,5 @@
 <div align="center">
-[![Typing SVG](https://typingsvg.vercel.app/api/svg?lines=%5B%7B%22text%22%3A%22Synapse+-+Motor+de+Crecimiento+Personal%22%2C%22fontSize%22%3A13%2C%22typingSpeed%22%3A0.1%2C%22fontWeight%22%3A%22600%22%2C%22lineHeight%22%3A2%7D%2C%7B%22text%22%3A%22And+Emojis%21+%F0%9F%98%80%F0%9F%9A%80%22%7D%5D)](https://github.com/whiteSHADOW1234/TypingSVG)
+<a href="https://github.com/whiteSHADOW1234/TypingSVG"><img src="https://typingsvg.vercel.app/api/svg?lines=%5B%7B%22text%22%3A%22Synapse+-+Motor+de+Crecimiento+Personal%22%2C%22fontSize%22%3A13%2C%22typingSpeed%22%3A0.1%2C%22fontWeight%22%3A%22600%22%2C%22lineHeight%22%3A2%7D%2C%7B%22text%22%3A%22And+Emojis%21+%F0%9F%98%80%F0%9F%9A%80%22%7D%5D" alt="Typing SVG" /></a>
 
 
 [![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)

@@ -435,7 +435,7 @@
 							<resources>
 								<resource>
 									<directory>${project.basedir}/frontend/build</directory>
-									<filtering>true</filtering>
+									<filtering>false</filtering>
 								</resource>
 							</resources>
 						</configuration>

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginAdmin } from '../../../backend/userService';
 import { useUser } from "../../common/components/UserContext";
 import { Errors, RoleType } from "../../common";
+import { playLoginSuccessSound, warmupUiAudio } from "../../common/sounds";
 
 const LoginAdmin = () => {
     const { logIn, logOut } = useUser();
@@ -17,12 +18,14 @@ const LoginAdmin = () => {
         event.preventDefault();
 
         if (form.checkValidity()) {
+            warmupUiAudio();
             loginAdmin(
                 userName.trim(),
                 password,
                 () => {
                     logIn(RoleType.ADMIN);
-                    navigate('/users/allUsers')
+                    playLoginSuccessSound();
+                    setTimeout(() => navigate('/users/allUsers'), 600);
                 },
                 errors => {
                     if (typeof errors === 'string') {

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { login } from '../../../backend/userService';
 import { useUser } from "../../common/components/UserContext";
 import { Errors } from "../../common";
+import { playLoginSuccessSound, warmupUiAudio } from "../../common/sounds";
 
 const Login = () => {
   const { logIn, logOut } = useUser();
@@ -17,12 +18,15 @@ const Login = () => {
     event.preventDefault();
 
     if (form.checkValidity()) {
+      warmupUiAudio();
       login(
         userName.trim(),
         password,
         (authenticatedUser) => {
           logIn(authenticatedUser.userDto.userName, Number(authenticatedUser.userDto.id));
-          navigate('/brain/inbox');
+          // Play sound and navigate after a short delay so sound starts
+          playLoginSuccessSound();
+          setTimeout(() => navigate('/brain/inbox'), 600);
         },
         errors => {
           if (typeof errors === 'string') {

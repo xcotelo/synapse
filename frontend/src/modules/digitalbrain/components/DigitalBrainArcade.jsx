@@ -411,6 +411,13 @@ const DigitalBrainArcade = () => {
   }, [viewMode, moveSelection, handleAccept, handleBack, scrollDetailContent, mediaModalOpen, clearAll, markAllAsRead, handleLogout]);
 
   const handleJoystickMouseDown = (direction) => {
+    if (direction === "up") {
+      setArrowUpPressed(true);
+      setTimeout(() => setArrowUpPressed(false), 150);
+    } else {
+      setArrowDownPressed(true);
+      setTimeout(() => setArrowDownPressed(false), 150);
+    }
     if (viewMode === "detail") {
       scrollDetailContent(direction);
     } else {

@@ -770,8 +770,6 @@
     0 5px 0 #0a0a0c,
     0 10px 30px rgba(0, 0, 0, 0.55),
     0 4px 0 #12121a;
-  perspective: 280px;
-  transform-style: preserve-3d;
   position: relative;
   overflow: visible;
   /* Perspectiva cónica hacia afuera: más estrecho arriba, más ancho abajo; laterales en diagonal */
@@ -813,11 +811,9 @@
   align-items: center;
   justify-content: center;
   gap: 6rem;
-  /* Inclinación suave para que la flecha de arriba no se corte y se vea el relieve */
-  transform: rotateX(24deg) translateZ(16px);
-  transform-origin: center center;
-  transform-style: preserve-3d;
   min-height: 100px;
+  position: relative;
+  z-index: 2;
 }
 
 /* Flechas: triángulos amarillos con relieve retro (margen arriba para que ▲ no se corte) */

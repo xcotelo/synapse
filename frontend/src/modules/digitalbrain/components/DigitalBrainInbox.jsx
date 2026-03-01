@@ -595,7 +595,7 @@ const DigitalBrainInbox = () => {
                   <option value="audio">Audio</option>
                   <option value="tarea">Tarea</option>
                   <option value="codigo">Código</option>
-                  <option value="nota">Nota</option>
+                  <option value="nota">Otro</option>
                   <option value="texto">Texto</option>
                 </select>
               </div>

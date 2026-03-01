@@ -384,7 +384,8 @@ body {
 }
 
 .synapse-header__notif-btn img {
-  filter: brightness(0) saturate(100%) invert(88%) sepia(59%) saturate(1000%) hue-rotate(5deg);
+  /* Mismo amarillo ámbar que el resto de la página (#fbbf24) */
+  filter: brightness(0) saturate(100%) invert(73%) sepia(50%) saturate(1000%) hue-rotate(5deg);
 }
 
 .synapse-header__notif-btn:hover {
@@ -1467,6 +1468,8 @@ body {
   caret-color: #fbbf24;
   border: 2px solid #2a2840;
   border-radius: 4px;
+  resize: none;
+  overflow-y: auto;
 }
 
 .inbox-page--retro .inbox-capture__textarea::placeholder {
@@ -1616,13 +1619,16 @@ body {
 
 .inbox-capture__textarea {
   width: 100%;
+  height: 120px;
   min-height: 120px;
+  max-height: 120px;
   padding: 1rem 1.25rem;
   border: 1px solid var(--synapse-border);
   border-radius: var(--synapse-radius-sm);
   font-size: 1rem;
   font-family: inherit;
-  resize: vertical;
+  resize: none;
+  overflow-y: auto;
   transition: border-color var(--synapse-ease), box-shadow var(--synapse-ease);
 }
 
@@ -2021,6 +2027,11 @@ body {
 .process-entry-page textarea.form-control {
   font-family: "Courier New", monospace;
   caret-color: #fbbf24;
+  height: 280px;
+  min-height: 280px;
+  max-height: 280px;
+  resize: none;
+  overflow-y: auto;
 }
 
 .process-entry-page .text-muted,

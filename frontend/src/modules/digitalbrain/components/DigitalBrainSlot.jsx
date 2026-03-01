@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { loadNotes } from "../digitalBrainStorage";
 import "./DigitalBrainSlot.css";
 
-const SLOT_SYMBOLS = ["WEB", "VIDEO", "AUDIO", "NOTA"];
+const SLOT_SYMBOLS = ["WEB", "VIDEO", "AUDIO", "OTRO"];
 const REEL_ROW_HEIGHT = 52;
 const REEL_SPIN_DURATION_MS = 2200;
 const REEL_STOP_STAGGER_MS = 120;
@@ -27,7 +27,7 @@ const categoryToSymbolIndex = (category) => {
 };
 
 const getNoteSlotLabel = (note) => {
-  if (!note) return "NOTA";
+  if (!note) return "OTRO";
   const category = categorizeNote(note);
   const idx = categoryToSymbolIndex(category);
   return SLOT_SYMBOLS[idx];
@@ -68,9 +68,11 @@ const DigitalBrainSlot = () => {
 
     const pickedNote = notes.find((n) => n.id === pickedId);
     const symbolIndex = pickedNote ? categoryToSymbolIndex(categorizeNote(pickedNote)) : 0;
-    setReel1Stop(symbolIndex);
-    setReel2Stop(symbolIndex);
-    setReel3Stop(symbolIndex);
+    /* Parada para que la fila ganadora sea la del MEDIO (índice 11), no la de abajo: (11+stop)%4 === symbolIndex => stop = (symbolIndex+1)%4 */
+    const reelStop = (symbolIndex + 1) % 4;
+    setReel1Stop(reelStop);
+    setReel2Stop(reelStop);
+    setReel3Stop(reelStop);
 
     const revealAt = REEL_SPIN_DURATION_MS + REEL_STOP_STAGGER_MS * 2 + 200;
     setTimeout(() => {
@@ -111,9 +113,9 @@ const DigitalBrainSlot = () => {
         </Link>
       </div>
       <div className="slot-page__content">
-        <h1 className="slot-page__title">Slot</h1>
+        <h1 className="slot-page__title">Minijuego</h1>
         <p className="slot-page__subtitle">
-          Tira de la palanca para descubrir una nota al azar de tu conocimiento.
+          Pulsa el botón para descubrir una nota al azar.
         </p>
 
         {notes.length === 0 ? (
@@ -124,11 +126,13 @@ const DigitalBrainSlot = () => {
           <div className="slot-machine" role="region" aria-label="Tragaperras de conocimiento">
             <div className="slot-machine__cabinet">
               <div className="slot-machine__marquee">
-                <span className="slot-machine__marquee-text">KNOWLEDGE</span>
+                <span className="slot-machine__marquee-text">Synapse</span>
                 <span className="slot-machine__marquee-glow" aria-hidden />
-                <span className="slot-machine__marquee-light slot-machine__marquee-light--1" />
-                <span className="slot-machine__marquee-light slot-machine__marquee-light--2" />
-                <span className="slot-machine__marquee-light slot-machine__marquee-light--3" />
+                <div className="slot-machine__marquee-lights" aria-hidden>
+                  <span className="slot-machine__marquee-light slot-machine__marquee-light--1" />
+                  <span className="slot-machine__marquee-light slot-machine__marquee-light--2" />
+                  <span className="slot-machine__marquee-light slot-machine__marquee-light--3" />
+                </div>
               </div>
               <div className="slot-machine__bezel">
                 <div className="slot-machine__reels">
@@ -151,7 +155,7 @@ const DigitalBrainSlot = () => {
                   ))}
                 </div>
                 <div className="slot-machine__payline" aria-hidden />
-                <div className="slot-machine__result">
+                <div className="slot-machine__result slot-machine__result--below">
                   {slotCurrentNote ? (
                     <div className="slot-machine__content">
                       <div className={`slot-machine__content-type slot-machine__content-type--${slotCurrentNote.type || "nota"}`}>
@@ -179,34 +183,34 @@ const DigitalBrainSlot = () => {
                     </div>
                   ) : (
                     <div className="slot-machine__placeholder">
-                      {slotSpinning ? "..." : "Tira de la palanca"}
+                      {slotSpinning ? "..." : "Pulsa el botón"}
                     </div>
                   )}
                 </div>
               </div>
-              <button
-                type="button"
-                className={`slot-machine__lever ${slotLeverDown ? "slot-machine__lever--down" : ""}`}
-                onMouseDown={handleLeverMouseDown}
-                onMouseUp={handleLeverMouseUp}
-                onMouseLeave={handleLeverMouseLeave}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  handleLeverMouseDown();
-                }}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  handleLeverMouseUp();
-                }}
-                disabled={slotSpinning}
-                aria-label="Tirar de la palanca para girar los rodillos"
-              >
-                <span className="slot-machine__lever-base" aria-hidden />
-                <span className="slot-machine__lever-arm" />
-                <span className="slot-machine__lever-handle" />
-              </button>
+              <div className="slot-machine__controls">
+                <button
+                  type="button"
+                  className={`slot-machine__spin-btn ${slotLeverDown ? "slot-machine__spin-btn--pressed" : ""}`}
+                  onMouseDown={handleLeverMouseDown}
+                  onMouseUp={handleLeverMouseUp}
+                  onMouseLeave={handleLeverMouseLeave}
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    handleLeverMouseDown();
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    handleLeverMouseUp();
+                  }}
+                  disabled={slotSpinning}
+                  aria-label="Pulsar para girar los rodillos"
+                >
+                  <span className="slot-machine__spin-btn-inner">SPIN</span>
+                </button>
+              </div>
             </div>
-            <div className="slot-machine__label">SYNAPSE SLOT</div>
+            <div className="slot-machine__label">SYNAPSE MINIJUEGO</div>
           </div>
         )}
       </div>

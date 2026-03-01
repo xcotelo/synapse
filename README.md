@@ -1,8 +1,8 @@
 <div align="center">
-
-# 🧠 Synapse
-
-**Motor de Conocimiento Personal — Tu Segundo Cerebro**
+<a href="https://git.io/typing-svg">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&duration=3000&pause=200&color=00FFA3&vCenter=true&random=false&width=600&lines=Synapse+-+Motor+de+Crecimiento+Personal;Digital+Brain+%7C+Segundo+Cerebro;Knowledge+Management+powered+by+AI" alt="Typing SVG" />
+</a>
+</div>
 
 [![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.4-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -11,8 +11,6 @@
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue)](LICENSE)
 
 Aplicación web full-stack de Gestión de Conocimiento Personal (PKM) que optimiza la captura, organización y aprendizaje activo de información mediante procesamiento asistido por inteligencia artificial.
-
-</div>
 
 ---
 
@@ -202,7 +200,7 @@ La clave API del LLM se inyecta vía variable de entorno `API_KEY_LLAMA`.
 | `POST` | `/api/users/signUp` | — | Registro de usuario |
 | `POST` | `/api/users/login` | — | Login (retorna JWT) |
 | `POST` | `/api/users/loginFromServiceToken` | — | Re-autenticación por token |
-| `DELETE` | `/api/users/{id}/removeUser` | 🔒 | Eliminar cuenta |
+| `POST` | `/api/users/{id}/removeUser` | 🔒 | Eliminar cuenta |
 | `POST` | `/api/brain/suggest` | — | Sugerencia IA para texto |
 | `POST` | `/api/brain/suggest/file` | — | Sugerencia IA para fichero |
 | `GET` | `/api/brain/preview` | — | Vista previa de URL (metadatos) |

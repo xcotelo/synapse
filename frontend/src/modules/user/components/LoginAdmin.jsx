@@ -22,7 +22,7 @@ const LoginAdmin = () => {
                 password,
                 () => {
                     logIn(RoleType.ADMIN);
-                    navigate('/users/allUsers')
+                    navigate('/users/allUsers');
                 },
                 errors => {
                     if (typeof errors === 'string') {
@@ -47,43 +47,53 @@ const LoginAdmin = () => {
     }, []);
 
     return (
-        <div className="row justify-content-center">
-            <div className="col-4">
-                <div className="card shadow-lg mt-4">
-                    <div className="card-header text-center bazul3">
-                        <h3 className="blanco">Login</h3>
+        <div className="synapse-auth-page synapse-auth-page--retro">
+            <div className="col-11 col-sm-8 col-md-6 col-lg-4 synapse-animate-in synapse-animate-in-delay-2">
+                <div className="card synapse-auth-card synapse-auth-card--retro">
+                    <div className="card-header">
+                        <h3 className="mb-1">Acceso admin</h3>
+                        <p className="mb-0">Panel de administración</p>
                     </div>
-                    <div className="card-body bazul1">
+                    <div className="card-body">
                         <Errors errors={backendErrors} onClose={() => setBackendErrors(null)} />
-                        <form ref={node => form = node}
-                            className="needs-validation" noValidate
-                            onSubmit={e => handleSubmit(e)}>
-                            <div className="row">
-                                <div className="col">
-                                    <label className="form-label" htmlFor="userName">Usuario</label>
-                                    <input type="text" className="form-control bblanco" id="userName"
-                                        value={userName}
-                                        onChange={e => setUserName(e.target.value)}
-                                        autoFocus
-                                        required />
-                                </div>
+                        <form
+                            ref={node => form = node}
+                            className="needs-validation"
+                            noValidate
+                            onSubmit={e => handleSubmit(e)}
+                        >
+                            <div className="mb-3">
+                                <label className="form-label" htmlFor="userName">Usuario</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    id="userName"
+                                    placeholder="Usuario admin"
+                                    value={userName}
+                                    onChange={e => setUserName(e.target.value)}
+                                    autoFocus
+                                    required
+                                />
                             </div>
-                            <div className="row mt-3">
-                                <div className="col">
-                                    <label className="form-label" htmlFor="password">Contraseña</label>
-                                    <input type="password" className="form-control bblanco" id="password"
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
-                                        required />
-                                </div>
+                            <div className="mb-3">
+                                <label className="form-label" htmlFor="password">Contraseña</label>
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    id="password"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    required
+                                />
                             </div>
-                            <div className="row justify-content-center">
-                                <div className="col-8 text-center">
-                                    <button type="submit" className="btn btn-primary btn-block my-4 bazul2">Iniciar sesión</button>
-                                </div>
+                            <div className="d-grid gap-2 mt-3">
+                                <button type="submit" className="btn btn-primary synapse-btn-primary w-100 py-2">
+                                    Iniciar sesión
+                                </button>
                             </div>
-                            <div className="text-end">
-                                <p><Link to="/">No soy administrador</Link></p>
+                            <div className="text-end mt-3">
+                                <small className="text-muted"><Link to="/">No soy administrador</Link></small>
                             </div>
                         </form>
                     </div>

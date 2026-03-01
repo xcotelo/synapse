@@ -5,10 +5,11 @@
   "private": true,
   "dependencies": {
     "react": "^18.2.0",
+    "react-datepicker": "^4.25.0",
     "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.0",
     "react-router-dom": "^6.3.0",
-    "react-scripts": "5.0.1",
-    "react-markdown": "^9.0.0"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -24,5 +25,11 @@
   },
   "browserslist": [
     "defaults"
-  ]
+  ],
+  "contributors": [
+    "Heitor Cambre García <heitor.cambre@udc.es>",
+    "Xián Cotelo Varela <x.cotelo@udc.es>",
+    "Diego Viqueira Sebe <d.vsebe@udc.es>"
+  ],
+  "license": "GPL-3.0"
 }

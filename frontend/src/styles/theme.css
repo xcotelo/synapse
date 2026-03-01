@@ -24,6 +24,12 @@
   --synapse-success: #059669;
   --synapse-warning: #d97706;
 
+  /* Retro (Slot / arcade) accents */
+  --synapse-retro-title-top: #fcd34d;
+  --synapse-retro-title-bottom: var(--synapse-warning);
+  --synapse-retro-title-glow-1: rgba(252, 211, 77, 0.65);
+  --synapse-retro-title-glow-2: rgba(217, 119, 6, 0.45);
+
   --synapse-text: #0f172a;
   --synapse-text-secondary: #475569;
   --synapse-text-muted: #64748b;
@@ -177,6 +183,35 @@ body {
   flex-direction: column;
   padding-top: 100px;
   padding-bottom: 70px;
+}
+
+/* Páginas oscuras (Slot, Arcade): mismo fondo para evitar franjas al deslizar */
+.synapse-app:has(.slot-page),
+.synapse-app:has(.arcade-page) {
+  background: #030406;
+}
+
+.synapse-app:has(.slot-page)::before,
+.synapse-app:has(.arcade-page)::before,
+.synapse-app:has(.process-entry-page)::before,
+.synapse-app:has(.synapse-batch)::before {
+  display: none;
+}
+
+.synapse-main:has(.slot-page),
+.synapse-main:has(.arcade-page) {
+  background: #030406;
+}
+
+/* En arcade no hay header: la página usa todo el espacio desde arriba */
+.synapse-main:has(.arcade-page) {
+  padding-top: 0;
+  padding-bottom: 1rem;
+}
+
+.synapse-app:has(.slot-page) .slot-page,
+.synapse-app:has(.arcade-page) .arcade-page {
+  overscroll-behavior: none;
 }
 
 /* ========== Header fijo: tamaño progresivo según scroll (--header-scroll 0→1) ========== */
@@ -349,7 +384,8 @@ body {
 }
 
 .synapse-header__notif-btn img {
-  filter: brightness(0) saturate(100%) invert(88%) sepia(59%) saturate(1000%) hue-rotate(5deg);
+  /* Mismo amarillo ámbar que el resto de la página (#fbbf24) */
+  filter: brightness(0) saturate(100%) invert(73%) sepia(50%) saturate(1000%) hue-rotate(5deg);
 }
 
 .synapse-header__notif-btn:hover {
@@ -510,6 +546,107 @@ body {
   margin-top: 2px;
 }
 
+/* ========== Notificaciones en header: estilo arcade/retro ========== */
+.synapse-header__notif-dropdown {
+  background: linear-gradient(165deg, #1a1d24 0%, #0f1115 40%, #08090c 100%) !important;
+  border: 1px solid rgba(251, 191, 36, 0.3) !important;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(251, 191, 36, 0.08);
+}
+
+.synapse-header__notif-header {
+  background: rgba(15, 17, 21, 0.95) !important;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.2) !important;
+  padding: 12px 16px;
+}
+
+.synapse-header__notif-header .fw-semibold {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fbbf24;
+}
+
+.synapse-header__notif-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.synapse-header__notif-action {
+  font-family: "Courier New", monospace !important;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+.synapse-header__notif-action--primary {
+  color: #0a080c !important;
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%) !important;
+  border: 2px solid #92400e !important;
+}
+
+.synapse-header__notif-action--primary:hover {
+  filter: brightness(1.1);
+  border-color: #b45309 !important;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.35);
+}
+
+.synapse-header__notif-action--secondary {
+  color: #94a3b8 !important;
+  background: transparent !important;
+  border: 2px solid #475569 !important;
+}
+
+.synapse-header__notif-action--secondary:hover {
+  background: rgba(251, 191, 36, 0.1) !important;
+  border-color: rgba(251, 191, 36, 0.5) !important;
+  color: #fbbf24 !important;
+}
+
+.synapse-header__notif-list {
+  background: transparent;
+}
+
+.synapse-header__notif-empty {
+  padding: 24px 16px;
+  font-family: "Courier New", monospace;
+  color: #64748b !important;
+  font-size: 0.875rem;
+}
+
+.synapse-header__notif-item {
+  border-bottom: 1px solid rgba(251, 191, 36, 0.12) !important;
+  padding: 12px 16px;
+  transition: background 0.15s ease;
+}
+
+.synapse-header__notif-item:hover {
+  background: rgba(251, 191, 36, 0.08) !important;
+}
+
+.synapse-header__notif-item.read {
+  opacity: 0.75;
+}
+
+.synapse-header__notif-item.read .synapse-header__notif-item-title {
+  color: #64748b;
+}
+
+.synapse-header__notif-item-title {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #e2e8f0;
+}
+
+.synapse-header__notif-item-time {
+  font-family: "Courier New", monospace;
+  font-size: 0.75rem;
+  color: #64748b !important;
+  margin-top: 4px;
+}
+
 /* ========== Dashboard: sidebar + content ========== */
 .synapse-dashboard {
   display: flex;
@@ -522,6 +659,27 @@ body {
   min-width: 0;
   background: var(--synapse-surface);
   overflow-y: auto;
+}
+
+.synapse-dashboard__content:has(.synapse-brain-page--retro-stage),
+.synapse-dashboard__content:has(.process-entry-page),
+.synapse-dashboard__content:has(.synapse-batch) {
+  background: #08090c;
+}
+
+/* Propagate dark background up through all ancestor layers for retro Inbox / process */
+.synapse-app:has(.synapse-brain-page--retro-stage),
+.synapse-app:has(.process-entry-page),
+.synapse-app:has(.synapse-batch) {
+  background: #08090c;
+}
+
+.synapse-app:has(.synapse-brain-page--retro-stage)::before {
+  display: none;
+}
+
+.synapse-main:has(.synapse-brain-page--retro-stage) {
+  background: #08090c;
 }
 
 /* ========== Footer ========== */
@@ -722,6 +880,42 @@ body {
   animation: synapse-gradient-shift 16s ease infinite;
 }
 
+/* Retro skin (Slot-like) for login zone */
+.synapse-auth-page--retro {
+  background: linear-gradient(180deg, #0a0b0f 0%, #060709 50%, #030406 100%);
+  background-size: auto;
+  animation: none;
+  color: #e2e8f0;
+}
+
+.synapse-auth-page--retro::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #0a0b0f 0%, #060709 50%, #030406 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.synapse-auth-page--retro::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(96, 165, 250, 0.10), transparent 55%),
+    radial-gradient(circle at 20% 90%, rgba(217, 70, 239, 0.07), transparent 60%),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.02) 0,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+  z-index: -1;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
 .synapse-auth-page > div {
   width: 100%;
   max-width: 420px;
@@ -738,6 +932,14 @@ body {
   animation: synapse-scale-in 0.5s var(--synapse-spring) both;
 }
 
+.synapse-auth-card--retro {
+  border-radius: 16px;
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(96, 165, 250, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
 .synapse-auth-card .card-header {
   background: linear-gradient(135deg, var(--synapse-primary) 0%, var(--synapse-primary-hover) 100%);
   color: var(--synapse-text-inverse);
@@ -745,6 +947,49 @@ body {
   text-align: center;
   border: none;
   position: relative;
+}
+
+.synapse-auth-card--retro .card-header {
+  background: linear-gradient(180deg, #0f1419 0%, #080a0d 100%);
+  color: #e2e8f0;
+  border: 2px solid rgba(251, 191, 36, 0.3);
+  border-bottom: none;
+  padding: 1.35rem 1.5rem 1.1rem;
+  box-shadow:
+    0 0 20px rgba(96, 165, 250, 0.18),
+    inset 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.synapse-auth-card--retro .card-header::after {
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.4), rgba(251, 191, 36, 0.6), rgba(251, 191, 36, 0.4), transparent);
+  height: 2px;
+  opacity: 0.9;
+}
+
+.synapse-auth-card--retro .card-header h3 {
+  font-family: "Courier New", monospace;
+  color: #fbbf24;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .synapse-auth-card--retro .card-header h3 {
+    background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+  }
+}
+
+.synapse-auth-card--retro .card-header p {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  color: #94a3b8;
+  opacity: 1;
 }
 
 .synapse-auth-card .card-header::after {
@@ -780,12 +1025,27 @@ body {
   backdrop-filter: blur(8px);
 }
 
+.synapse-auth-card--retro .card-body {
+  background: linear-gradient(165deg, #1a1d24 0%, #0f1115 40%, #08090c 100%);
+  color: #e2e8f0;
+  backdrop-filter: none;
+}
+
 .synapse-auth-card .form-label {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--synapse-primary);
   margin-bottom: 0.4rem;
   letter-spacing: 0.01em;
+}
+
+.synapse-auth-card--retro .form-label {
+  font-family: "Courier New", monospace;
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
 }
 
 .synapse-auth-card .form-control {
@@ -795,9 +1055,30 @@ body {
   transition: border-color var(--synapse-ease), box-shadow var(--synapse-ease);
 }
 
+.synapse-auth-card--retro .form-control {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  background: #0f1115;
+  border: 1px solid #2a2840;
+  color: #e2e8f0;
+  border-radius: 6px;
+}
+
+.synapse-auth-card--retro .form-control::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
 .synapse-auth-card .form-control:focus {
   border-color: var(--synapse-primary-light);
   box-shadow: 0 0 0 3px var(--synapse-accent-soft);
+}
+
+.synapse-auth-card--retro .form-control:focus {
+  background: #0f1115;
+  color: #e2e8f0;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
 }
 
 .synapse-auth-card .btn-primary {
@@ -807,6 +1088,27 @@ body {
   font-weight: 600;
   padding: 0.65rem 1.25rem;
   transition: transform var(--synapse-ease), box-shadow var(--synapse-ease);
+}
+
+.synapse-auth-card--retro .btn-primary,
+.synapse-auth-card--retro .synapse-btn-primary {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%);
+  border: 2px solid #92400e;
+  color: #0a080c;
+  border-radius: 6px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 0 #78350f, inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.synapse-auth-card--retro .btn-primary:hover,
+.synapse-auth-card--retro .synapse-btn-primary:hover {
+  filter: brightness(1.1);
+  color: #0a080c;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #78350f, inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .synapse-auth-card .btn-primary:hover {
@@ -822,9 +1124,19 @@ body {
   transition: color var(--synapse-ease);
 }
 
+.synapse-auth-card--retro a {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  color: #fbbf24;
+}
+
 .synapse-auth-card a:hover {
   color: var(--synapse-primary-light);
   text-decoration: underline;
+}
+
+.synapse-auth-card--retro a:hover {
+  color: #fcd34d;
 }
 
 /* ========== Alertas ========== */
@@ -879,6 +1191,41 @@ body {
 .synapse-app .form-select:focus {
   border-color: var(--synapse-primary);
   box-shadow: 0 0 0 3px var(--synapse-accent-soft);
+}
+
+/* ========== Auth retro overrides (arcade style inside .synapse-app) ========== */
+.synapse-app .synapse-auth-card--retro .form-control {
+  background: #0f1115;
+  color: #e2e8f0;
+  caret-color: #fbbf24;
+  border-color: #2a2840;
+}
+
+.synapse-app .synapse-auth-card--retro .form-control::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.synapse-app .synapse-auth-card--retro .form-control:focus {
+  background: #0f1115;
+  color: #e2e8f0;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
+}
+
+.synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill,
+.synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill:hover,
+.synapse-app .synapse-auth-card--retro .form-control:-webkit-autofill:focus {
+  -webkit-text-fill-color: #e2e8f0;
+  box-shadow: 0 0 0 1000px #0f1115 inset;
+  caret-color: #fbbf24;
+}
+
+.synapse-auth-card--retro .text-muted,
+.synapse-auth-card--retro small {
+  font-family: "Courier New", monospace;
+  color: #94a3b8 !important;
+  opacity: 0.95;
 }
 
 /* ========== Brain pages ========== */
@@ -989,6 +1336,219 @@ body {
   gap: 1.75rem;
 }
 
+/* ========== Inbox: retro/arcade variant ========== */
+.synapse-brain-page--retro-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 2.5rem 0 4rem;
+  background: #08090c;
+}
+
+.synapse-brain-page--retro {
+  position: relative;
+  border-radius: var(--synapse-radius-lg);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  background: linear-gradient(165deg, #1a1d24 0%, #0f1115 40%, #08090c 100%);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.synapse-brain-page--retro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.035) 0px,
+    rgba(255, 255, 255, 0.035) 1px,
+    rgba(0, 0, 0, 0) 3px,
+    rgba(0, 0, 0, 0) 6px
+  );
+  opacity: 0.16;
+}
+
+.synapse-brain-page--retro::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(80% 60% at 50% 20%, rgba(96, 165, 250, 0.22), transparent 60%);
+  opacity: 0.35;
+}
+
+.inbox-page--retro {
+  position: relative;
+  z-index: 1;
+  font-family: "Courier New", monospace;
+}
+
+.inbox-page--retro .btn,
+.inbox-page--retro button {
+  font-family: "Courier New", monospace;
+}
+
+/* Título y subtítulo: tipografía arcade (como marquee de la arcade) */
+.inbox-page--retro .inbox-hero__title {
+  font-family: "Courier New", monospace;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: #fbbf24;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+  margin: 0 0 0.25rem 0;
+  text-transform: uppercase;
+}
+
+.inbox-page--retro .inbox-hero__subtitle {
+  font-family: "Courier New", monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  opacity: 0.95;
+}
+
+.inbox-page--retro .inbox-hero__action {
+  background: linear-gradient(180deg, #1a1a22 0%, #0e0e14 100%);
+  border: 2px solid #2a2840;
+  color: #fbbf24;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 0 #0a080c;
+}
+
+.inbox-page--retro .inbox-hero__action:hover {
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fcd34d;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 12px rgba(251, 191, 36, 0.25),
+    0 2px 0 #0a080c;
+}
+
+/* Inbox estilo arcade: misma paleta que la página arcade (#0a080c, #fbbf24, #22c55e, #ef4444) */
+.inbox-page--retro .inbox-capture,
+.inbox-page--retro .inbox-list-section {
+  background: linear-gradient(180deg, #1a1822 0%, #121018 50%, #0e0c14 100%) !important;
+  border: 2px solid #2a2840;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.4),
+    0 4px 0 #0a080c,
+    0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.inbox-page--retro .inbox-capture__label {
+  font-family: "Courier New", monospace;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #c4b5e0;
+  text-transform: uppercase;
+}
+
+.inbox-page--retro .inbox-capture__hint {
+  font-family: "Courier New", monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.inbox-page--retro .inbox-capture__textarea {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  background: #0a0a0e;
+  color: #e2e8f0;
+  caret-color: #fbbf24;
+  border: 2px solid #2a2840;
+  border-radius: 4px;
+  resize: none;
+  overflow-y: auto;
+}
+
+.inbox-page--retro .inbox-capture__textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.inbox-page--retro .inbox-capture__textarea:focus {
+  border-color: rgba(251, 191, 36, 0.6);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15), 0 0 12px rgba(251, 191, 36, 0.1);
+}
+
+/* Botón nota de voz: estilo trigger arcade */
+.inbox-page--retro .inbox-capture__mic-btn {
+  background: linear-gradient(180deg, #1a1a22 0%, #0e0e14 100%);
+  border: 2px solid #2a2840;
+  color: #22c55e;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 0 #0a080c,
+    0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+.inbox-page--retro .inbox-capture__mic-btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 12px rgba(251, 191, 36, 0.25),
+    0 2px 0 #0a080c;
+}
+
+.inbox-page--retro .inbox-capture__mic-btn--recording {
+  background: linear-gradient(180deg, #2a1a1a 0%, #1a0e0e 100%);
+  border-color: #ef4444;
+  color: #f87171;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 0 #0a080c,
+    0 0 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Botón "Añadir al inbox": estilo arcade (acento ámbar) */
+.inbox-page--retro .inbox-capture .btn-primary,
+.inbox-page--retro .inbox-capture .synapse-brain-btn {
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 30%, #f59e0b 70%, #d97706 100%);
+  border: 2px solid #92400e;
+  color: #0a080c;
+  font-family: "Courier New", monospace;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 4px 0 #0a080c,
+    0 5px 0 rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+.inbox-page--retro .inbox-capture .btn-primary:hover,
+.inbox-page--retro .inbox-capture .synapse-brain-btn:hover {
+  filter: brightness(1.08);
+  box-shadow:
+    0 4px 0 #0a080c,
+    0 0 16px rgba(251, 191, 36, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4);
+}
+
+.inbox-page--retro .synapse-inbox-item:hover,
+.inbox-page--retro .inbox-item:hover {
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.inbox-page--retro .synapse-inbox-item--selected {
+  background: rgba(251, 191, 36, 0.12);
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.4);
+}
+
 .inbox-hero {
   display: flex;
   flex-wrap: wrap;
@@ -1059,13 +1619,16 @@ body {
 
 .inbox-capture__textarea {
   width: 100%;
+  height: 120px;
   min-height: 120px;
+  max-height: 120px;
   padding: 1rem 1.25rem;
   border: 1px solid var(--synapse-border);
   border-radius: var(--synapse-radius-sm);
   font-size: 1rem;
   font-family: inherit;
-  resize: vertical;
+  resize: none;
+  overflow-y: auto;
   transition: border-color var(--synapse-ease), box-shadow var(--synapse-ease);
 }
 
@@ -1134,6 +1697,7 @@ body {
 
 .inbox-capture__mic-icon {
   flex-shrink: 0;
+  filter: brightness(0) invert(1);
 }
 
 .inbox-capture__mic-error {
@@ -1152,6 +1716,185 @@ body {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--synapse-border);
   background: var(--synapse-surface);
+}
+
+/* Toolbar y filtros: paleta arcade */
+.inbox-page--retro .inbox-list-section__toolbar {
+  background: rgba(10, 8, 12, 0.6) !important;
+  border-bottom-color: #2a2840 !important;
+  color: #e2e8f0 !important;
+}
+
+.inbox-page--retro .inbox-list-section__filters {
+  background: transparent !important;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .badge.bg-primary {
+  background: rgba(251, 191, 36, 0.25) !important;
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+.inbox-page--retro .inbox-list-section__filters .form-label,
+.inbox-page--retro .inbox-list-section__toolbar .form-label,
+.inbox-page--retro .inbox-list-section__toolbar .small {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #cbd5e1;
+}
+
+/* Ítems de la lista: tipografía como lista de la arcade */
+.inbox-page--retro .inbox-item,
+.inbox-page--retro .synapse-inbox-item,
+.inbox-page--retro .synapse-inbox-item__checkbox-label {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.inbox-page--retro .inbox-list-section__empty {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .form-control,
+.inbox-page--retro .inbox-list-section__toolbar .form-select {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #0a0a0e;
+  color: #e2e8f0;
+  caret-color: #fbbf24;
+  border: 2px solid #2a2840;
+  border-radius: 4px;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .form-control::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .form-control:focus,
+.inbox-page--retro .inbox-list-section__toolbar .form-select:focus {
+  border-color: rgba(251, 191, 36, 0.5);
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.15);
+}
+
+/* Botones toolbar: estilo arcade */
+.inbox-page--retro .inbox-list-section__toolbar .btn-primary {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 40%, #16a34a 100%);
+  border: 2px solid #14532d;
+  color: #0a080c;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  box-shadow: 0 3px 0 #0a080c, inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 3px 0 #0a080c, 0 0 12px rgba(34, 197, 94, 0.35);
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .btn-outline-danger {
+  border: 2px solid #7f1d1d;
+  color: #f87171;
+  background: transparent;
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .btn-outline-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #fca5a5;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .btn-outline-secondary {
+  border: 2px solid #2a2840;
+  color: #e2e8f0;
+  background: linear-gradient(180deg, #1a1a22 0%, #0e0e14 100%);
+}
+
+.inbox-page--retro .inbox-list-section__toolbar .btn-outline-secondary:hover:not(:disabled) {
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.15);
+}
+
+/* Botones dentro de ítems del listado (Procesar, Conocimiento, etc.): paleta arcade */
+.inbox-page--retro .inbox-list-section .btn-outline-primary,
+.inbox-page--retro .inbox-list-section .btn-sm.btn-outline-primary {
+  border: 2px solid rgba(34, 197, 94, 0.5);
+  color: #22c55e;
+  background: transparent;
+}
+
+.inbox-page--retro .inbox-list-section .btn-outline-primary:hover:not(:disabled),
+.inbox-page--retro .inbox-list-section .btn-sm.btn-outline-primary:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+  color: #4ade80;
+}
+
+.inbox-page--retro .inbox-list-section a.btn-primary,
+.inbox-page--retro .inbox-list-section .btn-primary.btn-sm {
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%);
+  border: 2px solid #92400e;
+  color: #0a080c;
+  font-weight: 700;
+}
+
+.inbox-page--retro .inbox-list-section a.btn-primary:hover,
+.inbox-page--retro .inbox-list-section .btn-primary.btn-sm:hover {
+  filter: brightness(1.1);
+  color: #0a080c;
+}
+
+/* Vista previa de enlace en ítems del inbox (pendientes): estilo arcade */
+.inbox-page--retro .inbox-item .p-2.border.rounded.bg-light,
+.inbox-page--retro .inbox-item div.bg-light.rounded {
+  background: rgba(15, 17, 21, 0.9) !important;
+  border: 1px solid rgba(251, 191, 36, 0.3) !important;
+  color: #cbd5e1;
+  font-family: "Courier New", monospace;
+}
+
+.inbox-page--retro .inbox-item .p-2.border.rounded.bg-light .small.fw-semibold,
+.inbox-page--retro .inbox-item div.bg-light.rounded .small.fw-semibold {
+  color: #fbbf24;
+}
+
+.inbox-page--retro .inbox-item .p-2.border.rounded.bg-light .small.mt-1,
+.inbox-page--retro .inbox-item div.bg-light.rounded .small.mt-1 {
+  color: #94a3b8;
+}
+
+/* Botón "Cargar vista previa" dentro del ítem */
+.inbox-page--retro .inbox-item .btn-outline-secondary {
+  border: 2px solid #475569;
+  color: #94a3b8;
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+}
+
+.inbox-page--retro .inbox-item .btn-outline-secondary:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+}
+
+.inbox-page--retro .inbox-item .btn-outline-secondary:disabled {
+  opacity: 0.7;
+  color: #64748b;
+}
+
+/* Mensaje de error al cargar vista previa */
+.inbox-page--retro .inbox-item .text-danger {
+  color: #f87171 !important;
+  font-family: "Courier New", monospace;
+  font-size: 0.8rem;
 }
 
 .inbox-list-section__filters {
@@ -1184,6 +1927,359 @@ body {
 
 .inbox-item:hover {
   background: var(--synapse-accent-soft);
+}
+
+/* ========== Process entry page: arcade/retro variant ========== */
+.process-entry-page {
+  font-family: "Courier New", monospace;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.synapse-main:has(.process-entry-page),
+.synapse-main:has(.synapse-batch) {
+  background: #08090c;
+}
+
+.process-entry-page .synapse-brain-title {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fbbf24;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.3);
+}
+
+.process-entry-page .synapse-brain-card,
+.process-entry-page .card {
+  background: linear-gradient(165deg, #1a1d24 0%, #0f1115 40%, #08090c 100%);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.process-entry-page .synapse-brain-card .card-header,
+.process-entry-page .card .card-header {
+  background: rgba(15, 17, 21, 0.9);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+  color: #e2e8f0;
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.process-entry-page .synapse-brain-card .card-body,
+.process-entry-page .card .card-body {
+  color: #cbd5e1;
+}
+
+.process-entry-page .form-label {
+  font-family: "Courier New", monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #94a3b8;
+}
+
+.process-entry-page .form-control {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  background: #0f1115;
+  border: 1px solid #2a2840;
+  color: #e2e8f0;
+  border-radius: 4px;
+}
+
+.process-entry-page .form-control:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
+  background: #0f1115;
+  color: #e2e8f0;
+}
+
+.process-entry-page .form-control::placeholder {
+  color: #64748b;
+}
+
+/* Input fecha/hora: icono de calendario en blanco y acento ámbar en el picker nativo */
+.process-entry-page input[type="datetime-local"] {
+  accent-color: #fbbf24;
+}
+
+.process-entry-page input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+.process-entry-page .process-entry-reminder-wrap .react-datepicker-wrapper {
+  display: block;
+  width: 100%;
+}
+
+.process-entry-page .process-entry-reminder-wrap .react-datepicker-wrapper input {
+  width: 100%;
+}
+
+.process-entry-page .process-entry-reminder-wrap small.text-muted {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.process-entry-page textarea.form-control {
+  font-family: "Courier New", monospace;
+  caret-color: #fbbf24;
+  height: 280px;
+  min-height: 280px;
+  max-height: 280px;
+  resize: none;
+  overflow-y: auto;
+}
+
+.process-entry-page .text-muted,
+.process-entry-page small.text-muted {
+  color: #64748b !important;
+  font-family: "Courier New", monospace;
+}
+
+.process-entry-page .btn-primary,
+.process-entry-page .synapse-brain-btn.btn-primary {
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%);
+  border: 2px solid #92400e;
+  color: #0a080c;
+  font-weight: 700;
+  font-family: "Courier New", monospace;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 0 #78350f, inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.process-entry-page .btn-primary:hover,
+.process-entry-page .synapse-brain-btn.btn-primary:hover {
+  filter: brightness(1.1);
+  color: #0a080c;
+}
+
+.process-entry-page .btn-outline-primary {
+  background: transparent;
+  border: 2px solid rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+}
+
+.process-entry-page .btn-outline-primary:hover {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: #fbbf24;
+  color: #fcd34d;
+}
+
+.process-entry-page .btn-outline-secondary {
+  background: transparent;
+  border: 2px solid #475569;
+  color: #94a3b8;
+  font-family: "Courier New", monospace;
+}
+
+.process-entry-page .btn-outline-secondary:hover {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.process-entry-page .btn-outline-info {
+  background: transparent;
+  border: 2px solid rgba(34, 211, 238, 0.5);
+  color: #22d3ee;
+  font-family: "Courier New", monospace;
+}
+
+.process-entry-page .btn-outline-info:hover {
+  background: rgba(34, 211, 238, 0.15);
+  border-color: #22d3ee;
+  color: #67e8f9;
+}
+
+.process-entry-page .btn-info {
+  background: linear-gradient(180deg, #67e8f9 0%, #22d3ee 50%, #06b6d4 100%);
+  border: 2px solid #0e7490;
+  color: #0c4a6e;
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+}
+
+.process-entry-page .btn-info:hover {
+  filter: brightness(1.1);
+  color: #0c4a6e;
+}
+
+.process-entry-page .badge {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.process-entry-page .badge.bg-primary,
+.process-entry-page .badge.bg-info {
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 100%) !important;
+  color: #0a080c !important;
+}
+
+.process-entry-page .badge.bg-success {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%) !important;
+  color: #052e16 !important;
+}
+
+.process-entry-page .badge.bg-secondary,
+.process-entry-page .badge.bg-warning {
+  background: #475569 !important;
+  color: #e2e8f0 !important;
+}
+
+.process-entry-page .badge.bg-danger {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%) !important;
+  color: #fff !important;
+}
+
+.process-entry-page .p-3.bg-light.rounded,
+.process-entry-page [class*="bg-light"].rounded {
+  background: #0f1115 !important;
+  border: 1px solid #2a2840;
+  color: #cbd5e1;
+}
+
+.process-entry-page .bg-primary.bg-opacity-10,
+.process-entry-page .p-3.bg-primary.bg-opacity-10 {
+  background: rgba(251, 191, 36, 0.12) !important;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  color: #fcd34d;
+}
+
+.process-entry-page .bg-success.bg-opacity-10,
+.process-entry-page .p-3.bg-success.bg-opacity-10 {
+  background: rgba(34, 197, 94, 0.12) !important;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+
+.process-entry-page .spinner-border.text-primary {
+  color: #fbbf24 !important;
+}
+
+.process-entry-page .text-primary {
+  color: #fbbf24 !important;
+}
+
+.process-entry-page .alert-warning {
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fcd34d;
+}
+
+.process-entry-page .alert-warning .alert-heading {
+  color: #fbbf24;
+}
+
+.process-entry-page .alert-warning .alert-link {
+  color: #fcd34d;
+}
+
+.process-entry-page .alert-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.process-entry-page .alert-danger .alert-link {
+  color: #f87171;
+}
+
+.process-entry-page .border-success {
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+.process-entry-page .list-group-item {
+  background: transparent !important;
+  border-color: rgba(251, 191, 36, 0.15) !important;
+  color: #cbd5e1;
+}
+
+.process-entry-page .list-group-item .badge.bg-success {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%) !important;
+}
+
+.process-entry-page .list-group-item .badge.bg-danger {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%) !important;
+}
+
+.process-entry-page .list-group-item .badge.bg-warning {
+  background: #eab308 !important;
+  color: #0a080c !important;
+}
+
+.process-entry-page .p-2.rounded.bg-white,
+.process-entry-page .bg-white.bg-opacity-50 {
+  background: rgba(15, 17, 21, 0.8) !important;
+  border-color: #2a2840 !important;
+  color: #cbd5e1;
+}
+
+.process-entry-page .p-2.rounded.bg-info.bg-opacity-10,
+.process-entry-page .border-info {
+  background: rgba(34, 211, 238, 0.1) !important;
+  border-color: rgba(34, 211, 238, 0.35) !important;
+  color: #a5f3fc;
+}
+
+.process-entry-page .btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+.process-entry-page .rounded-4[style*="backdropFilter"],
+.process-entry-page .mt-4.p-4.rounded-4 {
+  background: rgba(15, 17, 21, 0.9) !important;
+  border: 1px solid rgba(251, 191, 36, 0.2) !important;
+  color: #cbd5e1;
+}
+
+.process-entry-page .mt-4.p-4.rounded-4 .h6 {
+  color: #fbbf24;
+}
+
+/* Loading / not found states (process entry) */
+.process-entry-page .container.mt-4 .text-muted {
+  color: #64748b !important;
+}
+
+.process-entry-page .container.mt-4 .spinner-border.text-primary {
+  color: #fbbf24 !important;
+}
+
+/* Batch process page: arcade styling */
+.synapse-main:has(.synapse-batch) .synapse-batch__progress-text {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #94a3b8;
+}
+
+.synapse-main:has(.synapse-batch) .synapse-batch__progress-bar {
+  background: #1e293b;
+  border: 1px solid #2a2840;
+  border-radius: 999px;
+}
+
+.synapse-main:has(.synapse-batch) .synapse-batch__progress-fill {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  border-radius: 999px;
+}
+
+.synapse-main:has(.synapse-batch) .synapse-batch__viewport {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.synapse-main:has(.synapse-batch) .synapse-batch__card {
+  background: transparent;
 }
 
 /* Respetar preferencia de movimiento reducido */

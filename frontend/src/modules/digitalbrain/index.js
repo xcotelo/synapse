@@ -3,4 +3,5 @@
 export { default as DigitalBrainInbox } from "./components/DigitalBrainInbox";
 export { default as DigitalBrainProcessEntry } from "./components/DigitalBrainProcessEntry";
 export { default as DigitalBrainProcessBatch } from "./components/DigitalBrainProcessBatch";
-export { default as DigitalBrainKnowledge } from "./components/DigitalBrainKnowledge";
+export { default as DigitalBrainSlot } from "./components/DigitalBrainSlot";
+export { default as DigitalBrainArcade } from "./components/DigitalBrainArcade";

@@ -92,26 +92,6 @@ const DigitalBrainInbox = () => {
     saveInbox([]);
   };
 
-  const handleDiscardOlderThan = (days) => {
-    if (inbox.length === 0) return;
-    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-    const older = inbox.filter((i) => {
-      const t = Date.parse(i.createdAt);
-      return Number.isFinite(t) ? t < cutoff : false;
-    });
-    if (older.length === 0) {
-      window.alert(`No hay entradas de más de ${days} días.`);
-      return;
-    }
-    const ok = window.confirm(
-      `Vas a descartar ${older.length} entradas de más de ${days} días. ¿Continuar?`
-    );
-    if (!ok) return;
-    const updated = inbox.filter((i) => !older.some((o) => o.id === i.id));
-    setInbox(updated);
-    saveInbox(updated);
-  };
-
   // Navega a la pantalla de procesado para esa entrada
   const handleProcess = (id) => {
     navigate(`/brain/process/${id}`);
@@ -428,8 +408,9 @@ const DigitalBrainInbox = () => {
   };
 
   return (
-    <div className="container synapse-brain-page">
-      <div className="inbox-page synapse-animate-in">
+    <div className="synapse-brain-page--retro-stage">
+      <div className="synapse-brain-page synapse-brain-page--retro">
+        <div className="inbox-page inbox-page--retro synapse-animate-in">
         {/* Hero: título + enlace a Conocimiento */}
         <header className="inbox-hero">
           <div className="inbox-hero__title-wrap">
@@ -438,7 +419,7 @@ const DigitalBrainInbox = () => {
               Captura texto, enlaces o ideas. La IA analiza y sugiere; tú decides cuándo convertirlo en conocimiento.
             </p>
           </div>
-          <Link to="/brain/knowledge" className="inbox-hero__action">
+          <Link to="/brain/arcade" className="inbox-hero__action">
             <span aria-hidden>📚</span> Ver notas clasificadas
             {notesCount > 0 && (
               <span className="badge bg-primary rounded-pill">{notesCount}</span>
@@ -544,7 +525,7 @@ const DigitalBrainInbox = () => {
         <section className="inbox-list-section synapse-animate-in synapse-animate-in-delay-2">
           <div className="inbox-list-section__toolbar">
             <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-              <h2 className="h6 mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+              <h2 className="h6 mb-0 fw-bold d-flex align-items-center gap-2">
                 <span aria-hidden>📥</span>
                 Pendientes de procesar
                 {inbox.length > 0 && (
@@ -584,14 +565,6 @@ const DigitalBrainInbox = () => {
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-danger"
-                  onClick={() => handleDiscardOlderThan(30)}
-                  disabled={inbox.length === 0}
-                >
-                  Descartar &gt; 30d
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-danger"
                   onClick={handleClearAll}
                   disabled={inbox.length === 0}
                 >
@@ -601,7 +574,7 @@ const DigitalBrainInbox = () => {
             </div>
             <div className="inbox-list-section__filters row g-2">
               <div className="col-12 col-md-4">
-                <label className="form-label small text-muted mb-1">Buscar</label>
+                <label className="form-label small mb-1">Buscar</label>
                 <input
                   className="form-control form-control-sm"
                   value={query}
@@ -610,7 +583,7 @@ const DigitalBrainInbox = () => {
                 />
               </div>
               <div className="col-6 col-md-4">
-                <label className="form-label small text-muted mb-1">Tipo</label>
+                <label className="form-label small mb-1">Tipo</label>
                 <select
                   className="form-select form-select-sm"
                   value={typeFilter}
@@ -622,12 +595,12 @@ const DigitalBrainInbox = () => {
                   <option value="audio">Audio</option>
                   <option value="tarea">Tarea</option>
                   <option value="codigo">Código</option>
-                  <option value="nota">Nota</option>
+                  <option value="nota">Otro</option>
                   <option value="texto">Texto</option>
                 </select>
               </div>
               <div className="col-6 col-md-4">
-                <label className="form-label small text-muted mb-1">Orden</label>
+                <label className="form-label small mb-1">Orden</label>
                 <select
                   className="form-select form-select-sm"
                   value={sortOrder}
@@ -639,7 +612,7 @@ const DigitalBrainInbox = () => {
               </div>
             </div>
             {(query.trim() || typeFilter !== "all") && (
-              <div className="small text-muted mt-2">
+              <div className="small mt-2">
                 Mostrando {filteredInbox.length} de {inbox.length}.
               </div>
             )}
@@ -648,10 +621,10 @@ const DigitalBrainInbox = () => {
           {inbox.length === 0 ? (
             <div className="inbox-list-section__empty synapse-animate-in">
               <div className="inbox-list-section__empty-icon" aria-hidden>📭</div>
-              <p className="text-muted mb-1">No hay entradas en el inbox.</p>
-              <p className="text-muted small mb-3">Añade contenido arriba o arrastra archivos.</p>
+              <p className="mb-1">No hay entradas en el inbox.</p>
+              <p className="small mb-3">Añade contenido arriba o arrastra archivos.</p>
               {notesCount > 0 && (
-                <Link to="/brain/knowledge" className="btn btn-primary btn-sm">
+                <Link to="/brain/arcade" className="btn btn-primary btn-sm">
                   Ver {notesCount} nota{notesCount !== 1 ? "s" : ""} clasificada{notesCount !== 1 ? "s" : ""}
                 </Link>
               )}
@@ -686,7 +659,7 @@ const DigitalBrainInbox = () => {
                           >
                             {item.type}
                           </span>
-                          <small className="text-muted ms-2">
+                          <small className="ms-2">
                             {new Date(item.createdAt).toLocaleString("es-ES", {
                               day: "2-digit",
                               month: "short",
@@ -709,7 +682,7 @@ const DigitalBrainInbox = () => {
                           {item.rawContent.length > 200 ? (
                             <>
                               {item.rawContent.substring(0, 200)}...
-                              <span className="text-muted small"> (mostrar más)</span>
+                              <span className="small"> (mostrar más)</span>
                             </>
                           ) : (
                             item.rawContent
@@ -729,7 +702,7 @@ const DigitalBrainInbox = () => {
                                   {item.linkPreview.title || "Vista previa"}
                                 </div>
                                 {item.linkPreview.description && (
-                                  <div className="small text-muted mt-1">
+                                  <div className="small mt-1">
                                     {item.linkPreview.description}
                                   </div>
                                 )}
@@ -773,6 +746,7 @@ const DigitalBrainInbox = () => {
             </div>
           )}
         </section>
+        </div>
       </div>
     </div>
   );

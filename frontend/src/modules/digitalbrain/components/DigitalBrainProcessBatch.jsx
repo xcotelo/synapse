@@ -31,7 +31,7 @@ export const DigitalBrainProcessBatch = () => {
   const handleSavedAndNext = () => {
     const nextIndex = currentIndex + 1;
     if (nextIndex >= ids.length) {
-      navigate("/brain/knowledge", { replace: true });
+      navigate("/brain/arcade", { replace: true });
       return;
     }
     setPhase("transitioning");

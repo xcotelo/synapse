@@ -138,6 +138,14 @@ cd synapse
 ### 2. Configurar la base de datos
 
 ```sql
+CREATE DATABASE synapse
+WITH 
+OWNER = synapse
+ENCODING = 'UTF8'
+LC_COLLATE = 'es_ES.UTF-8'
+LC_CTYPE = 'es_ES.UTF-8'
+TEMPLATE = template0;
+
 CREATE USER synapse WITH PASSWORD '1234';
 CREATE DATABASE synapse OWNER synapse;
 CREATE DATABASE synapse_test OWNER synapse;
@@ -146,21 +154,13 @@ CREATE DATABASE synapse_test OWNER synapse;
 ### 3. Configurar la clave API del LLM
 
 ```bash
-export API_KEY_LLAMA="tu-clave-de-groq-aqui"
+export API_KEY_LLAMA="meter_clave_aqui"
 ```
 
-### 4. Build completo (backend + frontend)
+### 4. Arranque aplicación (backend + frontend)
 
 ```bash
-mvn clean package
-```
-
-Maven descarga Node.js y Yarn automáticamente, compila el frontend con `yarn build`, ejecuta los tests y empaqueta todo en un JAR autocontenido.
-
-### 5. Ejecutar
-
-```bash
-java -jar target/Synapse-0.1-SNAPSHOT.jar
+mvn clean install spring-boot:run
 ```
 
 La aplicación estará disponible en **http://localhost:8080/synapse**

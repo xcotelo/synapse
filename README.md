@@ -1,4 +1,14 @@
-# Proyecto Synapse - Motor de Conocimiento Digital (Digital Brain)
+<div align="center">
+<a href="https://git.io/typing-svg">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&duration=3000&pause=200&color=00FFA3&vCenter=true&random=false&width=500&lines=Synapse - Motor de Conocimiento Digital" alt="Typing SVG" />
+</a>
+</div>
+
+<div align="center">
+<a href="https://git.io/typing-svg">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&duration=2500&pause=800&color=00FFA3&center=true&vCenter=true&width=700&lines=Team:+Xián+Cotelo+Varela;Heitor+Cambre+García;Diego+Viqueira+Sebe" alt="Typing SVG" />
+</a>
+</div>
 
 Este documento detalla la arquitectura, decisiones de diseño, funcionalidades core y especificaciones tecnicas del proyecto Synapse, orientado a la evaluacion del jurado de la Olimpiada de Desarrollo de Software.
 

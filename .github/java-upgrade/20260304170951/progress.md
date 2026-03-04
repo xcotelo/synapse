@@ -132,7 +132,7 @@
     - Result: ✅ Compilation SUCCESS (47 source files + 3 test files)
     - Notes: Clean compilation with Java 21, JJWT API migration validated
   - **Deferred Work**: Test verification deferred to Step 4 (Final Validation)
-  - **Commit**: (To be updated after commit)
+  - **Commit**: b787e64 - Step 3: Update POM for Java 21 - Compile: SUCCESS
 
 ---
 

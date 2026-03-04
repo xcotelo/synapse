@@ -6,6 +6,8 @@ package synapse.model.common.exceptions;
 
 public abstract class InstanceException extends Exception {
 
+	private static final long serialVersionUID = 1L;
+
 	/** The name. */
 	private final String name;
 

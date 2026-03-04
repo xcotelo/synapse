@@ -13,9 +13,6 @@ public class ErrorsDto {
 	/** The field errors. */
 	private List<FieldErrorDto> fieldErrors;
 
-	/** The type of error */
-	private String typeOfError;
-
 	/**
 	 * Instantiates a new errors dto.
 	 *
@@ -23,17 +20,6 @@ public class ErrorsDto {
 	 */
 	public ErrorsDto(String globalError) {
 		setGlobalError(globalError);
-	}
-
-	/**
-	 * Instantiates a new errors dto.
-	 *
-	 * @param globalError the global error
-	 * @param typeOfError the type of error
-	 */
-	public ErrorsDto(String globalError, String typeOfError) {
-		setGlobalError(globalError);
-		setTypeOfError(typeOfError);
 	}
 
 	/**
@@ -79,23 +65,5 @@ public class ErrorsDto {
 	 */
 	public void setFieldErrors(List<FieldErrorDto> fieldErrors) {
 		this.fieldErrors = fieldErrors;
-	}
-
-	/**
-	 * Gets the type of error.
-	 *
-	 * @return the global error
-	 */
-	public String getTypeOfError() {
-		return typeOfError;
-	}
-
-	/**
-	 * Sets the type of error.
-	 *
-	 * @param typeOfError the new type of error
-	 */
-	public void setTypeOfError(String typeOfError) {
-		this.typeOfError = typeOfError;
 	}
 }

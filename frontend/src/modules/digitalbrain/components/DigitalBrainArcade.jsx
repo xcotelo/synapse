@@ -352,7 +352,7 @@ const DigitalBrainArcade = () => {
 
     const deleteMediaIfAny = (onDone) => {
       const mediaUrl = noteToDelete.media?.url ?? "";
-      const marker = "/api/brain/media/";
+      const marker = "/api/brains/media/";
       const markerIndex = mediaUrl.indexOf(marker);
       if (markerIndex === -1) {
         onDone();

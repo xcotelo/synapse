@@ -1,11 +1,13 @@
 package synapse.rest.dtos;
 
+import jakarta.validation.constraints.NotBlank;
+
 /**
- * Contenido bruto que el usuario ha capturado en el inbox y que queremos que
- * el "cerebro" analice.
+ * Content captured in the inbox to be analyzed by the brain.
  */
 public class BrainSuggestParamsDto {
 
+    @NotBlank
     private String content;
 
     public BrainSuggestParamsDto() {

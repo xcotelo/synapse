@@ -1,16 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
     const [loggedIn, setLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
-    const [userLoguedId, setUserId] = useState(null);
+    const [loggedUserId, setUserId] = useState(null);
 
     useEffect(() => {
-        const storedLoggedIn = localStorage.getItem('loggedIn') === 'true'
-        const storedUser = localStorage.getItem('user');
-        const storedUserId = localStorage.getItem('userLoguedId');
+        const storedLoggedIn = sessionStorage.getItem('loggedIn') === 'true'
+        const storedUser = sessionStorage.getItem('user');
+        const storedUserId = sessionStorage.getItem('loggedUserId');
 
         if (storedLoggedIn && storedUser && storedUserId) {
             setLoggedIn(storedLoggedIn);
@@ -19,26 +19,28 @@ export const UserProvider = ({ children }) => {
         }
     }, []);
 
-    const logIn = (user, userLoguedId) => {
+    const logIn = useCallback((user, loggedUserId) => {
         setLoggedIn(true);
         setUser(user);
-        setUserId(Number(userLoguedId));
-        localStorage.setItem('loggedIn', 'true');
-        localStorage.setItem('user', user);
-        localStorage.setItem('userLoguedId', userLoguedId)
-    };
+        setUserId(Number(loggedUserId));
+        sessionStorage.setItem('loggedIn', 'true');
+        sessionStorage.setItem('user', user);
+        sessionStorage.setItem('loggedUserId', loggedUserId)
+    }, []);
 
-    const logOut = () => {
+    const logOut = useCallback(() => {
         setLoggedIn(false);
         setUser(null);
         setUserId(null);
-        localStorage.removeItem('loggedIn');
-        localStorage.removeItem('user');
-        localStorage.removeItem('userLoguedId');
-    };
+        sessionStorage.removeItem('loggedIn');
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('loggedUserId');
+    }, []);
+
+    const value = useMemo(() => ({ loggedIn, user, loggedUserId, logIn, logOut }), [loggedIn, user, loggedUserId, logIn, logOut]);
 
     return (
-        <UserContext.Provider value={useMemo(() => ({ loggedIn, user, userLoguedId, logIn, logOut }), [loggedIn, user, userLoguedId, logIn, logOut])}>
+        <UserContext.Provider value={value}>
             {children}
         </UserContext.Provider>
     );

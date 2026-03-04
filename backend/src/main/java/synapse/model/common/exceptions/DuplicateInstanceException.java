@@ -6,6 +6,8 @@ package synapse.model.common.exceptions;
 
 public class DuplicateInstanceException extends InstanceException {
 
+    private static final long serialVersionUID = 1L;
+
     /**
      * Instantiates a new duplicate instance exception.
      *

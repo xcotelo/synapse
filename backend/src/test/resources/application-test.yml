@@ -29,7 +29,7 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
-# Placeholder para que LlamaAIService arranque en tests (no se llama a la IA en tests que no lo necesitan)
+# Placeholder so LlamaAIService starts in tests (AI is not called in tests that don't need it)
 API_KEY_LLAMA: "test-key"
 
 project:
@@ -38,3 +38,5 @@ project:
     expirationMinutes: 1440
   notes:
     dir: target/test-digital-brain-notes
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:8080

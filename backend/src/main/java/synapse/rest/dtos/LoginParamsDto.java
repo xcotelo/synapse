@@ -36,7 +36,7 @@ public class LoginParamsDto {
 	 * @param userName the new user name
 	 */
 	public void setUserName(String userName) {
-		this.userName = userName.trim();
+		this.userName = userName != null ? userName.trim() : null;
 	}
 
 	/**

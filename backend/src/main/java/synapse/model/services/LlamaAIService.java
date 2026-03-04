@@ -24,8 +24,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * Servicio para interactuar con la API de LLaMA (Groq, formato OpenAI
- * compatible).
+ * Service for interacting with the LLaMA API (Groq, OpenAI-compatible
+ * format).
  */
 @Service
 public class LlamaAIService {
@@ -44,9 +44,8 @@ public class LlamaAIService {
     private String model;
 
     private static final String CONST_CONTENT = "content";
-    private static final String CONST_APUNTE = "apunte";
+    private static final String CONST_NOTE = "note";
     private static final String CONST_CLAIMS = "claims";
-    private static final String CONST_NOTA = "nota";
 
     public LlamaAIService() {
         this.client = new OkHttpClient();
@@ -54,88 +53,88 @@ public class LlamaAIService {
     }
 
     /**
-     * Clasifica y analiza contenido usando LLaMA.
+     * Classifies and analyzes content using LLaMA.
      *
-     * @param content El contenido a analizar
-     * @return Resultado de la clasificación con sugerencias
+     * @param content the content to analyze
+     * @return classification result with suggestions
      */
     public ClassificationResult classifyContent(String content) {
         if (content == null || content.trim().isEmpty()) {
             return createDefaultResult();
         }
 
-        logger.info("Clasificando contenido de longitud: {}", content.length());
+        logger.info("Classifying content of length: {}", content.length());
 
-        // Si no hay API key configurada, generar contenido básico del texto
+        // If no API key is configured, generate basic content from text
         if (apiKey == null || apiKey.isEmpty() || apiKey.equals("your-groq-api-key-here")) {
-            logger.warn("API key de LLaMA no configurada, generando contenido básico");
+            logger.warn("LLaMA API key not configured, generating basic content");
             return createSmartDefaultResult(content);
         }
 
         try {
             String prompt = buildClassificationPrompt(content);
-            logger.info("Enviando prompt a LLaMA, longitud: {}", prompt.length());
+            logger.info("Sending prompt to LLaMA, length: {}", prompt.length());
             String response = callLlamaApi(prompt);
-            logger.info("Respuesta recibida de LLaMA, longitud: {}", response != null ? response.length() : 0);
+            logger.info("Response received from LLaMA, length: {}", response != null ? response.length() : 0);
             if (response == null || response.trim().isEmpty()) {
-                logger.warn("Respuesta vacía de LLaMA, generando contenido básico");
+                logger.warn("Empty response from LLaMA, generating basic content");
                 return createSmartDefaultResult(content);
             }
             ClassificationResult result = parseLlamaResponse(response, content);
 
-            // Validar que el resultado tenga contenido útil
-            if (result.getTitle().equals("Nota") && result.getSummary().isEmpty() &&
-                    result.getDetailedContent().contains("Contenido sin procesar")) {
-                logger.warn("Resultado parece ser por defecto, generando contenido inteligente");
+            // Validate that the result has useful content
+            if (result.getTitle().equals("Note") && result.getSummary().isEmpty() &&
+                    result.getDetailedContent().contains("Unprocessed content")) {
+                logger.warn("Result appears to be default, generating smart content");
                 return createSmartDefaultResult(content);
             }
 
-            logger.info("Resultado parseado - título: '{}', tags: {}", result.getTitle(), result.getTags().length);
+            logger.info("Parsed result - title: '{}', tags: {}", result.getTitle(), result.getTags().length);
             return result;
         } catch (Exception e) {
-            logger.error("Error al clasificar contenido con LLaMA: {}", e.getMessage(), e);
+            logger.error("Error classifying content with LLaMA: {}", e.getMessage(), e);
             return createSmartDefaultResult(content);
         }
     }
 
     /**
-     * Construye el prompt para LLaMA - optimizado para mejor precisión.
+     * Builds the prompt for LLaMA - optimized for better accuracy.
      */
     private String buildClassificationPrompt(String content) {
         String contentPreview = content.substring(0, Math.min(content.length(), 15000));
-        boolean isVideo = content.contains("VIDEO") || content.contains("VIDEO DE YOUTUBE") ||
-                content.contains("CANAL:") || content.contains("TÍTULO DEL VIDEO:");
+        boolean isVideo = content.contains("VIDEO") || content.contains("YOUTUBE VIDEO") ||
+                content.contains("CHANNEL:") || content.contains("VIDEO TITLE:");
 
-        return "Analiza el siguiente contenido y genera un JSON con la clasificación. " +
-                "SÉ ESPECÍFICO Y PRECISO. NO uses etiquetas genéricas como 'general'.\n\n" +
-                "CONTENIDO:\n" + contentPreview + "\n\n" +
-                "REGLAS OBLIGATORIAS:\n" +
-                "1. TÍTULO: Crea un título descriptivo y específico basado en el contenido real (máx 120 caracteres)\n"
+        return "Analyze the following content and generate a JSON classification. " +
+                "BE SPECIFIC AND PRECISE. DO NOT use generic tags like 'general'.\n\n" +
+                "CONTENT:\n" + contentPreview + "\n\n" +
+                "MANDATORY RULES:\n" +
+                "1. TITLE: Create a descriptive and specific title based on the actual content (max 120 characters)\n"
                 +
-                "2. SUMMARY: Resumen detallado de 200-800 caracteres explicando QUÉ enseña, QUÉ conceptos cubre, QUÉ tecnologías menciona\n"
+                "2. SUMMARY: Detailed summary of 200-800 characters explaining WHAT it teaches, WHAT concepts it covers, WHAT technologies it mentions\n"
                 +
-                "3. DETAILEDCONTENT: Documento Markdown completo (mín 500 caracteres) con:\n" +
-                "   - Título principal\n" +
-                "   - Resumen ejecutivo\n" +
-                "   - Puntos clave por secciones\n" +
-                "   - Conceptos importantes\n" +
-                "   - Tecnologías/frameworks mencionados\n" +
-                "   - Conclusiones o takeaways\n" +
-                "4. TYPE: 'video', 'articulo', 'tutorial', 'codigo', 'documentacion', 'investigacion', o 'nota'\n" +
-                "5. DESTINATION: 'apunte', 'idea', 'recurso', o 'tarea'\n" +
-                "6. TAGS: Array con 4-6 etiquetas ESPECÍFICAS extraídas del contenido. " +
-                "Ejemplos: 'react-hooks', 'futbol-espanol', 'sanidad-publica', 'algoritmos-grafos'. " +
-                "PROHIBIDO usar 'general', 'varios', 'otros', 'tecnologia', 'programacion'.\n\n" +
+                "3. DETAILEDCONTENT: Complete Markdown document (min 500 characters) with:\n" +
+                "   - Main title\n" +
+                "   - Executive summary\n" +
+                "   - Key points by sections\n" +
+                "   - Important concepts\n" +
+                "   - Technologies/frameworks mentioned\n" +
+                "   - Conclusions or takeaways\n" +
+                "4. TYPE: 'video', 'article', 'tutorial', 'code', 'documentation', 'research', or 'note'\n" +
+                "5. DESTINATION: 'note', 'idea', 'resource', or 'task'\n" +
+                "6. TAGS: Array with 4-6 SPECIFIC tags extracted from the content. " +
+                "Examples: 'react-hooks', 'spanish-football', 'public-healthcare', 'graph-algorithms'. " +
+                "FORBIDDEN: 'general', 'various', 'others', 'technology', 'programming'.\n\n" +
                 (isVideo
-                        ? "ES UN VIDEO: Analiza el título y descripción para extraer temas, tecnologías y conceptos específicos.\n\n"
+                        ? "THIS IS A VIDEO: Analyze the title and description to extract specific topics, technologies and concepts.\n\n"
                         : "")
                 +
-                "Responde SOLO con JSON válido, sin texto adicional:\n" +
-                "{\"type\":\"tipo\",\"title\":\"título\",\"summary\":\"resumen\",\"detailedContent\":\"# Título\\n\\n## Resumen\\n\\n...\",\"destination\":\"apunte\",\"tags\":[\"tag1\",\"tag2\",\"tag3\",\"tag4\"]}";
+                "Respond ONLY with valid JSON, no additional text:\n" +
+                "{\"type\":\"type\",\"title\":\"title\",\"summary\":\"summary\",\"detailedContent\":\"# Title\\n\\n## Summary\\n\\n...\",\"destination\":\"note\",\"tags\":[\"tag1\",\"tag2\",\"tag3\",\"tag4\"]}";
     }
 
     /**
-     * Llama a la API de LLaMA (Groq - formato OpenAI compatible)
+     * Calls the LLaMA API (Groq - OpenAI-compatible format).
      */
     private String callLlamaApi(String prompt) throws IOException {
         JsonObject requestBody = new JsonObject();
@@ -143,7 +142,7 @@ public class LlamaAIService {
         requestBody.addProperty("max_tokens", 4000);
         requestBody.addProperty("temperature", 0.7);
 
-        logger.info("Llamando a la API de Groq: {} con modelo: {}", apiUrl, model);
+        logger.info("Calling Groq API: {} with model: {}", apiUrl, model);
 
         JsonArray messages = new JsonArray();
         JsonObject message = new JsonObject();
@@ -164,58 +163,58 @@ public class LlamaAIService {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 String errorBody = response.body() != null ? response.body().string() : "";
-                logger.error("Error en respuesta de Groq API: HTTP {} - Body: {}", response.code(), errorBody);
+                logger.error("Error in Groq API response: HTTP {} - Body: {}", response.code(), errorBody);
                 throw new IOException("Unexpected code: " + response.code() + " - " + errorBody);
             }
 
             String responseBody = response.body().string();
-            logger.info("Respuesta exitosa de Groq (longitud: {})", responseBody.length());
-            logger.debug("Respuesta completa de Groq: {}", responseBody);
+            logger.info("Successful response from Groq (length: {})", responseBody.length());
+            logger.debug("Complete response from Groq: {}", responseBody);
             JsonObject jsonResponse = gson.fromJson(responseBody, JsonObject.class);
 
-            // Extraer el contenido de la respuesta (formato OpenAI/Groq)
+            // Extract response content (OpenAI/Groq format)
             JsonArray choices = jsonResponse.getAsJsonArray("choices");
             if (choices != null && choices.size() > 0) {
                 JsonObject choice = choices.get(0).getAsJsonObject();
                 JsonObject messageObj = choice.getAsJsonObject("message");
                 if (messageObj != null && messageObj.has(CONST_CONTENT)) {
                     String responseContent = messageObj.get(CONST_CONTENT).getAsString();
-                    logger.debug("Contenido extraído: {}",
+                    logger.debug("Extracted content: {}",
                             responseContent.substring(0, Math.min(responseContent.length(), 200)));
                     return responseContent;
                 }
             }
 
-            logger.warn("No se encontró contenido en la respuesta de Groq");
+            logger.warn("No content found in Groq response");
             return "";
         }
     }
 
     /**
-     * Parsea la respuesta de LLaMA
+     * Parses the LLaMA response.
      */
     private ClassificationResult parseLlamaResponse(String response, String originalContent) {
         try {
             logger.debug("Parseando respuesta, longitud: {}", response.length());
 
-            // Intentar extraer JSON de la respuesta
+            // Try to extract JSON from the response
             String jsonStr = extractJSON(response);
-            logger.debug("JSON extraído: {}", jsonStr.substring(0, Math.min(jsonStr.length(), 200)));
+            logger.debug("Extracted JSON: {}", jsonStr.substring(0, Math.min(jsonStr.length(), 200)));
 
             JsonObject json = gson.fromJson(jsonStr, JsonObject.class);
 
-            String type = json.has("type") ? json.get("type").getAsString() : CONST_NOTA;
-            String title = json.has("title") ? json.get("title").getAsString() : "Nota";
+            String type = json.has("type") ? json.get("type").getAsString() : CONST_NOTE;
+            String title = json.has("title") ? json.get("title").getAsString() : "Note";
             String summary = json.has("summary") ? json.get("summary").getAsString() : "";
             String detailedContent = json.has("detailedContent") ? json.get("detailedContent").getAsString() : "";
-            String destination = json.has("destination") ? json.get("destination").getAsString() : CONST_APUNTE;
+            String destination = json.has("destination") ? json.get("destination").getAsString() : CONST_NOTE;
 
             List<String> tags = new ArrayList<>();
             if (json.has("tags") && json.get("tags").isJsonArray()) {
                 JsonArray tagsArray = json.getAsJsonArray("tags");
                 for (int i = 0; i < tagsArray.size(); i++) {
                     String tag = tagsArray.get(i).getAsString();
-                    // Filtrar etiquetas genéricas
+                    // Filter out generic tags
                     if (!tag.equalsIgnoreCase("general") && !tag.equalsIgnoreCase("varios") &&
                             !tag.equalsIgnoreCase("otros") && !tag.trim().isEmpty()) {
                         tags.add(tag);
@@ -223,76 +222,76 @@ public class LlamaAIService {
                 }
             }
 
-            // Si no hay tags válidas, intentar generar algunas del contenido
+            // If no valid tags, try to generate some from content
             if (tags.isEmpty()) {
                 tags = generateTagsFromContent(originalContent, title, summary);
             }
 
-            // Si no hay detailedContent, crear uno detallado
+            // If no detailedContent, create a detailed one
             if (detailedContent.isEmpty() || detailedContent.length() < 200) {
                 detailedContent = buildDetailedContentFromSummary(title, summary, originalContent);
             }
 
-            // Asegurar que el summary tenga contenido
+            // Ensure the summary has content
             if (summary.isEmpty() && !originalContent.isEmpty()) {
                 summary = originalContent.substring(0, Math.min(originalContent.length(), 500)) + "...";
             }
 
-            logger.debug("Resultado final - título: '{}', tags: {}, summary length: {}",
+            logger.debug("Final result - title: '{}', tags: {}, summary length: {}",
                     title, tags.size(), summary.length());
 
             return new ClassificationResult(type, title, summary, detailedContent, destination,
                     tags.toArray(new String[0]));
         } catch (Exception e) {
-            logger.error("Error al parsear respuesta de LLaMA", e);
-            logger.error("Respuesta que causó el error: {}", response);
+            logger.error("Error parsing LLaMA response", e);
+            logger.error("Response that caused the error: {}", response);
             return createSmartDefaultResult(originalContent);
         }
     }
 
     /**
-     * Genera etiquetas básicas del contenido cuando la IA no las proporciona
+     * Generates basic tags from content when the AI does not provide them.
      */
     private List<String> generateTagsFromContent(String content, String title, String summary) {
         List<String> tags = new ArrayList<>();
         String allText = (title + " " + summary + " " + content).toLowerCase();
 
-        // Detectar temas específicos
+        // Detect specific topics
         if (allText.contains("futbol") || allText.contains("fútbol") || allText.contains("deporte") ||
                 allText.contains("liga") || allText.contains("equipo")) {
-            tags.add("deportes");
+            tags.add("sports");
             if (allText.contains("español") || allText.contains("españa")) {
-                tags.add("futbol-espanol");
+                tags.add("spanish-football");
             }
         }
         if (allText.contains("sanidad") || allText.contains("salud") || allText.contains("medicina") ||
                 allText.contains("mir") || allText.contains("hospital")) {
-            tags.add("sanidad");
+            tags.add("healthcare");
             if (allText.contains("publica") || allText.contains("pública")) {
-                tags.add("sanidad-publica");
+                tags.add("public-healthcare");
             }
         }
         if (allText.contains("historia") || allText.contains("histórico") || allText.contains("rey") ||
                 allText.contains("23f") || allText.contains("desclasificacion")) {
-            tags.add("historia");
-            tags.add("politica");
+            tags.add("history");
+            tags.add("politics");
         }
         if (allText.contains("tecnologia") || allText.contains("tecnología") || allText.contains("programacion") ||
                 allText.contains("software") || allText.contains("aplicacion")) {
-            tags.add("tecnologia");
+            tags.add("technology");
         }
         if (allText.contains("sociedad") || allText.contains("noticia") || allText.contains("actualidad")) {
-            tags.add("sociedad");
+            tags.add("society");
         }
         if (allText.contains("video") || allText.contains("youtube") || allText.contains("vimeo")) {
             tags.add("video");
         }
         if (allText.contains("articulo") || allText.contains("artículo") || allText.contains("noticia") ||
                 allText.contains("cadena ser") || allText.contains("el país")) {
-            tags.add("articulo");
+            tags.add("article");
         }
 
-        // Extraer palabras clave del título
+        // Extract keywords from title
         if (title != null && !title.isEmpty()) {
             String[] titleWords = title.toLowerCase().split("[\\s|]+");
             for (String word : titleWords) {
@@ -300,61 +299,61 @@ public class LlamaAIService {
                 if (word.length() > 4 && !tags.contains(word) && tags.size() < 6) {
                     // Evitar palabras muy comunes
                     if (!word.equals("sobre") && !word.equals("cuando") && !word.equals("desde") &&
-                            !word.equals("hasta") && !word.equals("después") && !word.equals("nota")) {
+                            !word.equals("hasta") && !word.equals("después") && !word.equals("note")) {
                         tags.add(word);
                     }
                 }
             }
         }
 
-        // Si aún no hay tags, usar una genérica pero específica
+        // If still no tags, use a generic but specific one
         if (tags.isEmpty()) {
-            tags.add("contenido");
+            tags.add("content");
         }
 
         return tags;
     }
 
     /**
-     * Construye contenido detallado cuando la IA no lo proporciona
+     * Builds detailed content when the AI does not provide it.
      */
     private String buildDetailedContentFromSummary(String title, String summary, String originalContent) {
         StringBuilder content = new StringBuilder();
         content.append("# ").append(title).append("\n\n");
 
         if (!summary.isEmpty()) {
-            content.append("## Resumen\n\n").append(summary).append("\n\n");
+            content.append("## Summary\n\n").append(summary).append("\n\n");
         }
 
-        content.append("## Contenido original\n\n");
+        content.append("## Original content\n\n");
         String preview = originalContent.substring(0, Math.min(originalContent.length(), 2000));
         content.append(preview);
         if (originalContent.length() > 2000) {
-            content.append("\n\n... (contenido truncado)");
+            content.append("\n\n... (truncated content)");
         }
 
         return content.toString();
     }
 
     /**
-     * Extrae JSON de la respuesta (puede venir con texto adicional)
+     * Extracts JSON from the response (may contain additional text).
      */
     private String extractJSON(String text) {
         if (text == null || text.trim().isEmpty()) {
             return "{}";
         }
 
-        // Buscar el primer { y el último }
+        // Find the first { and the last }
         int start = text.indexOf('{');
         int end = text.lastIndexOf('}');
 
         if (start != -1 && end != -1 && end > start) {
             String json = text.substring(start, end + 1);
-            logger.debug("JSON extraído: {}", json.substring(0, Math.min(json.length(), 300)));
+            logger.debug("Extracted JSON: {}", json.substring(0, Math.min(json.length(), 300)));
             return json;
         }
 
-        // Si no hay JSON, intentar buscar entre ```json o ```
+        // If no JSON, try to find it between ```json or ```
         int jsonStart = text.indexOf("```json");
         if (jsonStart != -1) {
             jsonStart += 7; // Longitud de "```json"
@@ -364,7 +363,7 @@ public class LlamaAIService {
             }
         }
 
-        // Buscar entre ```
+        // Search between ```
         int codeStart = text.indexOf("```");
         if (codeStart != -1) {
             codeStart += 3;
@@ -377,32 +376,32 @@ public class LlamaAIService {
             }
         }
 
-        logger.warn("No se pudo extraer JSON válido de la respuesta");
+        logger.warn("Could not extract valid JSON from response");
         return text;
     }
 
     /**
-     * Crea un resultado por defecto cuando no se puede usar LLaMA
+     * Creates a default result when LLaMA cannot be used.
      */
     private ClassificationResult createDefaultResult() {
-        return new ClassificationResult("nota", "Nota", "",
-                "# Nota\n\n## Contenido\n\nContenido sin procesar.",
-                "apunte", new String[] { "general" });
+        return new ClassificationResult("note", "Note", "",
+                "# Note\n\n## Content\n\nUnprocessed content.",
+                "note", new String[] { "general" });
     }
 
     /**
-     * Crea un resultado inteligente basado en el contenido cuando la IA falla
+     * Creates a smart result based on content when the AI fails.
      */
     private ClassificationResult createSmartDefaultResult(String content) {
-        // Extraer título del contenido
+        // Extract title from content
         String title = extractTitleFromContent(content);
         String summary = extractSummaryFromContent(content);
         List<String> tags = generateTagsFromContent(content, title, summary);
 
-        // Construir contenido detallado
+        // Build detailed content
         String detailedContent = buildDetailedContentFromSummary(title, summary, content);
 
-        // Detectar tipo
+        // Detect type
         String type = detectTypeFromContent(content);
 
         return new ClassificationResult(
@@ -410,21 +409,21 @@ public class LlamaAIService {
                 title,
                 summary,
                 detailedContent,
-                "apunte",
+                "note",
                 tags.toArray(new String[0]));
     }
 
     /**
-     * Extrae un título del contenido
+     * Extracts a title from content.
      */
     private String extractTitleFromContent(String content) {
         if (content == null || content.trim().isEmpty()) {
-            return "Nota";
+            return "Note";
         }
 
-        // Si hay "Título:" al inicio, extraerlo
-        if (content.contains("Título:")) {
-            int titleStart = content.indexOf("Título:") + 7;
+        // If there is "Title:" at the beginning, extract it
+        if (content.contains("Title:")) {
+            int titleStart = content.indexOf("Title:") + 6;
             int titleEnd = content.indexOf("\n", titleStart);
             if (titleEnd == -1)
                 titleEnd = Math.min(titleStart + 120, content.length());
@@ -434,17 +433,17 @@ public class LlamaAIService {
             }
         }
 
-        // Si es una URL, usar parte de la URL como título
+        // If it is a URL, use part of the URL as title
         if (content.startsWith("http://") || content.startsWith("https://")) {
             try {
                 String domain = content.split("/")[2];
-                return "Enlace: " + domain;
+                return "Link: " + domain;
             } catch (Exception e) {
-                return "Enlace";
+                return "Link";
             }
         }
 
-        // Usar las primeras palabras del contenido
+        // Use the first words of the content
         String[] lines = content.split("\n");
         for (String line : lines) {
             line = line.trim();
@@ -453,24 +452,24 @@ public class LlamaAIService {
             }
         }
 
-        // Último recurso: primeras 120 caracteres
+        // Last resort: first 120 characters
         String firstLine = content.trim().split("\n")[0];
         if (firstLine.length() > 120) {
             return firstLine.substring(0, 117) + "...";
         }
-        return firstLine.isEmpty() ? "Nota" : firstLine;
+        return firstLine.isEmpty() ? "Note" : firstLine;
     }
 
     /**
-     * Extrae un resumen del contenido
+     * Extracts a summary from content.
      */
     private String extractSummaryFromContent(String content) {
         if (content == null || content.trim().isEmpty()) {
             return "";
         }
 
-        // Si hay "Descripción:" o "Resumen:", extraerlo
-        String[] keywords = { "Descripción:", "Resumen:", "Summary:" };
+        // If there is "Description:" or "Summary:", extract it
+        String[] keywords = { "Description:", "Summary:", "Summary:" };
         for (String keyword : keywords) {
             if (content.contains(keyword)) {
                 int start = content.indexOf(keyword) + keyword.length();
@@ -484,12 +483,12 @@ public class LlamaAIService {
             }
         }
 
-        // Usar las primeras líneas como resumen
+        // Use the first lines as summary
         String[] lines = content.split("\n");
         StringBuilder summary = new StringBuilder();
         for (String line : lines) {
             line = line.trim();
-            if (line.isEmpty() || line.startsWith("Título:") || line.startsWith("URL:")) {
+            if (line.isEmpty() || line.startsWith("Title:") || line.startsWith("URL:")) {
                 continue;
             }
             if (summary.length() + line.length() > 800) {
@@ -506,7 +505,7 @@ public class LlamaAIService {
 
         String result = summary.toString().trim();
         if (result.length() < 50) {
-            // Si es muy corto, usar más contenido
+            // If too short, use more content
             result = content.substring(0, Math.min(500, content.length())).trim();
             if (result.length() > 500) {
                 result = result.substring(0, 497) + "...";
@@ -517,11 +516,11 @@ public class LlamaAIService {
     }
 
     /**
-     * Detecta el tipo de contenido
+     * Detects the content type.
      */
     private String detectTypeFromContent(String content) {
         if (content == null)
-            return "nota";
+            return "note";
 
         String lower = content.toLowerCase();
         if (lower.contains("video") || lower.contains("youtube") || lower.contains("vimeo")) {
@@ -531,27 +530,24 @@ public class LlamaAIService {
             return "link";
         }
         if (lower.contains("```") || lower.contains("function") || lower.contains("class ")) {
-            return "codigo";
+            return "code";
         }
         if (lower.contains("tutorial") || lower.contains("guía") || lower.contains("paso a paso")) {
             return "tutorial";
         }
-        return "articulo";
+        return "article";
     }
 
     /**
-     * Clase para almacenar el resultado de la clasificación
-     */
-    /**
-     * Verifica la veracidad de la información en el contenido.
-     * Identifica afirmaciones falsas o dudosas y proporciona correcciones.
+     * Verifies the truthfulness of information in the content.
+     * Identifies false or doubtful claims and provides corrections.
      */
     public List<FactCheckResponseDto.ClaimVerification> verifyInformation(String content) {
         if (content == null || content.trim().isEmpty()) {
             return new ArrayList<>();
         }
 
-        logger.info("Verificando información de contenido de longitud: {}", content.length());
+        logger.info("Verifying information in content of length: {}", content.length());
 
         try {
             String prompt = buildFactCheckPrompt(content);
@@ -563,26 +559,26 @@ public class LlamaAIService {
 
             return parseFactCheckResponse(response);
         } catch (Exception e) {
-            logger.error("Error al verificar información con LLaMA: {}", e.getMessage(), e);
+            logger.error("Error verifying information with LLaMA: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
     }
 
     /**
-     * Genera insights de tendencias personalizados usando LLaMA, a partir de:
-     * - Tópicos con conteos (reciente vs anterior)
-     * - Una muestra de items reales (título/tags/extracto)
+     * Generates personalized trend insights using LLaMA, based on:
+     * - Topics with counts (recent vs previous)
+     * - A sample of real items (title/tags/excerpt)
      *
-     * Devuelve un JSON con etiquetas más específicas y frases de insights.
+     * Returns a JSON with more specific labels and insight phrases.
      */
     public TrendsInsightsResponseDto generateTrendsInsights(TrendsInsightsParamsDto params) {
         if (params == null) {
             return new TrendsInsightsResponseDto();
         }
 
-        // Si no hay API key configurada, devolver vacío (el frontend usará fallback determinista)
+        // If no API key configured, return empty (the frontend will use deterministic fallback)
         if (apiKey == null || apiKey.isEmpty() || apiKey.equals("your-groq-api-key-here")) {
-            logger.warn("API key de LLaMA no configurada, devolviendo insights vacíos");
+            logger.warn("LLaMA API key not configured, returning empty insights");
             return new TrendsInsightsResponseDto();
         }
 
@@ -598,7 +594,7 @@ public class LlamaAIService {
             TrendsInsightsResponseDto dto = gson.fromJson(jsonStr, TrendsInsightsResponseDto.class);
             return dto != null ? dto : new TrendsInsightsResponseDto();
         } catch (Exception e) {
-            logger.error("Error generando insights de tendencias con LLaMA: {}", e.getMessage(), e);
+            logger.error("Error generating trend insights with LLaMA: {}", e.getMessage(), e);
             return new TrendsInsightsResponseDto();
         }
     }
@@ -661,44 +657,44 @@ public class LlamaAIService {
 
         String data = gson.toJson(payload);
 
-        return "Actúa como un analista de tendencias personales. Te doy un RADAR de tópicos (conteos reciente vs anterior) y una muestra de items reales (título/tags/extracto).\n\n"
-                + "OBJETIVO:\n"
-                + "1) Etiquetar cada topic con un nombre más específico en español (sin inventar).\n"
-                + "   - Si detectas música, concreta género/subgénero (ej. rap, techno, flamenco, reggaeton).\n"
-                + "   - Si detectas política, concreta el ámbito (nacional/internacional/elecciones/partidos/políticas públicas).\n"
-                + "   - Si no hay evidencia suficiente, usa etiqueta general (ej. 'música', 'política').\n"
-                + "2) Generar 'insights' (1-3 frases) y 'recommendations' (1-3) basadas en los datos.\n\n"
-                + "DATOS (JSON):\n" + data + "\n\n"
-                + "REGLAS:\n"
-                + "- No inventes hechos ni nombres propios; si dudas, sé conservador.\n"
-                + "- Devuelve SOLO JSON válido, sin texto adicional ni markdown.\n\n"
-                + "FORMATO DE SALIDA:\n"
+        return "Act as a personal trend analyst. I provide a RADAR of topics (recent vs previous counts) and a sample of real items (title/tags/excerpt).\n\n"
+                + "OBJECTIVE:\n"
+                + "1) Label each topic with a more specific name in English (without making things up).\n"
+                + "   - If you detect music, specify the genre/subgenre (e.g. rap, techno, flamenco, reggaeton).\n"
+                + "   - If you detect politics, specify the scope (national/international/elections/parties/public policies).\n"
+                + "   - If there is not enough evidence, use a general label (e.g. 'music', 'politics').\n"
+                + "2) Generate 'insights' (1-3 sentences) and 'recommendations' (1-3) based on the data.\n\n"
+                + "DATA (JSON):\n" + data + "\n\n"
+                + "RULES:\n"
+                + "- Do not make up facts or proper names; if in doubt, be conservative.\n"
+                + "- Return ONLY valid JSON, no additional text or markdown.\n\n"
+                + "OUTPUT FORMAT:\n"
                 + "{\n"
-                + "  \"topicLabels\": {\"topicOriginal\": \"Etiqueta específica\"},\n"
+                + "  \"topicLabels\": {\"originalTopic\": \"Specific label\"},\n"
                 + "  \"insights\": [\"...\"],\n"
                 + "  \"recommendations\": [\"...\"]\n"
                 + "}";
     }
 
     private String buildFactCheckPrompt(String content) {
-        return "Actúa como un experto en verificación de hechos (fact-checking). Analiza el siguiente contenido y extrae las afirmaciones más importantes que puedan ser verificadas objetivamente.\n\n"
+        return "Act as an expert in fact-checking. Analyze the following content and extract the most important claims that can be objectively verified.\n\n"
                 +
-                "CONTENIDO:\n" + content + "\n\n" +
-                "REGLAS:\n" +
-                "1. Divide el texto en afirmaciones individuales.\n" +
-                "2. Evalúa cada afirmación como 'true' (verdadera), 'false' (falsa) o 'suspicious' (dudosa/sin consenso claro).\n"
+                "CONTENT:\n" + content + "\n\n" +
+                "RULES:\n" +
+                "1. Split the text into individual claims.\n" +
+                "2. Evaluate each claim as 'true', 'false', or 'suspicious' (doubtful/no clear consensus).\n"
                 +
-                "3. Para cada 'false' o 'suspicious', proporciona una explicación detallada de por qué y una versión corregida de la información.\n"
+                "3. For each 'false' or 'suspicious', provide a detailed explanation of why and a corrected version of the information.\n"
                 +
-                "4. Si la afirmación es 'true', la explicación puede ser breve y no requiere corrección.\n\n" +
-                "Responde EXCLUSIVAMENTE con un JSON con este formato:\n" +
+                "4. If the claim is 'true', the explanation can be brief and no correction is required.\n\n" +
+                "Respond EXCLUSIVELY with a JSON in this format:\n" +
                 "{\n" +
                 "  \"claims\": [\n" +
                 "    {\n" +
-                "      \"originalText\": \"texto de la afirmación\",\n" +
+                "      \"originalText\": \"text of the claim\",\n" +
                 "      \"status\": \"true|false|suspicious\",\n" +
-                "      \"explanation\": \"explicación detallada\",\n" +
-                "      \"correction\": \"versión corregida\"\n" +
+                "      \"explanation\": \"detailed explanation\",\n" +
+                "      \"correction\": \"corrected version\"\n" +
                 "    }\n" +
                 "  ]\n" +
                 "}";
@@ -722,7 +718,7 @@ public class LlamaAIService {
                 }
             }
         } catch (Exception e) {
-            logger.error("Error al parsear respuesta de fact-checking", e);
+            logger.error("Error parsing fact-check response", e);
         }
         return results;
     }

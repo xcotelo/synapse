@@ -39,7 +39,7 @@ public class BrainSuggestionService {
         String inputContent = rawContent == null ? "" : rawContent.trim();
 
         if (inputContent.isEmpty()) {
-            return new SuggestionResult("nota", "Nota", "", "", "apunte", new String[] { "general" });
+            return new SuggestionResult("note", "Note", "", "", "note", new String[] { "general" });
         }
 
         // 1. Extract content if it is a URL
@@ -53,33 +53,33 @@ public class BrainSuggestionService {
                 extracted = contentExtractionService.extractContent(urlToExtract);
                 StringBuilder fullContent = new StringBuilder();
                 if (!extracted.getTitle().isEmpty()) {
-                    fullContent.append("Título: ").append(extracted.getTitle()).append("\n\n");
+                    fullContent.append("Title: ").append(extracted.getTitle()).append("\n\n");
                 }
                 if (!extracted.getDescription().isEmpty()) {
-                    fullContent.append("Descripción: ").append(extracted.getDescription()).append("\n\n");
+                    fullContent.append("Description: ").append(extracted.getDescription()).append("\n\n");
                 }
                 if (!extracted.getContent().isEmpty()) {
-                    fullContent.append("Contenido: ").append(extracted.getContent());
+                    fullContent.append("Content: ").append(extracted.getContent());
                 }
                 contentToAnalyze = fullContent.toString();
                 if (contentToAnalyze.trim().isEmpty()) {
                     contentToAnalyze = inputContent;
                 }
             } catch (Exception e) {
-                logger.error("Error al extraer contenido de la URL {}: {}", inputContent, e.getMessage());
+                logger.error("Error extracting content from URL {}: {}", inputContent, e.getMessage());
                 contentToAnalyze = inputContent;
             }
-            logger.info("Contenido extraído de URL: {}", contentToAnalyze);
+            logger.info("Content extracted from URL: {}", contentToAnalyze);
         }
 
         // 2. AI classification
-        logger.info("Enviando contenido a la IA para clasificación...");
+        logger.info("Sending content to AI for classification...");
         LlamaAIService.ClassificationResult classification = llamaAIService.classifyContent(contentToAnalyze);
 
         // 3. Merge extraction and AI results
         String finalTitle = classification.getTitle();
         if (extracted != null && !extracted.getTitle().isEmpty() &&
-                (finalTitle == null || finalTitle.isEmpty() || finalTitle.equals("Nota"))) {
+                (finalTitle == null || finalTitle.isEmpty() || finalTitle.equals("Note"))) {
             finalTitle = extracted.getTitle();
         }
 
@@ -90,7 +90,7 @@ public class BrainSuggestionService {
 
         return new SuggestionResult(
                 finalType,
-                finalTitle != null ? finalTitle : "Nota",
+                finalTitle != null ? finalTitle : "Note",
                 classification.getSummary(),
                 classification.getDetailedContent(),
                 classification.getDestination(),
@@ -108,11 +108,11 @@ public class BrainSuggestionService {
      */
     public SuggestionResult suggestFromFile(MultipartFile file, String mediaUrlPrefix) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("No se ha enviado ningún archivo");
+            throw new IllegalArgumentException("No file was submitted");
         }
 
         String rawName = file.getOriginalFilename();
-        String originalName = rawName != null ? rawName : "archivo";
+        String originalName = rawName != null ? rawName : "file";
         String lowerName = originalName.toLowerCase();
         String rawContentType = file.getContentType();
         String contentType = rawContentType != null ? rawContentType : "";
@@ -125,37 +125,37 @@ public class BrainSuggestionService {
         StringBuilder description = new StringBuilder();
 
         if (isAudio) {
-            description.append("Archivo de audio subido por el usuario (probablemente un MP3).\n\n");
-            description.append("Nombre de archivo: ").append(originalName).append("\n");
-            description.append("Tamaño aproximado: ")
+            description.append("Audio file uploaded by user (probably an MP3).\n\n");
+            description.append("Filename: ").append(originalName).append("\n");
+            description.append("Approximate size: ")
                     .append(String.format("%.2f MB", file.getSize() / (1024.0 * 1024.0)))
                     .append("\n\n");
             description.append(
-                    "INFORMACIÓN PARA LA IA: A partir del nombre del archivo y estos metadatos, intenta deducir artista, autor o grupo probable, ");
+                    "INFO FOR AI: From the filename and these metadata, try to deduce the likely artist, author, or group, ");
             description.append(
-                    "así como el estilo o temática del audio. Si el nombre no da pistas claras, indícalo explícitamente.\n");
+                    "as well as the style or theme of the audio. If the name gives no clear hints, state it explicitly.\n");
         } else if (isVideo) {
-            description.append("Archivo de vídeo subido por el usuario (por ejemplo, MP4).\n\n");
-            description.append("Nombre de archivo: ").append(originalName).append("\n");
-            description.append("Tamaño aproximado: ")
+            description.append("Video file uploaded by user (e.g., MP4).\n\n");
+            description.append("Filename: ").append(originalName).append("\n");
+            description.append("Approximate size: ")
                     .append(String.format("%.2f MB", file.getSize() / (1024.0 * 1024.0)))
                     .append("\n\n");
             description.append(
-                    "INFORMACIÓN PARA LA IA: No tienes acceso al contenido de vídeo, solo al nombre y metadatos básicos. ");
+                    "INFO FOR AI: You do not have access to the video content, only the name and basic metadata. ");
             description.append(
-                    "Intenta deducir de qué podría tratar el vídeo y genera un RESUMEN probable del tema y contexto, indicando que es una inferencia.\n");
+                    "Try to deduce what the video might be about and generate a probable SUMMARY of the topic and context, indicating it is an inference.\n");
         } else {
-            description.append("Archivo subido por el usuario.\n\n");
-            description.append("Nombre de archivo: ").append(originalName).append("\n");
-            description.append("Tipo de contenido: ").append(contentType).append("\n");
-            description.append("Tamaño aproximado: ")
+            description.append("File uploaded by user.\n\n");
+            description.append("Filename: ").append(originalName).append("\n");
+            description.append("Content type: ").append(contentType).append("\n");
+            description.append("Approximate size: ")
                     .append(String.format("%.2f MB", file.getSize() / (1024.0 * 1024.0)))
                     .append("\n\n");
             description.append(
-                    "INFORMACIÓN PARA LA IA: A partir de estos metadatos intenta clasificar el archivo y proponer un título y resumen útiles.\n");
+                    "INFO FOR AI: From these metadata, try to classify the file and propose a useful title and summary.\n");
         }
 
-        logger.info("Enviando metadatos de archivo '{}' a la IA para clasificación", originalName);
+        logger.info("Sending file metadata '{}' to AI for classification", originalName);
         LlamaAIService.ClassificationResult classification = llamaAIService.classifyContent(description.toString());
 
         String finalType = classification.getType();
@@ -225,29 +225,29 @@ public class BrainSuggestionService {
 
     public void validateExternalUrl(String url) {
         if (url == null || url.trim().isEmpty()) {
-            throw new IllegalArgumentException("URL vacía");
+            throw new IllegalArgumentException("Empty URL");
         }
 
         URI uri;
         try {
             uri = new URI(url);
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("URL no válida");
+            throw new IllegalArgumentException("Invalid URL");
         }
 
         String scheme = uri.getScheme() != null ? uri.getScheme().toLowerCase() : "";
         if (!scheme.equals("http") && !scheme.equals("https")) {
-            throw new IllegalArgumentException("Solo se permiten URLs http/https");
+            throw new IllegalArgumentException("Only http/https URLs are allowed");
         }
 
         String host = uri.getHost();
         if (host == null || host.trim().isEmpty()) {
-            throw new IllegalArgumentException("URL sin host");
+            throw new IllegalArgumentException("URL without host");
         }
 
         String lowerHost = host.toLowerCase();
         if (lowerHost.equals("localhost") || lowerHost.endsWith(".localhost")) {
-            throw new IllegalArgumentException("Host no permitido");
+            throw new IllegalArgumentException("Host not allowed");
         }
 
         try {
@@ -255,11 +255,11 @@ public class BrainSuggestionService {
             for (InetAddress addr : addrs) {
                 if (addr.isAnyLocalAddress() || addr.isLoopbackAddress() || addr.isSiteLocalAddress()
                         || addr.isLinkLocalAddress() || addr.isMulticastAddress()) {
-                    throw new IllegalArgumentException("Host no permitido");
+                    throw new IllegalArgumentException("Host not allowed");
                 }
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException("No se pudo resolver el host");
+            throw new IllegalArgumentException("Could not resolve host");
         }
     }
 

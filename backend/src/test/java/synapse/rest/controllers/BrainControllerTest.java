@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import synapse.model.entities.Users;
+import synapse.model.entities.User;
 import synapse.model.entities.UserDao;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.rest.dtos.AuthenticatedUserDto;
@@ -33,7 +33,6 @@ import synapse.rest.dtos.LoginParamsDto;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-@SuppressWarnings("null")
 public class BrainControllerTest {
 
 	private final static String PASSWORD = "password";
@@ -53,7 +52,7 @@ public class BrainControllerTest {
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	private String getAuthToken() throws IncorrectLoginException {
-		Users user = new Users("testuser", PASSWORD, "test@test.com");
+		User user = new User("testuser", PASSWORD, "test@test.com");
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		userDao.save(user);
 
@@ -66,30 +65,25 @@ public class BrainControllerTest {
 	}
 
 	@Test
-	public void testSuggest_EmptyContent_ReturnsDefaultSuggestion() throws Exception {
+	public void testSuggest_EmptyContent_ReturnsBadRequest() throws Exception {
 		String token = getAuthToken();
 		BrainSuggestParamsDto params = new BrainSuggestParamsDto("");
-		mockMvc.perform(post("/api/brain/suggestions")
+		mockMvc.perform(post("/api/brains/suggestions")
 				.header("Authorization", "Bearer " + token)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsBytes(params)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.type").value("nota"))
-				.andExpect(jsonPath("$.title").value("Nota"))
-				.andExpect(jsonPath("$.destination").value("apunte"))
-				.andExpect(jsonPath("$.tags").isArray());
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test
-	public void testSuggest_NullContent_ReturnsDefaultSuggestion() throws Exception {
+	public void testSuggest_NullContent_ReturnsBadRequest() throws Exception {
 		String token = getAuthToken();
 		BrainSuggestParamsDto params = new BrainSuggestParamsDto();
 		params.setContent(null);
-		mockMvc.perform(post("/api/brain/suggestions")
+		mockMvc.perform(post("/api/brains/suggestions")
 				.header("Authorization", "Bearer " + token)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsBytes(params)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.type").value("nota"));
+				.andExpect(status().isBadRequest());
 	}
 }

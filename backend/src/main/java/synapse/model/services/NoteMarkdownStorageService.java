@@ -17,9 +17,9 @@ import org.springframework.stereotype.Service;
 import synapse.rest.dtos.SaveNoteParamsDto;
 
 /**
- * Almacenamiento abierto: persiste notas como ficheros Markdown en el disco.
+ * Open storage: persists notes as Markdown files on disk.
  *
- * La idea es que la carpeta sea fácilmente versionable con Git.
+ * The idea is that the folder can be easily versioned with Git.
  */
 @Service
 public class NoteMarkdownStorageService {
@@ -33,9 +33,9 @@ public class NoteMarkdownStorageService {
         try {
             Files.createDirectories(this.notesDir);
         } catch (IOException e) {
-            throw new IllegalStateException("No se pudo crear el directorio de notas: " + this.notesDir, e);
+            throw new IllegalStateException("Could not create the notes directory: " + this.notesDir, e);
         }
-        logger.info("Directorio de notas Markdown: {}", this.notesDir.toAbsolutePath());
+        logger.info("Markdown notes directory: {}", this.notesDir.toAbsolutePath());
     }
 
     public SaveResult saveNote(SaveNoteParamsDto params) {
@@ -46,7 +46,7 @@ public class NoteMarkdownStorageService {
 
         String title = safeString(params.getTitle());
         if (title.isEmpty()) {
-            title = "Nota sin título";
+            title = "Untitled note";
         }
 
         String createdAt = safeString(params.getCreatedAt());
@@ -63,9 +63,9 @@ public class NoteMarkdownStorageService {
         String filename = buildFilename(createdAt, title, noteId);
         Path filePath = notesDir.resolve(filename).normalize();
 
-        // Defensa: impedir path traversal
+        // Defense: prevent path traversal
         if (!filePath.startsWith(notesDir)) {
-            throw new IllegalArgumentException("Nombre de fichero no válido");
+            throw new IllegalArgumentException("Invalid filename");
         }
 
         String markdown = buildMarkdown(params, noteId, title, createdAt, destination, type, entryId, mediaUrl,
@@ -75,7 +75,7 @@ public class NoteMarkdownStorageService {
             Files.writeString(filePath, markdown, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
         } catch (IOException e) {
-            throw new IllegalStateException("No se pudo guardar la nota en disco", e);
+            throw new IllegalStateException("Could not save the note to disk", e);
         }
 
         return new SaveResult(filename, filename);
@@ -94,8 +94,8 @@ public class NoteMarkdownStorageService {
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
-            // Idempotente: no elevamos error al cliente.
-            logger.warn("No se pudo borrar la nota {}: {}", safe, e.getMessage());
+            // Idempotent: we don't escalate the error to the client.
+            logger.warn("Could not delete the note {}: {}", safe, e.getMessage());
         }
     }
 
@@ -162,7 +162,7 @@ public class NoteMarkdownStorageService {
         }
 
         String base = datePart + "-" + slug + "-" + idPart;
-        // evitar nombres demasiado largos
+        // avoid overly long names
         if (base.length() > 180) {
             base = base.substring(0, 180);
         }
@@ -172,16 +172,16 @@ public class NoteMarkdownStorageService {
 
     private String slugify(String input) {
         if (input == null) {
-            return "nota";
+            return "note";
         }
         String s = input.toLowerCase(Locale.ROOT).trim();
-        // Normalización simple sin dependencias extra
+        // Simple normalization without extra dependencies
         s = s.replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
                 .replace('ü', 'u').replace('ñ', 'n');
         s = s.replaceAll("[^a-z0-9]+", "-");
         s = s.replaceAll("^-+|-+$", "");
         if (s.isEmpty()) {
-            return "nota";
+            return "note";
         }
         return s;
     }
@@ -191,9 +191,9 @@ public class NoteMarkdownStorageService {
             return "";
         }
         String s = input.trim();
-        // permitir solo un conjunto seguro
+        // allow only a safe set
         s = s.replaceAll("[^a-zA-Z0-9._-]", "");
-        // evitar '.' o nombres vacíos
+        // avoid '.' or empty names
         if (s.equals(".") || s.equals("..")) {
             return "";
         }

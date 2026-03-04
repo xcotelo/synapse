@@ -2,9 +2,17 @@ package synapse.rest.dtos;
 
 import java.util.List;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
 public class TrendsInsightsParamsDto {
+    @Min(1)
     private int windowDays;
+
+    @NotNull
     private List<TopicCountDto> topics;
+
+    @NotNull
     private List<TrendSampleItemDto> items;
 
     public TrendsInsightsParamsDto() {

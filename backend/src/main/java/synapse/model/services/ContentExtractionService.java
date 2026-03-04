@@ -11,20 +11,20 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 /**
- * Servicio para extraer contenido de URLs (páginas web, videos, etc.)
+ * Service for extracting content from URLs (web pages, videos, etc.)
  */
 @Service
 public class ContentExtractionService {
     private static final Logger logger = LoggerFactory.getLogger(ContentExtractionService.class);
 
     private static final int TIMEOUT_MS = 10000;
-    private static final int MAX_CONTENT_LENGTH = 50000; // Limitar contenido extraído
+    private static final int MAX_CONTENT_LENGTH = 50000; // Limit extracted content
 
     /**
-     * Extrae el contenido de una URL
+     * Extracts content from a URL.
      * 
-     * @param urlString La URL de la que extraer contenido
-     * @return Objeto con el contenido extraído y metadatos
+     * @param urlString the URL to extract content from
+     * @return object with extracted content and metadata
      */
     public ExtractedContent extractContent(String urlString) {
         if (urlString == null || urlString.trim().isEmpty()) {
@@ -33,7 +33,7 @@ public class ContentExtractionService {
 
         urlString = urlString.trim();
 
-        // Detectar tipo de contenido
+        // Detect content type
         String contentType = detectContentType(urlString);
 
         try {
@@ -45,14 +45,14 @@ public class ContentExtractionService {
                 return new ExtractedContent(urlString, "", urlString, "text");
             }
         } catch (Exception e) {
-            logger.error("Error al extraer contenido de la URL {}: {}", urlString, e.getMessage(), e);
-            // Si falla la extracción, devolvemos la URL original
-            return new ExtractedContent(urlString, "", "Error al extraer contenido: " + e.getMessage(), contentType);
+            logger.error("Error extracting content from URL {}: {}", urlString, e.getMessage(), e);
+            // If extraction fails, return the original URL
+            return new ExtractedContent(urlString, "", "Error extracting content: " + e.getMessage(), contentType);
         }
     }
 
     /**
-     * Detecta el tipo de contenido basándose en la URL
+     * Detects the content type based on the URL.
      */
     private String detectContentType(String url) {
         String lower = url.toLowerCase();
@@ -74,7 +74,7 @@ public class ContentExtractionService {
     }
 
     /**
-     * Extrae contenido de una página web
+     * Extracts content from a web page.
      */
     private ExtractedContent extractWebPageContent(String urlString) throws IOException {
         Document doc = Jsoup.connect(urlString)
@@ -83,39 +83,39 @@ public class ContentExtractionService {
                 .followRedirects(true)
                 .get();
 
-        logger.info("Página web conectada: {}. Título: {}", urlString, doc.title());
+        logger.info("Web page connected: {}. Title: {}", urlString, doc.title());
 
-        // Extraer título
+        // Extract title
         String title = "";
         Element titleElement = doc.selectFirst("title");
         if (titleElement != null) {
             title = titleElement.text();
         }
 
-        // Extraer meta descripción
+        // Extract meta description
         String description = "";
         Element metaDesc = doc.selectFirst("meta[name=description]");
         if (metaDesc != null) {
             description = metaDesc.attr("content");
         } else {
-            // Intentar con Open Graph
+            // Try with Open Graph
             Element ogDesc = doc.selectFirst("meta[property=og:description]");
             if (ogDesc != null) {
                 description = ogDesc.attr("content");
             }
         }
 
-        // Extraer contenido principal
+        // Extract main content
         StringBuilder content = new StringBuilder();
 
-        // Intentar encontrar el contenido principal
+        // Try to find the main content
         Element mainContent = doc.selectFirst("main, article, [role=main], .content, .post, .entry-content");
         if (mainContent != null) {
-            // Remover scripts, estilos y otros elementos no deseados
+            // Remove scripts, styles, and other unwanted elements
             mainContent.select("script, style, nav, header, footer, aside, .advertisement, .ad").remove();
             content.append(mainContent.text());
         } else {
-            // Si no hay contenido principal, usar el body
+            // If no main content, use body
             Element body = doc.body();
             if (body != null) {
                 body.select("script, style, nav, header, footer, aside").remove();
@@ -128,7 +128,7 @@ public class ContentExtractionService {
             contentText = contentText.substring(0, MAX_CONTENT_LENGTH) + "...";
         }
 
-        // Si no hay título, usar la URL
+        // If no title, use the URL
         if (title.isEmpty()) {
             title = urlString;
         }
@@ -137,7 +137,7 @@ public class ContentExtractionService {
     }
 
     /**
-     * Extrae información de videos (YouTube, Vimeo, etc.)
+     * Extracts video information (YouTube, Vimeo, etc.).
      */
     private ExtractedContent extractVideoContent(String urlString) throws IOException {
         String title = "";
@@ -145,7 +145,7 @@ public class ContentExtractionService {
         String content = "";
 
         try {
-            // Para YouTube, intentar extraer información completa de la página
+            // For YouTube, try to extract complete information from the page
             if (urlString.contains("youtube.com") || urlString.contains("youtu.be")) {
                 Document doc = Jsoup.connect(urlString)
                         .userAgent(
@@ -154,9 +154,9 @@ public class ContentExtractionService {
                         .followRedirects(true)
                         .get();
 
-                logger.info("Video de YouTube conectado: {}. Título: {}", urlString, doc.title());
+                logger.info("YouTube video connected: {}. Title: {}", urlString, doc.title());
 
-                // Extraer título (múltiples fuentes)
+                // Extract title (multiple sources)
                 Element ogTitle = doc.selectFirst("meta[property=og:title]");
                 if (ogTitle != null) {
                     title = ogTitle.attr("content");
@@ -168,7 +168,7 @@ public class ContentExtractionService {
                     }
                 }
 
-                // Extraer descripción (múltiples fuentes)
+                // Extract description (multiple sources)
                 Element ogDesc = doc.selectFirst("meta[property=og:description]");
                 if (ogDesc != null) {
                     description = ogDesc.attr("content");
@@ -180,7 +180,7 @@ public class ContentExtractionService {
                     }
                 }
 
-                // Extraer información del canal
+                // Extract channel information
                 String channelName = "";
                 Element channelElement = doc.selectFirst("link[itemprop=name]");
                 if (channelElement != null) {
@@ -193,45 +193,45 @@ public class ContentExtractionService {
                     }
                 }
 
-                // Construir contenido completo con toda la información disponible
+                // Build complete content with all available information
                 StringBuilder fullContent = new StringBuilder();
-                fullContent.append("VIDEO DE YOUTUBE\n");
+                fullContent.append("YOUTUBE VIDEO\n");
                 fullContent.append("==================\n\n");
 
                 if (!title.isEmpty()) {
-                    fullContent.append("TÍTULO DEL VIDEO: ").append(title).append("\n\n");
+                    fullContent.append("VIDEO TITLE: ").append(title).append("\n\n");
                 }
 
                 if (!channelName.isEmpty()) {
-                    fullContent.append("CANAL: ").append(channelName).append("\n\n");
+                    fullContent.append("CHANNEL: ").append(channelName).append("\n\n");
                 }
 
                 if (!description.isEmpty()) {
-                    fullContent.append("DESCRIPCIÓN DEL VIDEO:\n");
+                    fullContent.append("VIDEO DESCRIPTION:\n");
                     fullContent.append(description).append("\n\n");
                 }
 
                 fullContent.append("URL: ").append(urlString).append("\n");
 
-                // Intentar extraer información adicional de los scripts JSON-LD
+                // Try to extract additional information from JSON-LD scripts
                 Elements jsonLdScripts = doc.select("script[type=application/ld+json]");
                 for (Element script : jsonLdScripts) {
                     String jsonContent = script.html();
                     if (jsonContent.contains("VideoObject")) {
-                        // Si hay información estructurada, podría extraerse aquí
-                        fullContent.append("\n[Información estructurada del video disponible]");
+                        // If there is structured information, it could be extracted here
+                        fullContent.append("\n[Structured video information available]");
                         break;
                     }
                 }
 
                 content = fullContent.toString();
 
-                // Si no tenemos título, usar la URL
+                // If we don't have a title, use the URL
                 if (title.isEmpty()) {
-                    title = "Video de YouTube";
+                    title = "YouTube Video";
                 }
             } else {
-                // Para otros videos (Vimeo, etc.), intentar extraer información básica
+                // For other videos (Vimeo, etc.), try to extract basic information
                 Document doc = Jsoup.connect(urlString)
                         .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                         .timeout(TIMEOUT_MS)
@@ -249,20 +249,20 @@ public class ContentExtractionService {
                 }
 
                 content = "VIDEO\n" +
-                        "TÍTULO: " + title + "\n\n" +
-                        "DESCRIPCIÓN: " + description + "\n\n" +
+                        "TITLE: " + title + "\n\n" +
+                        "DESCRIPTION: " + description + "\n\n" +
                         "URL: " + urlString;
             }
         } catch (Exception e) {
             title = "Video";
-            content = "VIDEO\nURL: " + urlString + "\n\nError al extraer información completa: " + e.getMessage();
+            content = "VIDEO\nURL: " + urlString + "\n\nError extracting complete information: " + e.getMessage();
         }
 
         return new ExtractedContent(title, description, content, "video");
     }
 
     /**
-     * Clase para almacenar el contenido extraído
+     * Class for storing extracted content.
      */
     public static class ExtractedContent {
         private String title;

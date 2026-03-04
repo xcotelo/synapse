@@ -1,18 +1,26 @@
 package synapse.rest.dtos;
 
+import jakarta.validation.constraints.NotBlank;
+
 /**
- * Datos necesarios para persistir una nota procesada en un formato abierto (Markdown)
- * en el servidor. Esto permite tener una carpeta versionable con Git.
+ * Parameters for persisting a processed note as an open-format Markdown file
+ * on the server. This enables a Git-friendly versionable folder.
  */
 public class SaveNoteParamsDto {
 
     private String noteId;
     private String entryId;
+
+    @NotBlank
     private String title;
+
     private String destination;
     private String type;
     private String createdAt;
+
+    @NotBlank
     private String content;
+
     private String[] tags;
     private String mediaUrl;
     private String mediaContentType;

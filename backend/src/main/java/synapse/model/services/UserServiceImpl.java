@@ -1,14 +1,12 @@
 package synapse.model.services;
 
-import java.util.Optional;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import synapse.model.common.exceptions.DuplicateInstanceException;
 import synapse.model.common.exceptions.InstanceNotFoundException;
-import synapse.model.entities.Users;
+import synapse.model.entities.User;
 import synapse.model.entities.UserDao;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.model.services.exceptions.IncorrectPasswordException;
@@ -42,7 +40,7 @@ public class UserServiceImpl implements UserService {
 	 * @throws DuplicateInstanceException the duplicate instance exception
 	 */
 	@Override
-	public void signUp(Users user) throws DuplicateInstanceException {
+	public void signUp(User user) throws DuplicateInstanceException {
 
 		if (userDao.existsByUserName(user.getUserName())) {
 			throw new DuplicateInstanceException("project.entities.user", user.getUserName());
@@ -64,19 +62,16 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	@Transactional(readOnly = true)
-	public Users login(String userName, String password) throws IncorrectLoginException {
+	public User login(String userName, String password) throws IncorrectLoginException {
 
-		Optional<Users> user = userDao.findByUserName(userName);
+		User user = userDao.findByUserName(userName)
+				.orElseThrow(() -> new IncorrectLoginException(userName));
 
-		if (!user.isPresent()) {
+		if (!passwordEncoder.matches(password, user.getPassword())) {
 			throw new IncorrectLoginException(userName);
 		}
 
-		if (!passwordEncoder.matches(password, user.get().getPassword())) {
-			throw new IncorrectLoginException(userName);
-		}
-
-		return user.get();
+		return user;
 
 	}
 
@@ -89,25 +84,23 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	@Transactional(readOnly = true)
-	public Users loginFromId(Long id) throws InstanceNotFoundException {
+	public User loginFromId(Long id) throws InstanceNotFoundException {
 		return permissionChecker.checkUser(id);
 	}
 
 	/**
 	 * Update profile.
 	 *
-	 * @param id        the id
-	 * @param firstName the first name
-	 * @param lastName  the last name
-	 * @param email     the email
+	 * @param id    the id
+	 * @param email the email
 	 * @return the user
 	 * @throws InstanceNotFoundException the instance not found exception
 	 */
 	@Override
-	public Users updateProfile(Long id, String email)
+	public User updateProfile(Long id, String email)
 			throws InstanceNotFoundException {
 
-		Users user = permissionChecker.checkUser(id);
+		User user = permissionChecker.checkUser(id);
 
 		user.setEmail(email);
 
@@ -128,7 +121,7 @@ public class UserServiceImpl implements UserService {
 	public void changePassword(Long id, String oldPassword, String newPassword)
 			throws InstanceNotFoundException, IncorrectPasswordException {
 
-		Users user = permissionChecker.checkUser(id);
+		User user = permissionChecker.checkUser(id);
 
 		if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
 			throw new IncorrectPasswordException();
@@ -141,7 +134,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void removeUser(Long userId) throws InstanceNotFoundException {
 
-		Users user = permissionChecker.checkUser(userId);
+		User user = permissionChecker.checkUser(userId);
 
 		userDao.delete(user);
 	}

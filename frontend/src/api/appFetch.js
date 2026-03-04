@@ -53,6 +53,8 @@ const handle4xxResponse = (response, onErrors) => {
         onErrors(payload);
       }
     });
+  } else {
+    console.warn(`Unhandled ${response.status} response from ${response.url}`);
   }
 
   return true;

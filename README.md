@@ -1,65 +1,294 @@
-# Proyecto Synapse - Motor de Conocimiento Digital (Digital Brain)
+<div align="center">
+<a href="https://git.io/typing-svg">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&duration=3000&pause=200&color=00FFA3&vCenter=true&random=false&width=500&lines=Synapse+-+Motor+de+Crecimiento+Personal" alt="Typing SVG" />
+</a>
+</div>
 
-Este documento detalla la arquitectura, decisiones de diseño, funcionalidades core y especificaciones tecnicas del proyecto Synapse, orientado a la evaluacion del jurado de la Olimpiada de Desarrollo de Software.
+<div align="center">
+  
+[![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.4-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![License](https://img.shields.io/badge/License-GPL--3.0-blue)](LICENSE)
 
-Synapse es una aplicacion web full-stack de Gestion de Conocimiento Personal (PKM - Personal Knowledge Management) diseñada para actuar como un "Segundo Cerebro". Optimiza los flujos de lectura, organizacion y aprendizaje activo mediante la ingesta rapida de contenido y el procesamiento asincrono habilitado por inteligencia artificial (Llama).
+Aplicación web full-stack de Gestión de Conocimiento Personal (PKM) que optimiza la captura, organización y aprendizaje activo de información mediante procesamiento asistido por inteligencia artificial.
 
-## 1. Arquitectura de Software y Stack Tecnologico
-
-El sistema esta construido sobre un esquema Cliente-Servidor fuertemente desacoplado, asegurando alta mantenibilidad, latencia minima en el front-end y un manejo robusto de la persistencia de datos y procesos en back-end.
-
-### Backend Integrador (API RESTful)
-- **Nucleo**: Java 17 y Spring Boot 3.3.4.
-- **Seguridad**: Autenticacion sin estado (Stateless) basada en Spring Security y JSON Web Tokens (JWT) mediante `jjwt-api` (v0.11.5).
-- **Persistencia y ORM**: Spring Data JPA implementando el patron Repository sobre Hibernate, contra bases de datos relacionales (PostgreSQL en entorno de produccion y memoria H2 para simulaciones de CI/tests).
-- **Extraccion de Contenido Web**: Uso de librerias especializadas en scraping (Jsoup) para derivar arboles DOM y extraer selectores como `og:title`, diccionarios meta y corpus textual eliminando el "ruido" web.
-- **Comunicaciones OOB**: Cliente HTTP `OkHttp3` orquestando las llamadas hacia los endpoints locales o cloud de inferencia LLM (Generacion LLM y Fact-Checking).
-
-### Frontend Reactivo (Single Page Application)
-- **Tecnologias Core**: React 18 acoplado con React Router DOM v6.
-- **Motor de Renderizado Markdown**: Integracion y parseo seguro con `react-markdown`, interviniendo a nivel de AST (Abstract Syntax Tree) para sobreescribir el comportamiento por defecto de elementos como `<h1>` o `<img>` e inyectar reproductores nativos basados en contexto.
-- **Gestion de Caché Distribuido**: Sistema hibrido de estado que provee una percepcion offline-first. Los componentes gestionan hooks mutables sincronizados asincronamente con el almacenamiento nativo de navegador (`localStorage`) para los items transitorios de la bandeja de entrada, logrando latencia cero en la captura.
-- **Algoritmica Frontend Avanzada**: Construccion de interfaces visuales poligonales y radiales mediante calculo analitico puro de atributos matematicos expuestos directo a dominios nativos de `<svg>` (sin depender de bibliotecas Chart pesadas de terceros).
+</div>
 
 ---
 
-## 2. Modulos y Funcionalidades Principales
+## Índice
 
-### 2.1 Motor de Ingesta Unificado (Digital Inbox)
-La bandeja de entrada actua como una cola FIFO asincrona disenada para no interrumpir el workflow del usuario (cero friccion).
-
-- **Multiples Formatos**: Admite pegado directo de URLs, volcado de bloques de texto plano o carga de ficheros binarios de video y audio continuo (Drag & Drop nativo y exploracion granular).
-- **Manejo Dinamico de Eventos**: Diseno defensivo de Drag & Drop implementando contadores referenciales para eliminar los repintados defectuosos recurrentes debidos a propagacion de eventos sobre capas embebidas (`pointer-events: none`).
-- **Vista Previa Semantica Optimista**: Las URLs extraidas por expresiones regulares validan encabezados CORS indirectamente via backend para construir *cards* enriquecidas antes de su transformacion formal a base de datos.
-
-### 2.2 Canalizacion Cognitiva Asistida por IA (Llama)
-El modulo procesador actua como puente inteligente entre el estado `pending` y `knowledge`. A traves del `LlamaAIService`, se ejecutan prompts con restricciones de estructura y formato JSON determinista.
-
-- **Auto-etiquetado y Taxonomia Automatica**: El modelo segrega el input, extrae la intencion original y expone sugerencias categoricas y de etiquetas (`tags`) que encajen mejor dentro del universo PKM.
-- **Conversion Arquitectonica de Texto a Markdown estructurado**: Transforma contenidos extensos sin jerarquias en notas estructuradas listas para ser consumidas (secciones de sumario y viñetas).
-
-### 2.3 Sistema Activo de Verificacion de Datos (Fact-Checking)
-Funcionalidad innovadora de seguridad documental que envia y sub-procesa los textos brutos al motor LLM para validacion fáctica.
-
-- Revisa el texto fragmentado y modela los *claims* contra umbrales configurables retornando flags tri-estado: Verdadero, Falso y Dudoso/Contexto Insuficiente.
-- Implementacion Frontend de mutacion concurrente: Al generarse correcciones, se proveen acciones directas (botones) sobre el visor DOM que ejecutan funciones de sustitucion transaccional estricta en la cadena de estado origen sin requerir reentrada manual.
-
-### 2.4 Radar Visual de Tendencias Cognitivas Analiticas
-Construccion matematica compleja en puro front-end que genera graficos de radar comparando consumos de conocimiento entre dos dimensiones temporales definidas.
-
-- Mapeo continuo de nodos en SVG donde los radios y vertices poligonales se resuelven via funciones angulares estandar `(-Math.PI / 2 + (idx * 2 * Math.PI) / n)`.
-- El servicio expone a la IA de diagnostico estadistico (`/api/brain/trends/insights`) este sumario tabular para derivar insights prescriptivos, emitiendo recomendaciones constructivas del estilo "Considera ampliar conocimiento en la etiqueta Mapeo ya que su tendencia ha bajado un 42%".
-
-### 2.5 Renderizador de Conocimiento Abstracto Adaptativo (MarkdownRenderer)
-Parseo especializado que protege e intercepta los formatos web inseguros y permite reproduccion nativa *in-situ*:
-
-- Se detectan y extraen identidades criptograficas exclusivas de plataformas (como los identificadores de video en base 64+mod de YouTube) garantizando que ninguna cadena convencional de exactamente 11 letras cruce al entorno del iFrame, blindando el visualizador ante caidas de red y fallas de incrustaciones de dominio.
-- El componente unifica la UX delegando atributos HTML dinamicos como el modo `youtube-nocookie.com`.
+- [Características](#-características)
+- [Stack tecnológico](#-stack-tecnológico)
+- [Arquitectura](#-arquitectura)
+- [Requisitos previos](#-requisitos-previos)
+- [Instalación](#-instalación)
+- [Configuración](#-configuración)
+- [API REST](#-api-rest)
+- [Esquema de base de datos](#-esquema-de-base-de-datos)
+- [Testing](#-testing)
+- [Estructura del proyecto](#-estructura-del-proyecto)
+- [Contribuidores](#-contribuidores)
+- [Licencia](#-licencia)
 
 ---
 
-## 3. Diseno de Ingenieria y Buenas Practicas
+## ✨ Características
 
-- **Construccion de Modelos Anemicos / Enriquecidos**: Los DTO (Data Transfer Objects) como el `TrendsInsightsParamsDto` previenen fugas de estructuras protegidas del ORM Data JPA y disminuyen la serializacion inyectando inmutabilidad en tiempo de ejecucion.
-- **Pipeline de Despliegue Unificado**: El ciclo Maven incluye la orquestacion transitoria del sistema SPA de React (`frontend-maven-plugin`). Al requerir el faseo `package`, descarga su propia instancia portable de NodeJS, compila el front, unifica y publica estaticamente en el classpath final del jar. Esto garantiza portabilidad total desde una imagen Kubernetes en un solo comando sin acoplamiento local al SO subyacente de dev.
-- **Coverage y Testing**: Pruebas configurables instrumentadas con `jacoco-maven-plugin` conectadas a las clases abstractas para monitoreo de metricas, asegurando bases sin colisiones para ciclos de integracion continuos.
+### 📥 Bandeja de Entrada (Digital Inbox)
+Cola de captura de contenido con cero fricción. Admite texto, URLs, ficheros de audio/vídeo (Drag & Drop), grabación de audio con micrófono y vista previa semántica de enlaces en tiempo real.
+
+### 🤖 Procesamiento Cognitivo con IA
+Pipeline inteligente que transforma entradas brutas en notas de conocimiento estructuradas en Markdown mediante **Llama 3.3 70B** (Groq API). Incluye auto-etiquetado, categorización taxonómica y generación de sumarios.
+
+### ✅ Fact-Checking Activo
+Verificación fáctica de contenido vía LLM. Analiza claims individuales y retorna un estado tri-valor (Verdadero / Falso / Dudoso) con correcciones aplicables directamente sobre la nota.
+
+### 📊 Radar de Tendencias
+Gráfico radar SVG generado algorítmicamente en frontend (sin librerías de terceros) que compara tendencias de consumo de conocimiento entre dos ventanas temporales, con diagnóstico prescriptivo generado por IA.
+
+### 🕹️ Arcade
+Interfaz retro tipo máquina recreativa para navegar y consumir notas clasificadas por tipo (vídeo, audio, web, nota), con controles de teclado y ratón, reproductor multimedia embebido y sistema de notificaciones.
+
+### 📝 Renderizador Markdown Adaptativo
+Motor de renderizado con detección inteligente de contenido multimedia: extrae IDs de YouTube para incrustar reproductores `youtube-nocookie.com`, inyecta players de audio nativos y protege contra iframes inseguros.
+
+### 🔔 Notificaciones en Tiempo Real
+Sistema de notificaciones push vía WebSocket con persistencia en `localStorage` y gestión de permisos del navegador.
+
+---
+
+## 🛠️ Stack Tecnológico
+
+| Capa | Tecnologías |
+|---|---|
+| **Backend** | Java 17, Spring Boot 3.3.4, Spring Security, Spring Data JPA, Hibernate |
+| **Frontend** | React 18, React Router DOM 6, react-markdown |
+| **Base de datos** | PostgreSQL 17 (producción), H2 (tests) |
+| **IA / LLM** | Llama 3.3 70B Versatile vía [Groq API](https://groq.com/) |
+| **Autenticación** | JWT (jjwt 0.11.5), sesiones stateless |
+| **Scraping** | Jsoup 1.17.2 |
+| **HTTP Client** | OkHttp 4.12.0 |
+| **WebSocket** | Spring WebSocket + Java-WebSocket 1.5.3 |
+| **Build** | Maven, frontend-maven-plugin (Node 20.18 + Yarn 1.22) |
+| **Testing** | JUnit 5, JaCoCo, React Testing Library |
+| **Despliegue** | JAR autocontenido, Kubernetes-ready (jkube) |
+
+---
+
+## 🏗️ Arquitectura
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      Cliente (SPA)                      │
+│  React 18 · React Router · localStorage (offline-first) │
+└────────────────────────┬────────────────────────────────┘
+                         │ HTTP / WebSocket
+┌────────────────────────▼────────────────────────────────┐
+│                   Spring Boot 3.3.4                     │
+│  ┌──────────┐  ┌──────────────┐  ┌───────────────────┐  │
+│  │ Security │  │  REST API    │  │   WebSocket       │  │
+│  │  (JWT)   │  │ Controllers  │  │   Notifications   │  │
+│  └──────────┘  └──────┬───────┘  └───────────────────┘  │
+│                       │                                  │
+│  ┌────────────────────▼──────────────────────────────┐  │
+│  │              Servicios de Dominio                 │  │
+│  │  LlamaAI · ContentExtraction · MediaStorage      │  │
+│  │  NoteMarkdownStorage · UserService                │  │
+│  └──────────┬──────────────────┬─────────────────────┘  │
+│             │                  │                         │
+│  ┌──────────▼──────┐  ┌───────▼──────────────────┐     │
+│  │  PostgreSQL     │  │  Filesystem              │     │
+│  │  (JPA/Hibernate)│  │  digital-brain-notes/*.md│     │
+│  └─────────────────┘  │  uploads/media/*         │     │
+│                        └─────────────────────────┘     │
+└─────────────────────────────────────────────────────────┘
+                         │
+              ┌──────────▼──────────┐
+              │   Groq Cloud API    │
+              │  Llama 3.3 70B      │
+              └─────────────────────┘
+```
+
+El almacenamiento de notas es **dual**: PostgreSQL para datos estructurados (relaciones, tags, logs) y ficheros `.md` en disco para portabilidad y compatibilidad con herramientas externas (Git, Obsidian, etc.).
+
+---
+
+## 📋 Requisitos Previos
+
+- **Java** 17+
+- **Maven** 3.8+
+- **Node.js** 20+ y **Yarn** 1.22+ (o dejar que Maven los descargue automáticamente)
+- **PostgreSQL** 17
+- Clave API de [Groq](https://console.groq.com/) para el LLM
+
+---
+
+## 🚀 Instalación
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/xcotelo/synapse.git
+cd synapse
+```
+
+### 2. Configurar la base de datos
+
+```sql
+CREATE DATABASE synapse
+WITH 
+OWNER = synapse
+ENCODING = 'UTF8'
+LC_COLLATE = 'es_ES.UTF-8'
+LC_CTYPE = 'es_ES.UTF-8'
+TEMPLATE = template0;
+
+CREATE USER synapse WITH PASSWORD '1234';
+CREATE DATABASE synapse OWNER synapse;
+CREATE DATABASE synapse_test OWNER synapse;
+```
+
+### 3. Configurar la clave API del LLM
+
+```bash
+export API_KEY_LLAMA="meter_clave_aqui"
+```
+
+### 4. Arranque aplicación (backend + frontend)
+
+```bash
+mvn clean install spring-boot:run
+```
+
+La aplicación estará disponible en **http://localhost:8080/synapse**
+
+### Desarrollo frontend independiente
+
+```bash
+cd frontend
+yarn install
+yarn start
+```
+
+El servidor de desarrollo se inicia en `http://localhost:3000` con proxy automático al backend en `http://localhost:8080`.
+
+---
+
+## ⚙️ Configuración
+
+Las propiedades principales se definen en `backend/src/main/resources/application.yml`:
+
+| Propiedad | Valor por defecto | Descripción |
+|---|---|---|
+| `spring.datasource.url` | `jdbc:postgresql://localhost:5432/synapse` | URL de PostgreSQL |
+| `spring.datasource.username` | `synapse` | Usuario de la BD |
+| `spring.datasource.password` | `1234` | Contraseña de la BD |
+| `spring.servlet.multipart.max-file-size` | `50MB` | Tamaño máximo de subida |
+| `server.servlet.context-path` | `/synapse` | Ruta base de la app |
+| `project.jwt.expirationMinutes` | `1440` | Duración del token JWT (24h) |
+| `project.llama.model` | `llama-3.3-70b-versatile` | Modelo LLM a usar |
+| `project.llama.apiUrl` | `https://api.groq.com/openai/v1/chat/completions` | Endpoint Groq |
+| `project.notes.dir` | `digital-brain-notes` | Directorio de notas Markdown |
+
+La clave API del LLM se inyecta vía variable de entorno `API_KEY_LLAMA`.
+
+---
+
+## 📡 API REST
+
+| Método | Endpoint | Auth | Descripción |
+|---|---|---|---|
+| `POST` | `/api/users/signUp` | — | Registro de usuario |
+| `POST` | `/api/users/login` | — | Login (retorna JWT) |
+| `POST` | `/api/users/loginFromServiceToken` | — | Re-autenticación por token |
+| `POST` | `/api/users/{id}/removeUser` | 🔒 | Eliminar cuenta |
+| `POST` | `/api/brain/suggest` | — | Sugerencia IA para texto |
+| `POST` | `/api/brain/suggest/file` | — | Sugerencia IA para fichero |
+| `GET` | `/api/brain/preview` | — | Vista previa de URL (metadatos) |
+| `*` | `/api/brain/notes/**` | — | CRUD de notas procesadas |
+| `*` | `/api/brain/media/**` | — | Servir ficheros multimedia |
+| `POST` | `/api/brain/trends/insights` | 🔒 | Análisis de tendencias con IA |
+| `POST` | `/api/brain/factcheck` | 🔒 | Verificación fáctica vía LLM |
+| `*` | `/ws/**` | — | WebSocket (notificaciones) |
+
+---
+
+## 🗄️ Esquema de Base de Datos
+
+```
+inbox_entries            info_just_process           tags
+┌──────────────────┐     ┌──────────────────────┐    ┌────────────┐
+│ id               │     │ id                   │    │ id         │
+│ content          │◄────│ source_entry_id (FK) │    │ name       │
+│ content_type     │     │ title                │    └─────┬──────┘
+│ source           │     │ content (Markdown)   │          │
+│ processed        │     │ note_type            │    info_just_process_tags
+│ metadata         │     │ created_at           │    ┌─────┴──────┐
+│ created_at       │     └──────────┬───────────┘    │ note_id    │
+└──────────────────┘                │                │ tag_id     │
+                                    │                └────────────┘
+processing_logs              info_just_process_links
+┌──────────────────┐         ┌──────────────────────┐
+│ id               │         │ from_note_id (FK)    │
+│ entry_id (FK)    │         │ to_note_id (FK)      │
+│ action           │         │ relation_type        │
+│ result           │         └──────────────────────┘
+└──────────────────┘
+```
+
+- **`content_type`**: `text` | `link` | `idea` | `code`
+- **`source`**: `manual` | `web` | `audio`
+- **`note_type`**: `concept` | `resource` | `idea`
+- **`relation_type`**: `related` | `extends` | `example`
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+synapse/
+├── pom.xml                          # Build unificado Maven
+├── backend/
+│   └── src/
+│       ├── main/
+│       │   ├── java/synapse/
+│       │   │   ├── Application.java
+│       │   │   ├── config/          # WebConfig
+│       │   │   ├── model/           # Entidades JPA, DAOs, Servicios
+│       │   │   └── rest/
+│       │   │       ├── controllers/ # UserController, BrainController
+│       │   │       ├── common/      # SecurityConfig, JWT, Advice
+│       │   │       ├── dtos/        # DTOs de request/response
+│       │   │       └── services/    # LlamaAI, ContentExtraction, Media
+│       │   └── resources/
+│       │       ├── application.yml
+│       │       └── schema.sql
+│       └── test/                    # Tests unitarios backend
+├── frontend/
+│   ├── package.json
+│   ├── public/                      # Assets estáticos, sonidos
+│   └── src/
+│       ├── modules/
+│       │   ├── app/                 # Shell de la aplicación
+│       │   ├── common/              # Componentes compartidos
+│       │   ├── digitalbrain/        # Módulo core (Inbox, Knowledge, Arcade)
+│       │   └── user/                # Login, Registro
+│       ├── styles/                  # Theme global, CSS retro
+│       └── tests/                   # Tests frontend
+└── digital-brain-notes/             # Notas Markdown (versionables con Git)
+```
+
+---
+
+## 👥 Contribuidores
+
+| Nombre | Contacto |
+|---|---|
+| Heitor Cambre García | heitor.cambre@udc.es |
+| Xián Cotelo Varela | x.cotelo@udc.es |
+| Diego Viqueira Sebe | d.vsebe@udc.es |
+
+---

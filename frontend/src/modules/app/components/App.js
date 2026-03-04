@@ -27,7 +27,7 @@ const AppLayout = () => {
 const App = () => {
   return (
     <div className="synapse-app">
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AppLayout />
       </Router>
     </div>

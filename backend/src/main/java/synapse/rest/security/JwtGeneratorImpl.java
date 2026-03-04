@@ -33,14 +33,12 @@ public class JwtGeneratorImpl implements JwtGenerator {
     @Override
     public String generate(JwtInfo info) {
 
-        Claims claims = Jwts.claims();
-
-        claims.setSubject(info.getUserName())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMinutes * 60 * 1000));
-        claims.put("userId", info.getUserId());
-
-        return Jwts.builder().setClaims(claims)
-                .signWith(Keys.hmacShaKeyFor(signKey.getBytes()), SignatureAlgorithm.HS512).compact();
+        return Jwts.builder()
+                .subject(info.getUserName())
+                .expiration(new Date(System.currentTimeMillis() + expirationMinutes * 60 * 1000))
+                .claim("userId", info.getUserId())
+                .signWith(Keys.hmacShaKeyFor(signKey.getBytes()), SignatureAlgorithm.HS512)
+                .compact();
 
     }
 
@@ -53,8 +51,11 @@ public class JwtGeneratorImpl implements JwtGenerator {
     @Override
     public JwtInfo getInfo(String token) {
 
-        Claims claims = Jwts.parserBuilder().setSigningKey(Keys.hmacShaKeyFor(signKey.getBytes())).build()
-                .parseClaimsJws(token).getBody();
+        Claims claims = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(signKey.getBytes()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
         return new JwtInfo(((Integer) claims.get("userId")).longValue(), claims.getSubject());
 

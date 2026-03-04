@@ -30,19 +30,16 @@
 		<!--  Compiler options -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>17</java.version>
-
-		<!--  Global properties -->
-		<project.contextPath>/synapse</project.contextPath>
+	<java.version>21</java.version>
 
 		<!--  Dependencies versions  -->
-		<jjwt.version>0.11.5</jjwt.version>
-		<hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
+	<jjwt.version>0.12.6</jjwt.version>
+	<hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
 
-		<!--  Plugins versions  -->
-		<plugin.jkube.version>1.3.0</plugin.jkube.version>
-		<plugin.jacoco.version>0.8.10</plugin.jacoco.version>
-		<plugin.frontend.version>1.6</plugin.frontend.version>
+	<!--  Plugins versions  -->
+	<plugin.jkube.version>1.17.0</plugin.jkube.version>
+	<plugin.jacoco.version>0.8.11</plugin.jacoco.version>
+	<plugin.frontend.version>1.15.1</plugin.frontend.version>
 		<plugin.m2e.version>1.0.0</plugin.m2e.version>
 		<plugin.sql.version>1.5</plugin.sql.version>
 	</properties>

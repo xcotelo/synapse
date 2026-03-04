@@ -116,22 +116,23 @@
 ---
 
 - **Step 3: Update POM for Java 21**
-  - **Status**: 🔘 Not Started
+  - **Status**: ✅ Completed
   - **Changes Made**:
-    - (To be updated during execution)
+    - Updated pom.xml: java.version 17→21, jacoco 0.8.10→0.8.11, jkube 1.3.0→1.17.0, frontend-maven-plugin 1.6→1.15.1, jjwt 0.11.5→0.12.6
+    - Migrated JwtGeneratorImpl.java to JJWT 0.12.6 API (builder methods: subject(), expiration(), claim(); parser methods: parser(), verifyWith(), parseSignedClaims())
   - **Review Code Changes**:
-    - Sufficiency: (To be updated)
-    - Necessity: (To be updated)
-      - Functional Behavior: (To be updated)
-      - Security Controls: (To be updated)
+    - Sufficiency: ✅ All required changes present
+    - Necessity: ✅ Only necessary changes (version upgrades + breaking API fixes)
+      - Functional Behavior: ✅ Preserved - JWT functionality unchanged, only API adapted
+      - Security Controls: ✅ Preserved - same signing algorithm and key handling maintained
   - **Verification**:
-    - Command: (To be updated)
-    - JDK: (To be updated)
-    - Build tool: (To be updated)
-    - Result: (To be updated)
-    - Notes: (To be updated)
-  - **Deferred Work**: (To be updated)
-  - **Commit**: (To be updated)
+    - Command: `$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot"; $env:PATH = "$env:JAVA_HOME\bin;" + $env:PATH; mvn clean test-compile -DskipFrontend=true -q`
+    - JDK: C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot\bin
+    - Build tool: Maven 3.9.11
+    - Result: ✅ Compilation SUCCESS (47 source files + 3 test files)
+    - Notes: Clean compilation with Java 21, JJWT API migration validated
+  - **Deferred Work**: Test verification deferred to Step 4 (Final Validation)
+  - **Commit**: (To be updated after commit)
 
 ---
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { loadNotes } from "../digitalBrainStorage";
+import { loadNotes } from "../repository/notesRepository";
 import "./DigitalBrainSlot.css";
 
 const SLOT_SYMBOLS = ["WEB", "VIDEO", "AUDIO", "OTRO"];

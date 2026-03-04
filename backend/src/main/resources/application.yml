@@ -11,11 +11,9 @@ spring:
     password: 1234
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: update   # o create-drop si quieres recrear cada vez
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
   servlet:
     multipart:
       max-file-size: 50MB     # Tamaño máximo de cada archivo

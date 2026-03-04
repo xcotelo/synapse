@@ -1,9 +1,10 @@
-package synapse.rest.common;
+package synapse.config;
 
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,9 +12,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import synapse.rest.security.JwtFilter;
 
 /**
  * The Class SecurityConfig.
@@ -46,22 +46,19 @@ public class SecurityConfig {
             .httpBasic(basic -> basic.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
+                // Static / SPA resources
                 .requestMatchers(antMatcher("/*")).permitAll()
                 .requestMatchers(antMatcher("/static/**")).permitAll()
                 .requestMatchers(antMatcher("/assets/**")).permitAll()
                 .requestMatchers(antMatcher("/sounds/**")).permitAll()
+                // Public API endpoints
                 .requestMatchers(antMatcher("/api/hello")).permitAll()
-                .requestMatchers(antMatcher("/api/users/signUp")).permitAll()
-                .requestMatchers(antMatcher("/api/users/login")).permitAll()
-                .requestMatchers(antMatcher("/api/users/loginFromServiceToken")).permitAll()
-                .requestMatchers(antMatcher("/api/users/*/removeUser")).authenticated()
+                .requestMatchers(antMatcher(HttpMethod.POST, "/api/sessions")).permitAll()
+                .requestMatchers(antMatcher(HttpMethod.POST, "/api/sessions/refresh")).permitAll()
+                .requestMatchers(antMatcher(HttpMethod.POST, "/api/users")).permitAll()
                 .requestMatchers(antMatcher("/api/image/getImage/{imageName}")).permitAll()
                 .requestMatchers(antMatcher("/ws/**")).permitAll()
-                // Cerebro digital: de momento permitimos el endpoint de sugerencias
-                .requestMatchers(antMatcher("/api/brain/suggest")).permitAll()
-                .requestMatchers(antMatcher("/api/brain/suggest/file")).permitAll()
-                .requestMatchers(antMatcher("/api/brain/preview")).permitAll()
-                .requestMatchers(antMatcher("/api/brain/notes/**")).permitAll()
+                // Brain: media is public (embedded), rest requires auth
                 .requestMatchers(antMatcher("/api/brain/media/**")).permitAll()
                 .requestMatchers(antMatcher("/actuator/**")).permitAll()
                 .anyRequest().authenticated()
@@ -83,28 +80,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
             throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    /**
-     * Cors configuration source.
-     *
-     * @return the cors configuration source
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-
-        CorsConfiguration config = new CorsConfiguration();
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-
-        source.registerCorsConfiguration("/**", config);
-
-        return source;
-
     }
 
 }

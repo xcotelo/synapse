@@ -5,7 +5,7 @@ import {
   getServiceToken,
   removeServiceToken,
   setReauthenticationCallback,
-} from "./appFetch";
+} from "../../../api/appFetch";
 
 const processLoginSignUp = (authenticatedUser, reauthenticationCallback, onSuccess) => {
   setServiceToken(authenticatedUser.serviceToken);
@@ -21,7 +21,7 @@ export const login = (
   reauthenticationCallback
 ) =>
   appFetch(
-    "/users/login",
+    "/sessions",
     fetchConfig("POST", { userName, password }),
     (authenticatedUser) => {
       processLoginSignUp(authenticatedUser, reauthenticationCallback, onSuccess);
@@ -44,7 +44,7 @@ export const tryLoginFromServiceToken = (
   setReauthenticationCallback(reauthenticationCallback);
 
   appFetch(
-    "/users/loginFromServiceToken",
+    "/sessions/refresh",
     fetchConfig("POST"),
     (authenticatedUser) => onSuccess(authenticatedUser),
     () => removeServiceToken()
@@ -53,7 +53,7 @@ export const tryLoginFromServiceToken = (
 
 export const signUp = (user, onSuccess, onErrors, reauthenticationCallback) => {
   appFetch(
-    "/users/signUp",
+    "/users",
     fetchConfig("POST", user),
     (authenticatedUser) => {
       processLoginSignUp(authenticatedUser, reauthenticationCallback, onSuccess);
@@ -75,12 +75,12 @@ export const changePassword = (
   onErrors
 ) =>
   appFetch(
-    `/users/${id}/changePassword`,
-    fetchConfig("POST", { oldPassword, newPassword }),
+    `/users/${id}/password`,
+    fetchConfig("PUT", { oldPassword, newPassword }),
     onSuccess,
     onErrors
   );
 
 
 export const removeUser = (userId, onSuccess, onErrors) =>
-  appFetch(`/users/${userId}/removeUser`, fetchConfig('POST'), onSuccess, onErrors);
+  appFetch(`/users/${userId}`, fetchConfig('DELETE'), onSuccess, onErrors);

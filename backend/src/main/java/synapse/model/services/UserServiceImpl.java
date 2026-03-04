@@ -2,8 +2,6 @@ package synapse.model.services;
 
 import java.util.Optional;
 
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +10,6 @@ import synapse.model.common.exceptions.DuplicateInstanceException;
 import synapse.model.common.exceptions.InstanceNotFoundException;
 import synapse.model.entities.Users;
 import synapse.model.entities.UserDao;
-import synapse.model.services.exceptions.CannotDeleteAdminException;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.model.services.exceptions.IncorrectPasswordException;
 
@@ -21,6 +18,7 @@ import synapse.model.services.exceptions.IncorrectPasswordException;
  */
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class UserServiceImpl implements UserService {
 
 	/** The permission checker. */
@@ -71,11 +69,11 @@ public class UserServiceImpl implements UserService {
 		Optional<Users> user = userDao.findByUserName(userName);
 
 		if (!user.isPresent()) {
-			throw new IncorrectLoginException(userName, password);
+			throw new IncorrectLoginException(userName);
 		}
 
 		if (!passwordEncoder.matches(password, user.get().getPassword())) {
-			throw new IncorrectLoginException(userName, password);
+			throw new IncorrectLoginException(userName);
 		}
 
 		return user.get();

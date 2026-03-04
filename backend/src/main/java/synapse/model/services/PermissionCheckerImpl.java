@@ -10,11 +10,13 @@ import synapse.model.common.exceptions.InstanceNotFoundException;
 import synapse.model.entities.Users;
 import synapse.model.entities.UserDao;
 
+
 /**
  * The Class PermissionCheckerImpl.
  */
 @Service
 @Transactional(readOnly=true)
+@SuppressWarnings("null")
 public class PermissionCheckerImpl implements PermissionChecker {
 	
 	/**

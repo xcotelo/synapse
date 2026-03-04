@@ -1,10 +1,10 @@
-import * as userService from "../../backend/userService";
+import * as userService from "../../modules/user/services/userService";
 
 const mockAppFetch = jest.fn();
 const mockGetServiceToken = jest.fn();
 const mockRemoveServiceToken = jest.fn();
-jest.mock("../../backend/appFetch", () => ({
-  ...jest.requireActual("../../backend/appFetch"),
+jest.mock("../../api/appFetch", () => ({
+  ...jest.requireActual("../../api/appFetch"),
   appFetch: (...args) => mockAppFetch(...args),
   getServiceToken: () => mockGetServiceToken(),
   removeServiceToken: () => mockRemoveServiceToken(),
@@ -32,7 +32,7 @@ describe("userService", () => {
       userService.login("user", "pass", onSuccess, onErrors, reauth);
 
       expect(mockAppFetch).toHaveBeenCalledWith(
-        "/users/login",
+        "/sessions",
         expect.objectContaining({ method: "POST" }),
         expect.any(Function),
         onErrors
@@ -69,7 +69,7 @@ describe("userService", () => {
       userService.signUp(user, onSuccess, onErrors, jest.fn());
 
       expect(mockAppFetch).toHaveBeenCalledWith(
-        "/users/signUp",
+        "/users",
         expect.anything(),
         expect.any(Function),
         onErrors
@@ -111,7 +111,7 @@ describe("userService", () => {
       userService.tryLoginFromServiceToken(onSuccess, jest.fn());
 
       expect(mockAppFetch).toHaveBeenCalledWith(
-        "/users/loginFromServiceToken",
+        "/sessions/refresh",
         expect.anything(),
         expect.any(Function),
         expect.any(Function)
@@ -160,7 +160,7 @@ describe("userService", () => {
       userService.changePassword(1, "old", "new", onSuccess, onErrors);
 
       expect(mockAppFetch).toHaveBeenCalledWith(
-        "/users/1/changePassword",
+        "/users/1/password",
         expect.anything(),
         onSuccess,
         onErrors

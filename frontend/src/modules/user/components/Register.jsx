@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signUp } from '../../../backend/userService';
+import { signUp } from '../services/userService';
 import { Errors } from "../../common";
 
 const Register = () => {

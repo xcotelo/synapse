@@ -1,6 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
-import { extractYouTubeId } from "../digitalBrainStorage";
+import { extractYouTubeId } from "../model/noteModel";
 
 const getYoutubeIdFromNote = (note) => {
   if (!note) return null;

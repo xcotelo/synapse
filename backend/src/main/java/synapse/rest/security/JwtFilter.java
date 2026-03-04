@@ -1,9 +1,8 @@
-package synapse.rest.common;
+package synapse.rest.security;
 
 import java.io.IOException;
 import java.util.HashSet;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,9 +20,11 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    /** The jwt generator. */
-    @Autowired
-    private JwtGenerator jwtGenerator;
+    private final JwtGenerator jwtGenerator;
+
+    public JwtFilter(JwtGenerator jwtGenerator) {
+        this.jwtGenerator = jwtGenerator;
+    }
 
     /**
      * Do filter internal.

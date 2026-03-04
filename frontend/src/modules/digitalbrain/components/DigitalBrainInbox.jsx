@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-import { createInboxEntry, loadInbox, saveInbox, loadNotes, loadLastProcessed, extractFirstUrl, extractYouTubeId } from "../digitalBrainStorage";
-import { appFetch, fetchConfig } from "../../../backend/appFetch";
+import { createInboxEntry, extractFirstUrl, extractYouTubeId } from "../model/noteModel";
+import { loadInbox, saveInbox, loadLastProcessed } from "../repository/inboxRepository";
+import { loadNotes } from "../repository/notesRepository";
+import { loadLinkPreview, suggestFromFile } from "../services/brainApiService";
 import "./FileDropZone.css";
 import micIcon from "../../../assets/mic.svg";
 
@@ -137,9 +139,8 @@ const DigitalBrainInbox = () => {
     setPreviewLoading((prev) => ({ ...prev, [id]: true }));
     setPreviewError((prev) => ({ ...prev, [id]: null }));
 
-    appFetch(
-      `/brain/preview?url=${encodeURIComponent(url)}`,
-      fetchConfig("GET"),
+    loadLinkPreview(
+      url,
       (data) => {
         const current = loadInbox();
         const updated = current.map((x) =>
@@ -198,9 +199,8 @@ const DigitalBrainInbox = () => {
     saveInbox(updatedInbox);
     setInbox(updatedInbox);
 
-    appFetch(
-      "/brain/suggest/file",
-      fetchConfig("POST", formData),
+    suggestFromFile(
+      formData,
       (response) => {
         if (!response) return;
 

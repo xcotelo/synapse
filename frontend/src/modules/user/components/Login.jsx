@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login } from '../../../backend/userService';
+import { login } from '../services/userService';
 import { useUser } from "../../common/components/UserContext";
 import { Errors } from "../../common";
 

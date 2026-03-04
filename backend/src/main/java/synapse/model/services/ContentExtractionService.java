@@ -1,4 +1,4 @@
-package synapse.rest.services;
+package synapse.model.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

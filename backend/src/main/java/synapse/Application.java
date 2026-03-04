@@ -12,6 +12,7 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
  * The Class Application.
  */
 @SpringBootApplication
+@SuppressWarnings("null")
 public class Application {
 
     /**

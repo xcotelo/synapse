@@ -1,4 +1,4 @@
-package synapse.rest.common;
+package synapse.rest.security;
 
 import java.util.Date;
 

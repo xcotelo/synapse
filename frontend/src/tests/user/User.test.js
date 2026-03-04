@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Login from "../../modules/user/components/Login";
 import Register from "../../modules/user/components/Register";
-import * as userService from "../../backend/userService";
+import * as userService from "../../modules/user/services/userService";
 
 const mockNavigate = jest.fn();
 const mockLogIn = jest.fn();
@@ -20,7 +20,7 @@ jest.mock("../../modules/common/components/UserContext", () => ({
   }),
 }));
 
-jest.mock("../../backend/userService");
+jest.mock("../../modules/user/services/userService");
 
 describe("Login", () => {
   beforeEach(() => {

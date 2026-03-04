@@ -1,10 +1,12 @@
-package synapse.rest.dtos;
+package synapse.rest.mappers;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import synapse.model.entities.Users;
+import synapse.rest.dtos.AuthenticatedUserDto;
+import synapse.rest.dtos.UserDto;
 
 /**
  * The Class UserConversor.

@@ -1,5 +1,6 @@
 package synapse.rest.controllers;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,56 +29,46 @@ import synapse.rest.dtos.ChangePasswordParamsDto;
 import synapse.rest.dtos.UserDto;
 
 /**
- * The Class UserControllerTest.
+ * Integration tests for UserController and SessionController REST endpoints.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@SuppressWarnings("null")
 public class UserControllerTest {
 
-	/** The Constant PASSWORD. */
 	private final static String PASSWORD = "password";
 
-	/** The mock mvc. */
 	@Autowired
 	private MockMvc mockMvc;
 
-	/** The password encoder. */
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
 
-	/** The user dao. */
 	@Autowired
 	UserDao userDao;
 
-	/** The user controller. */
 	@Autowired
-	private UserController userController;
+	private SessionController sessionController;
 
 	private AuthenticatedUserDto createAuthenticatedUser(String userName)
 			throws IncorrectLoginException {
 
 		Users user = new Users(userName, PASSWORD, "user@test.com");
-
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
-
 		userDao.save(user);
 
 		LoginParamsDto loginParams = new LoginParamsDto();
 		loginParams.setUserName(user.getUserName());
 		loginParams.setPassword(PASSWORD);
 
-		return userController.login(loginParams);
-
+		return sessionController.login(loginParams);
 	}
 
-	/**
-	 * Test post login ok.
-	 *
-	 * @throws Exception the exception
-	 */
+	// ── Session endpoints (POST /api/sessions) ──
+
 	@Test
 	public void testPostLogin_Ok() throws Exception {
 
@@ -89,10 +80,10 @@ public class UserControllerTest {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		mockMvc.perform(post("/api/users/login").header("Authorization", "Bearer " + user.getServiceToken())
+		mockMvc.perform(post("/api/sessions")
+				.header("Authorization", "Bearer " + user.getServiceToken())
 				.contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(loginParams)))
 				.andExpect(status().isOk());
-
 	}
 
 	@Test
@@ -104,11 +95,12 @@ public class UserControllerTest {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		mockMvc.perform(post("/api/users/login")
+		mockMvc.perform(post("/api/sessions")
 				.contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(loginParams)))
-				.andExpect(status().isNotFound());
-
+				.andExpect(status().isUnauthorized());
 	}
+
+	// ── User endpoints (POST /api/users) ──
 
 	@Test
 	public void testPostSignUp_Ok() throws Exception {
@@ -120,10 +112,9 @@ public class UserControllerTest {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		mockMvc.perform(post("/api/users/signUp")
+		mockMvc.perform(post("/api/users")
 				.contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(user)))
 				.andExpect(status().isCreated());
-
 	}
 
 	@Test
@@ -136,14 +127,15 @@ public class UserControllerTest {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		mockMvc.perform(post("/api/users/signUp")
+		mockMvc.perform(post("/api/users")
 				.contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(user)));
 
-		mockMvc.perform(post("/api/users/signUp")
+		mockMvc.perform(post("/api/users")
 				.contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(user)))
-				.andExpect(status().isBadRequest());
-
+				.andExpect(status().isConflict());
 	}
+
+	// ── Token refresh (POST /api/sessions/refresh) ──
 
 	@Test
 	public void testLoginFromServiceToken_Ok() throws Exception {
@@ -153,12 +145,11 @@ public class UserControllerTest {
 		String serviceToken = authenticatedUser.getServiceToken();
 		Long userId = authenticatedUser.getUserDto().getId();
 
-		mockMvc.perform(post("/api/users/loginFromServiceToken")
+		mockMvc.perform(post("/api/sessions/refresh")
 				.requestAttr("userId", userId)
 				.requestAttr("serviceToken", serviceToken)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk());
-
 	}
 
 	@Test
@@ -169,13 +160,14 @@ public class UserControllerTest {
 		Long nonExistentUserId = Long.valueOf(-1);
 		String serviceToken = user.getServiceToken();
 
-		mockMvc.perform(post("/api/users/loginFromServiceToken")
+		mockMvc.perform(post("/api/sessions/refresh")
 				.requestAttr("userId", nonExistentUserId)
 				.requestAttr("serviceToken", serviceToken)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isNotFound());
-
 	}
+
+	// ── Profile update (PUT /api/users/{id}) ──
 
 	@Test
 	public void testUpdateProfile_Ok() throws Exception {
@@ -208,6 +200,8 @@ public class UserControllerTest {
 				.andExpect(status().isForbidden());
 	}
 
+	// ── Change password (PUT /api/users/{id}/password) ──
+
 	@Test
 	public void testChangePassword_Ok() throws Exception {
 
@@ -219,25 +213,23 @@ public class UserControllerTest {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		mockMvc.perform(post("/api/users/{userId}/changePassword", user.getUserDto().getId())
+		mockMvc.perform(put("/api/users/{userId}/password", user.getUserDto().getId())
 				.header("Authorization", "Bearer " + user.getServiceToken())
 				.contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(changePassworParams)))
 				.andExpect(status().isNoContent());
-
 	}
+
+	// ── Delete user (DELETE /api/users/{id}) ──
 
 	@Test
 	public void testDeleteUser_Ok() throws Exception {
 
-		AuthenticatedUserDto admin = createAuthenticatedUser("admin");
+		AuthenticatedUserDto user = createAuthenticatedUser("userToDelete");
 
-		Users user1 = new Users("user", "password", "noah@gmail.com");
-		userDao.save(user1);
-
-		mockMvc.perform(post("/api/users/" + user1.getId() + "/removeUser")
-				.header("Authorization", "Bearer " + admin.getServiceToken())
+		mockMvc.perform(delete("/api/users/{id}", user.getUserDto().getId())
+				.header("Authorization", "Bearer " + user.getServiceToken())
 				.contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
+				.andExpect(status().isNoContent());
 	}
 
 }

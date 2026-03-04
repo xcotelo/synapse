@@ -4,18 +4,10 @@ import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker";
 import es from "date-fns/locale/es";
 import "react-datepicker/dist/react-datepicker.css";
 import "./ProcessEntryDatepicker.css";
-import { appFetch, fetchConfig } from "../../../backend/appFetch";
-import {
-  createNoteFromEntry,
-  loadInbox,
-  loadNotes,
-  saveNotes,
-  saveInbox,
-  defaultTemplate,
-  updateLastProcessed,
-  extractFirstUrl,
-  extractYouTubeId,
-} from "../services/brainService";
+import { createNoteFromEntry, defaultTemplate, extractFirstUrl, extractYouTubeId } from "../model/noteModel";
+import { loadInbox, saveInbox, updateLastProcessed } from "../repository/inboxRepository";
+import { loadNotes, saveNotes } from "../repository/notesRepository";
+import { suggestContent, saveNoteToBackend, factCheckContent } from "../services/brainApiService";
 import { useNotifications } from "../../common/components/NotificationContext";
 
 registerLocale("es", es);
@@ -83,9 +75,8 @@ export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAf
     setLoadingSuggestion(true);
     setSuggestionError(null);
 
-    appFetch(
-      "/brain/suggest",
-      fetchConfig("POST", { content: found.rawContent }),
+    suggestContent(
+      found.rawContent,
       (data) => {
         setAiSuggestion(data);
 
@@ -153,21 +144,8 @@ export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAf
 
     // 4.1 Persistir también en formato abierto (Markdown en disco) via backend.
     // Best-effort: si falla, la app sigue funcionando con localStorage.
-    appFetch(
-      "/brain/notes",
-      fetchConfig("POST", {
-        noteId: note.id,
-        entryId: note.entryId,
-        title: note.title,
-        destination: note.destination,
-        type: note.type,
-        createdAt: note.createdAt,
-        content: note.content,
-        tags: note.tags,
-        mediaUrl: note.media && note.media.url ? note.media.url : undefined,
-        mediaContentType:
-          note.media && note.media.contentType ? note.media.contentType : undefined,
-      }),
+    saveNoteToBackend(
+      note,
       (data) => {
         if (!data || !data.storageId) return;
 
@@ -202,9 +180,8 @@ export const DigitalBrainProcessEntry = ({ entryId: entryIdProp, batchMode, onAf
     setFactCheckError(null);
     setFactCheckResults(null);
 
-    appFetch(
-      "/brain/fact-check",
-      fetchConfig("POST", { content: content }),
+    factCheckContent(
+      content,
       (data) => {
         if (data && data.claims) {
           setFactCheckResults(data.claims);

@@ -2,18 +2,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useNotifications } from "../../common/components/NotificationContext";
 import { useUser } from "../../common/components/UserContext";
-import {
-  buildTrendsReport,
-  deleteNoteById,
-  downloadNoteAsFile,
-  downloadNoteDocument,
-  extractFirstUrl,
-  extractYouTubeId,
-  loadInbox,
-  loadNotes,
-  toggleNoteReadStatus,
-} from "../digitalBrainStorage";
-import { appFetch, fetchConfig } from "../../../backend/appFetch";
+import { extractFirstUrl, extractYouTubeId } from "../model/noteModel";
+import { buildTrendsReport } from "../model/trendsModel";
+import { downloadNoteAsFile, downloadNoteDocument } from "../model/exportModel";
+import { loadInbox } from "../repository/inboxRepository";
+import { loadNotes, deleteNoteById, toggleNoteReadStatus } from "../repository/notesRepository";
+import { deleteNoteFromBackend, deleteMediaFromBackend } from "../services/brainApiService";
 import MarkdownRenderer from "./MarkdownRenderer";
 import "./DigitalBrainArcade.css";
 
@@ -349,9 +343,8 @@ const DigitalBrainArcade = () => {
         onDone();
         return;
       }
-      appFetch(
-        `/brain/notes/${encodeURIComponent(noteToDelete.storageId)}`,
-        fetchConfig("DELETE"),
+      deleteNoteFromBackend(
+        noteToDelete.storageId,
         () => onDone(),
         () => onDone()
       );
@@ -370,9 +363,8 @@ const DigitalBrainArcade = () => {
         onDone();
         return;
       }
-      appFetch(
-        `/brain/media/${encodeURIComponent(filename)}`,
-        fetchConfig("DELETE"),
+      deleteMediaFromBackend(
+        filename,
         () => onDone(),
         () => onDone()
       );

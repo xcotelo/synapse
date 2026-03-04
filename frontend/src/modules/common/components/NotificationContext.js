@@ -7,10 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  loadNotes,
-  clearNoteReminder,
-} from "../../digitalbrain/digitalBrainStorage";
+import { loadNotes, clearNoteReminder } from "../../digitalbrain/repository/notesRepository";
 
 const NOTIFICATIONS_KEY = "synapse.notifications";
 const MAX_SETTIMEOUT_MS = 2147483647; // límite de setTimeout en navegadores

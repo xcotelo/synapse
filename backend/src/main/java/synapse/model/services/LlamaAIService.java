@@ -1,4 +1,4 @@
-package synapse.rest.services;
+package synapse.model.services;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,7 +45,6 @@ public class LlamaAIService {
 
     private static final String CONST_CONTENT = "content";
     private static final String CONST_APUNTE = "apunte";
-    private static final String CONST_VIDEO = "video";
     private static final String CONST_CLAIMS = "claims";
     private static final String CONST_NOTA = "nota";
 

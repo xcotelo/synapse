@@ -13,11 +13,9 @@ spring:
     password: ""
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: create-drop
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
 
   sql:
     init:

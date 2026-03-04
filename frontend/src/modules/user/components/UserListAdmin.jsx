@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAllUsers, removeUser } from '../../../backend/userService';
+import { getAllUsers, removeUser } from '../services/userService';
 import { Pager, Errors } from '../../common';
 
 const UserListAdmin = () => {

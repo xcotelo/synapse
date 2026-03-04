@@ -1,17 +1,23 @@
 import {
-  loadNotes,
-  saveNotes,
-  loadInbox,
-  saveInbox,
   extractFirstUrl,
   extractYouTubeId,
   detectEntryType,
   createInboxEntry,
   createNoteFromEntry,
+} from "../../modules/digitalbrain/model/noteModel";
+import {
+  exportNotesAsMarkdown,
+} from "../../modules/digitalbrain/model/exportModel";
+import {
+  loadInbox,
+  saveInbox,
+} from "../../modules/digitalbrain/repository/inboxRepository";
+import {
+  loadNotes,
+  saveNotes,
   deleteNoteById,
   toggleNoteReadStatus,
-  exportNotesAsMarkdown,
-} from "../../modules/digitalbrain/digitalBrainStorage";
+} from "../../modules/digitalbrain/repository/notesRepository";
 
 const NOTES_KEY = "digitalBrain.notes";
 const INBOX_KEY = "digitalBrain.inbox";

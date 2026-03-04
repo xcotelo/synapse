@@ -1,8 +1,8 @@
 package synapse.rest.controllers;
 
-import static synapse.rest.mappers.UserConversor.toAuthenticatedUserDto;
-import static synapse.rest.mappers.UserConversor.toUser;
-import static synapse.rest.mappers.UserConversor.toUserDto;
+import static synapse.rest.mappers.UserMapper.toAuthenticatedUserDto;
+import static synapse.rest.mappers.UserMapper.toUser;
+import static synapse.rest.mappers.UserMapper.toUserDto;
 
 import java.net.URI;
 
@@ -22,7 +22,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import synapse.model.common.exceptions.DuplicateInstanceException;
 import synapse.model.common.exceptions.InstanceNotFoundException;
-import synapse.model.entities.Users;
+import synapse.model.entities.User;
 import synapse.model.services.exceptions.IncorrectPasswordException;
 import synapse.model.services.exceptions.PermissionException;
 import synapse.model.services.UserService;
@@ -57,7 +57,7 @@ public class UserController {
 			@Validated({ UserDto.AllValidations.class }) @RequestBody UserDto userDto)
 			throws DuplicateInstanceException {
 
-		Users user = toUser(userDto);
+		User user = toUser(userDto);
 		userService.signUp(user);
 
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(user.getId())
@@ -114,7 +114,7 @@ public class UserController {
 		}
 	}
 
-	private String generateServiceToken(Users user) {
+	private String generateServiceToken(User user) {
 		JwtInfo jwtInfo = new JwtInfo(user.getId(), user.getUserName());
 		return jwtGenerator.generate(jwtInfo);
 	}

@@ -6,12 +6,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /**
  * The Class User.
  */
 @Entity
-public class Users {
+@Table(name = "users")
+public class User {
 
 	/** The id. */
 	private Long id;
@@ -28,7 +30,7 @@ public class Users {
 	/**
 	 * Instantiates a new user.
 	 */
-	public Users() {
+	public User() {
 	}
 
 	/**
@@ -38,7 +40,7 @@ public class Users {
 	 * @param password the password
 	 * @param email    the email
 	 */
-	public Users(String userName, String password, String email) {
+	public User(String userName, String password, String email) {
 
 		this.userName = userName;
 		this.password = password;

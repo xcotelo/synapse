@@ -1,6 +1,10 @@
 package synapse.rest.dtos;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class FactCheckParamsDto {
+
+    @NotBlank
     private String content;
 
     public FactCheckParamsDto() {

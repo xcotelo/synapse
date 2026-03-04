@@ -42,11 +42,11 @@ public class MediaStorageService {
             Path targetPath = storageDir.resolve(storedName);
 
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-            logger.info("Archivo multimedia '{}' almacenado como '{}' en {}", originalName, storedName, storageDir);
+            logger.info("Media file '{}' stored as '{}' in {}", originalName, storedName, storageDir);
             return storedName;
         } catch (IOException e) {
-            logger.error("Error al almacenar archivo multimedia: {}", e.getMessage());
-            throw new RuntimeException("No se pudo almacenar el archivo multimedia", e);
+            logger.error("Error storing media file: {}", e.getMessage());
+            throw new RuntimeException("Could not store media file", e);
         }
     }
 
@@ -60,9 +60,9 @@ public class MediaStorageService {
                 return resource;
             }
         } catch (Exception e) {
-            logger.error("Error al cargar recurso multimedia '{}': {}", filename, e.getMessage());
+            logger.error("Error loading media resource '{}': {}", filename, e.getMessage());
         }
-        throw new RuntimeException("No se pudo cargar el archivo multimedia solicitado");
+        throw new RuntimeException("Could not load the requested media file");
     }
 
     public boolean deleteFile(String filename) {
@@ -70,24 +70,24 @@ public class MediaStorageService {
             Path storageDir = Paths.get(uploadDir).toAbsolutePath().normalize();
             Path filePath = storageDir.resolve(filename).normalize();
 
-            // Evitar path traversal: el fichero debe quedar dentro del directorio de uploads
+            // Prevent path traversal: file must stay within uploads directory
             if (!filePath.startsWith(storageDir)) {
-                throw new IllegalArgumentException("Nombre de archivo inválido");
+                throw new IllegalArgumentException("Invalid filename");
             }
 
             boolean deleted = Files.deleteIfExists(filePath);
             if (deleted) {
-                logger.info("Archivo multimedia '{}' eliminado de {}", filename, storageDir);
+                logger.info("Media file '{}' deleted from {}", filename, storageDir);
             } else {
-                logger.info("Archivo multimedia '{}' no existe en {}", filename, storageDir);
+                logger.info("Media file '{}' does not exist in {}", filename, storageDir);
             }
             return deleted;
         } catch (IllegalArgumentException e) {
-            logger.warn("Solicitud de borrado de archivo inválida '{}': {}", filename, e.getMessage());
+            logger.warn("Invalid file deletion request '{}': {}", filename, e.getMessage());
             throw e;
         } catch (IOException e) {
-            logger.error("Error al eliminar archivo multimedia '{}': {}", filename, e.getMessage());
-            throw new RuntimeException("No se pudo eliminar el archivo multimedia", e);
+            logger.error("Error deleting media file '{}': {}", filename, e.getMessage());
+            throw new RuntimeException("Could not delete media file", e);
         }
     }
 
@@ -126,7 +126,7 @@ public class MediaStorageService {
         try {
             fileLength = Files.size(filePath);
         } catch (IOException e) {
-            throw new RuntimeException("No se pudo obtener el tamaño del archivo", e);
+            throw new RuntimeException("Could not determine file size", e);
         }
 
         String rangeValue = rangeHeader.substring("bytes=".length()).trim();
@@ -176,7 +176,7 @@ public class MediaStorageService {
             }
             bytesRead = is.read(data);
         } catch (IOException e) {
-            throw new RuntimeException("Error al leer el rango del archivo", e);
+            throw new RuntimeException("Error reading file range", e);
         }
 
         if (bytesRead < 0) {

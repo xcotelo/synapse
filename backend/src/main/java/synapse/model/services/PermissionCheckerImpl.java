@@ -1,13 +1,10 @@
 package synapse.model.services;
 
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import synapse.model.common.exceptions.InstanceNotFoundException;
-import synapse.model.entities.Users;
+import synapse.model.entities.User;
 import synapse.model.entities.UserDao;
 
 
@@ -18,16 +15,12 @@ import synapse.model.entities.UserDao;
 @Transactional(readOnly=true)
 @SuppressWarnings("null")
 public class PermissionCheckerImpl implements PermissionChecker {
-	
-	/**
-	 *  The user dao.
-	 *
-	 * @param userId the user id
-	 * @return the user
-	 * @throws InstanceNotFoundException the instance not found exception
-	 */
-	@Autowired
-	private UserDao userDao;
+
+	private final UserDao userDao;
+
+	public PermissionCheckerImpl(UserDao userDao) {
+		this.userDao = userDao;
+	}
 	
 	@Override
 	public void checkUserExists(Long userId) throws InstanceNotFoundException {
@@ -39,16 +32,11 @@ public class PermissionCheckerImpl implements PermissionChecker {
 	}
 
 	@Override
-	public Users checkUser(Long userId) throws InstanceNotFoundException {
+	public User checkUser(Long userId) throws InstanceNotFoundException {
 
-		Optional<Users> user = userDao.findById(userId);
-		
-		if (!user.isPresent()) {
-			throw new InstanceNotFoundException("project.entities.user", userId);
-		}
-		
-		return user.get();
-		
+		return userDao.findById(userId)
+				.orElseThrow(() -> new InstanceNotFoundException("project.entities.user", userId));
+
 	}
 
 }

@@ -1,7 +1,7 @@
 package synapse.model.services;
 
 import synapse.model.common.exceptions.InstanceNotFoundException;
-import synapse.model.entities.Users;
+import synapse.model.entities.User;
 
 /**
  * The Interface PermissionChecker.
@@ -23,6 +23,6 @@ public interface PermissionChecker {
 	 * @return the user
 	 * @throws InstanceNotFoundException the instance not found exception
 	 */
-	public Users checkUser(Long userId) throws InstanceNotFoundException;
+	public User checkUser(Long userId) throws InstanceNotFoundException;
 	
 }

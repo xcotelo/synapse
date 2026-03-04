@@ -14,7 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import synapse.model.common.exceptions.DuplicateInstanceException;
 import synapse.model.common.exceptions.InstanceNotFoundException;
-import synapse.model.entities.Users;
+import synapse.model.entities.User;
 import synapse.model.entities.UserDao;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.model.services.exceptions.IncorrectPasswordException;
@@ -43,8 +43,8 @@ public class UserServiceTest {
 	 * @param userName the user name
 	 * @return the user
 	 */
-	private Users createUser(String userName) {
-		return new Users(userName, "password", userName + "@" + userName + ".com");
+	private User createUser(String userName) {
+		return new User(userName, "password", userName + "@" + userName + ".com");
 	}
 
 	/**
@@ -56,11 +56,11 @@ public class UserServiceTest {
 	@Test
 	public void testSignUpAndLoginFromId() throws DuplicateInstanceException, InstanceNotFoundException {
 
-		Users user = createUser("user");
+		User user = createUser("user");
 
 		userService.signUp(user);
 
-		Users loggedInUser = userService.loginFromId(user.getId());
+		User loggedInUser = userService.loginFromId(user.getId());
 		assertEquals(user, loggedInUser);
 
 	}
@@ -68,7 +68,7 @@ public class UserServiceTest {
 	@Test
 	public void testSignUpDuplicatedUserName() throws DuplicateInstanceException {
 
-		Users user = createUser("user");
+		User user = createUser("user");
 
 		userService.signUp(user);
 		assertThrows(DuplicateInstanceException.class, () -> userService.signUp(user));
@@ -83,12 +83,12 @@ public class UserServiceTest {
 	@Test
 	public void testLogin() throws DuplicateInstanceException, IncorrectLoginException {
 
-		Users user = createUser("user");
+		User user = createUser("user");
 		String clearPassword = user.getPassword();
 
 		userService.signUp(user);
 
-		Users loggedInUser = userService.login(user.getUserName(), clearPassword);
+		User loggedInUser = userService.login(user.getUserName(), clearPassword);
 
 		assertEquals(user, loggedInUser);
 
@@ -97,7 +97,7 @@ public class UserServiceTest {
 	@Test
 	public void testLoginWithIncorrectPassword() throws DuplicateInstanceException {
 
-		Users user = createUser("user");
+		User user = createUser("user");
 		String clearPassword = user.getPassword();
 
 		userService.signUp(user);
@@ -114,7 +114,7 @@ public class UserServiceTest {
 	@Test
 	public void testUpdateProfile() throws InstanceNotFoundException, DuplicateInstanceException {
 
-		Users user = createUser("user");
+		User user = createUser("user");
 
 		userService.signUp(user);
 
@@ -122,7 +122,7 @@ public class UserServiceTest {
 
 		userService.updateProfile(user.getId(), 'X' + user.getEmail());
 
-		Users updatedUser = userService.loginFromId(user.getId());
+		User updatedUser = userService.loginFromId(user.getId());
 
 		assertEquals(user, updatedUser);
 
@@ -137,13 +137,13 @@ public class UserServiceTest {
 	public void testChangePassword() throws DuplicateInstanceException, InstanceNotFoundException,
 			IncorrectPasswordException, IncorrectLoginException {
 
-		Users user = createUser("user");
+		User user = createUser("user");
 		String oldPassword = user.getPassword();
 		String newPassword = 'X' + oldPassword;
 
 		userService.signUp(user);
 		userService.changePassword(user.getId(), oldPassword, newPassword);
-		Users loggedUser = userService.login(user.getUserName(), newPassword);
+		User loggedUser = userService.login(user.getUserName(), newPassword);
 
 		assertEquals(user.getId(), loggedUser.getId());
 
@@ -158,7 +158,7 @@ public class UserServiceTest {
 	@Test
 	public void testChangePasswordWithIncorrectPassword() throws DuplicateInstanceException {
 
-		Users user = createUser("user");
+		User user = createUser("user");
 		String oldPassword = user.getPassword();
 		String newPassword = 'X' + oldPassword;
 

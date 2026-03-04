@@ -1,13 +1,14 @@
 package synapse.model.services.exceptions;
 
 /**
- * The Class CannotDeleteAdminException.
+ * Thrown when attempting to delete the admin user.
  */
-@SuppressWarnings("serial")
 public class CannotDeleteAdminException extends Exception {
 
+	private static final long serialVersionUID = 1L;
+
 	/** The user id. */
-	private Long userId;
+	private final Long userId;
 
 	/**
 	 * Instantiates a new cannot delete admin exception.
@@ -15,6 +16,7 @@ public class CannotDeleteAdminException extends Exception {
 	 * @param userId the user id
 	 */
 	public CannotDeleteAdminException(Long userId) {
+		super("Cannot delete admin user with id: " + userId);
 		this.userId = userId;
 	}
 

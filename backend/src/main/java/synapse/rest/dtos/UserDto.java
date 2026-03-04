@@ -33,30 +33,17 @@ public class UserDto {
 	/** The email. */
 	private String email;
 
-	private int puntuation;
-
 	/**
 	 * Instantiates a new user dto.
 	 */
 	public UserDto() {
 	}
 
-	public UserDto(Long id, String userName, int puntuation) {
-		this.id = id;
-		this.userName = userName;
-		this.puntuation = puntuation;
-	}
-
-	public UserDto(Long id, String userName) {
-		this.id = id;
-		this.userName = userName;
-	}
-
 	public UserDto(Long id, String userName, String email) {
 
 		this.id = id;
 		this.userName = userName != null ? userName.trim() : null;
-		this.email = email.trim();
+		this.email = email != null ? email.trim() : null;
 
 	}
 
@@ -95,7 +82,7 @@ public class UserDto {
 	 * @param userName the new user name
 	 */
 	public void setUserName(String userName) {
-		this.userName = userName.trim();
+		this.userName = userName != null ? userName.trim() : null;
 	}
 
 	/**
@@ -136,24 +123,6 @@ public class UserDto {
 	 * @param email the new email
 	 */
 	public void setEmail(String email) {
-		this.email = email.trim();
-	}
-
-	/**
-	 * Gets the puntuation of the user.
-	 *
-	 * @return the puntuation of the user
-	 */
-	public int getPuntuation() {
-		return puntuation;
-	}
-
-	/**
-	 * Sets the puntuation of the user.
-	 *
-	 * @param puntuation the new puntuation of the user
-	 */
-	public void setPuntuation(int puntuation) {
-		this.puntuation = puntuation;
+		this.email = email != null ? email.trim() : null;
 	}
 }

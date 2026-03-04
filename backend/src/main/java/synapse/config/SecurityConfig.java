@@ -2,6 +2,8 @@ package synapse.config;
 
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,10 +25,14 @@ import synapse.rest.security.JwtFilter;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final List<String> allowedOrigins;
 
-    public SecurityConfig(JwtFilter jwtFilter) {
-
+    public SecurityConfig(JwtFilter jwtFilter,
+                          @org.springframework.beans.factory.annotation.Value("${project.cors.allowed-origins}") String allowedOriginsStr) {
         this.jwtFilter = jwtFilter;
+        this.allowedOrigins = java.util.Arrays.stream(allowedOriginsStr.split(","))
+                .map(String::trim)
+                .toList();
     }
 
     /**
@@ -40,7 +46,14 @@ public class SecurityConfig {
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         // @formatter:off
-        http.cors(cors -> cors.disable())
+        http.cors(cors -> cors.configurationSource(request -> {
+                    var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                    corsConfig.setAllowedOrigins(allowedOrigins);
+                    corsConfig.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    corsConfig.setAllowedHeaders(java.util.List.of("*"));
+                    corsConfig.setAllowCredentials(true);
+                    return corsConfig;
+                }))
             .csrf(csrf -> csrf.disable())
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable())
@@ -59,7 +72,7 @@ public class SecurityConfig {
                 .requestMatchers(antMatcher("/api/image/getImage/{imageName}")).permitAll()
                 .requestMatchers(antMatcher("/ws/**")).permitAll()
                 // Brain: media is public (embedded), rest requires auth
-                .requestMatchers(antMatcher("/api/brain/media/**")).permitAll()
+                .requestMatchers(antMatcher("/api/brains/media/**")).permitAll()
                 .requestMatchers(antMatcher("/actuator/**")).permitAll()
                 .anyRequest().authenticated()
             )

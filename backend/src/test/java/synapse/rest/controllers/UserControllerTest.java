@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import synapse.model.entities.Users;
+import synapse.model.entities.User;
 import synapse.model.entities.UserDao;
 import synapse.model.services.exceptions.IncorrectLoginException;
 
@@ -36,7 +36,6 @@ import synapse.rest.dtos.UserDto;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-@SuppressWarnings("null")
 public class UserControllerTest {
 
 	private final static String PASSWORD = "password";
@@ -56,7 +55,7 @@ public class UserControllerTest {
 	private AuthenticatedUserDto createAuthenticatedUser(String userName)
 			throws IncorrectLoginException {
 
-		Users user = new Users(userName, PASSWORD, "user@test.com");
+		User user = new User(userName, PASSWORD, "user@test.com");
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		userDao.save(user);
 
@@ -191,7 +190,7 @@ public class UserControllerTest {
 	@Test
 	public void testUpdateProfile_NotPermission() throws Exception {
 
-		Users user1 = new Users("user1", "password", "user1@user1.com");
+		User user1 = new User("user1", "password", "user1@user1.com");
 
 		AuthenticatedUserDto user2 = createAuthenticatedUser("user2");
 

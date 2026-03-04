@@ -44,7 +44,7 @@ import synapse.model.services.NoteMarkdownStorageService;
  * URL naming follows REST conventions (nouns, not verbs).
  */
 @RestController
-@RequestMapping(value = "/api/brain", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/brains", produces = MediaType.APPLICATION_JSON_VALUE)
 @SuppressWarnings("null")
 public class BrainController {
     private static final Logger logger = LoggerFactory.getLogger(BrainController.class);
@@ -68,21 +68,19 @@ public class BrainController {
     }
 
     /**
-     * POST /api/brain/suggestions — AI content classification.
+     * POST /api/brains/suggestions — AI content classification.
      */
     @PostMapping("/suggestions")
-    @ResponseStatus(HttpStatus.OK)
-    public BrainSuggestionDto suggest(@RequestBody BrainSuggestParamsDto params) {
-        logger.info("Recibida petición de sugerencia para contenido: {}", params.getContent());
+    public BrainSuggestionDto suggest(@RequestBody @jakarta.validation.Valid BrainSuggestParamsDto params) {
+        logger.info("Received suggestion request for content: {}", params.getContent());
         BrainSuggestionService.SuggestionResult result = brainSuggestionService.suggest(params.getContent());
         return toSuggestionDto(result);
     }
 
     /**
-     * GET /api/brain/previews?url=... — URL preview extraction.
+     * GET /api/brains/previews?url=... — URL preview extraction.
      */
     @GetMapping("/previews")
-    @ResponseStatus(HttpStatus.OK)
     public BrainLinkPreviewDto preview(@RequestParam("url") String url) {
         BrainSuggestionService.LinkPreviewResult result = brainSuggestionService.extractLinkPreview(url);
         return new BrainLinkPreviewDto(result.getUrl(), result.getType(), result.getTitle(),
@@ -90,20 +88,19 @@ public class BrainController {
     }
 
     /**
-     * POST /api/brain/suggestions/file — File upload + AI classification
+     * POST /api/brains/suggestions/file — File upload + AI classification
      * (multipart).
      */
     @PostMapping(value = "/suggestions/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseStatus(HttpStatus.OK)
     public BrainSuggestionDto suggestFromFile(@RequestPart("file") MultipartFile file) {
         String basePath = (contextPath != null ? contextPath : "");
-        String mediaUrlPrefix = basePath + "/api/brain/media/";
+        String mediaUrlPrefix = basePath + "/api/brains/media/";
         BrainSuggestionService.SuggestionResult result = brainSuggestionService.suggestFromFile(file, mediaUrlPrefix);
         return toSuggestionDto(result);
     }
 
     /**
-     * GET /api/brain/media/{filename} — Serve media with HTTP Range support.
+     * GET /api/brains/media/{filename} — Serve media with HTTP Range support.
      */
     @GetMapping("/media/{filename:.+}")
     public ResponseEntity<?> getMedia(@PathVariable("filename") String filename, @RequestHeader HttpHeaders headers) {
@@ -144,7 +141,7 @@ public class BrainController {
     }
 
     /**
-     * DELETE /api/brain/media/{filename} — Delete media file (idempotent).
+     * DELETE /api/brains/media/{filename} — Delete media file (idempotent).
      */
     @DeleteMapping("/media/{filename:.+}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -153,18 +150,18 @@ public class BrainController {
     }
 
     /**
-     * POST /api/brain/notes — Persist a note as Markdown file.
+     * POST /api/brains/notes — Persist a note as Markdown file.
      * Returns 201 CREATED.
      */
     @PostMapping("/notes")
     @ResponseStatus(HttpStatus.CREATED)
-    public SavedNoteDto saveNote(@RequestBody SaveNoteParamsDto params) {
+    public SavedNoteDto saveNote(@RequestBody @jakarta.validation.Valid SaveNoteParamsDto params) {
         NoteMarkdownStorageService.SaveResult result = noteMarkdownStorageService.saveNote(params);
         return new SavedNoteDto(result.getStorageId(), result.getFilename());
     }
 
     /**
-     * DELETE /api/brain/notes/{storageId} — Delete a persisted note (idempotent).
+     * DELETE /api/brains/notes/{storageId} — Delete a persisted note (idempotent).
      */
     @DeleteMapping("/notes/{storageId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -173,25 +170,23 @@ public class BrainController {
     }
 
     /**
-     * POST /api/brain/fact-checks — Fact-check content via AI.
+     * POST /api/brains/fact-checks — Fact-check content via AI.
      */
     @PostMapping("/fact-checks")
-    @ResponseStatus(HttpStatus.OK)
-    public FactCheckResponseDto factCheck(@RequestBody FactCheckParamsDto params) {
-        logger.info("Recibida petición de fact-checking para contenido");
+    public FactCheckResponseDto factCheck(@RequestBody @jakarta.validation.Valid FactCheckParamsDto params) {
+        logger.info("Received fact-check request");
         return new FactCheckResponseDto(llamaAIService.verifyInformation(params.getContent()));
     }
 
     /**
-     * POST /api/brain/trends/insights — AI-generated trend insights.
+     * POST /api/brains/trends/insights — AI-generated trend insights.
      */
     @PostMapping("/trends/insights")
-    @ResponseStatus(HttpStatus.OK)
-    public TrendsInsightsResponseDto trendsInsights(@RequestBody TrendsInsightsParamsDto params) {
-        logger.info("Recibida petición de tendencias (IA). WindowDays: {}. Topics: {}. Items: {}",
-                params == null ? null : params.getWindowDays(),
-                params == null || params.getTopics() == null ? null : params.getTopics().size(),
-                params == null || params.getItems() == null ? null : params.getItems().size());
+    public TrendsInsightsResponseDto trendsInsights(@RequestBody @jakarta.validation.Valid TrendsInsightsParamsDto params) {
+        logger.info("Received trends insights request. WindowDays: {}. Topics: {}. Items: {}",
+                params.getWindowDays(),
+                params.getTopics() == null ? null : params.getTopics().size(),
+                params.getItems() == null ? null : params.getItems().size());
         return llamaAIService.generateTrendsInsights(params);
     }
 

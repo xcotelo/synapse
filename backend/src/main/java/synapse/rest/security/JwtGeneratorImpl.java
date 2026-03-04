@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 /**
@@ -37,7 +36,7 @@ public class JwtGeneratorImpl implements JwtGenerator {
                 .subject(info.getUserName())
                 .expiration(new Date(System.currentTimeMillis() + expirationMinutes * 60 * 1000))
                 .claim("userId", info.getUserId())
-                .signWith(Keys.hmacShaKeyFor(signKey.getBytes()), SignatureAlgorithm.HS512)
+                .signWith(Keys.hmacShaKeyFor(signKey.getBytes()), Jwts.SIG.HS512)
                 .compact();
 
     }

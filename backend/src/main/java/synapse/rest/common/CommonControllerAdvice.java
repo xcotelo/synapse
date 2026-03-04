@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import synapse.model.common.exceptions.DuplicateInstanceException;
 import synapse.model.common.exceptions.InstanceNotFoundException;
+import synapse.model.services.exceptions.CannotDeleteAdminException;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.model.services.exceptions.IncorrectPasswordException;
 import synapse.model.services.exceptions.PermissionException;
@@ -35,6 +36,7 @@ public class CommonControllerAdvice {
 	private static final String PERMISSION_EXCEPTION_CODE = "project.exceptions.PermissionException";
 	private static final String INCORRECT_LOGIN_EXCEPTION_CODE = "project.exceptions.IncorrectLoginException";
 	private static final String INCORRECT_PASS_EXCEPTION_CODE = "project.exceptions.IncorrectPasswordException";
+	private static final String CANNOT_DELETE_ADMIN_EXCEPTION_CODE = "project.exceptions.CannotDeleteAdminException";
 
 	private final MessageSource messageSource;
 
@@ -113,6 +115,20 @@ public class CommonControllerAdvice {
 
 		String errorMessage = messageSource.getMessage(INCORRECT_PASS_EXCEPTION_CODE, null,
 				INCORRECT_PASS_EXCEPTION_CODE, locale);
+
+		return new ErrorsDto(errorMessage);
+	}
+
+	/**
+	 * Cannot delete admin user → 403 FORBIDDEN.
+	 */
+	@ExceptionHandler(CannotDeleteAdminException.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	@ResponseBody
+	public ErrorsDto handleCannotDeleteAdminException(CannotDeleteAdminException exception, Locale locale) {
+
+		String errorMessage = messageSource.getMessage(CANNOT_DELETE_ADMIN_EXCEPTION_CODE, null,
+				"Cannot delete admin user", locale);
 
 		return new ErrorsDto(errorMessage);
 	}

@@ -2,7 +2,7 @@ package synapse.model.services;
 
 import synapse.model.common.exceptions.DuplicateInstanceException;
 import synapse.model.common.exceptions.InstanceNotFoundException;
-import synapse.model.entities.Users;
+import synapse.model.entities.User;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.model.services.exceptions.IncorrectPasswordException;
 
@@ -17,7 +17,7 @@ public interface UserService {
 	 * @param user the user
 	 * @throws DuplicateInstanceException the duplicate instance exception
 	 */
-	void signUp(Users user) throws DuplicateInstanceException;
+	void signUp(User user) throws DuplicateInstanceException;
 
 	/**
 	 * Login.
@@ -27,7 +27,7 @@ public interface UserService {
 	 * @return the user
 	 * @throws IncorrectLoginException the incorrect login exception
 	 */
-	Users login(String userName, String password) throws IncorrectLoginException;
+	User login(String userName, String password) throws IncorrectLoginException;
 
 	/**
 	 * Login from id.
@@ -36,9 +36,9 @@ public interface UserService {
 	 * @return the user
 	 * @throws InstanceNotFoundException the instance not found exception
 	 */
-	Users loginFromId(Long id) throws InstanceNotFoundException;
+	User loginFromId(Long id) throws InstanceNotFoundException;
 
-	Users updateProfile(Long id, String email) throws InstanceNotFoundException;
+	User updateProfile(Long id, String email) throws InstanceNotFoundException;
 
 	/**
 	 * Change password.

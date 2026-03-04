@@ -1,6 +1,6 @@
 package synapse.rest.controllers;
 
-import static synapse.rest.mappers.UserConversor.toAuthenticatedUserDto;
+import static synapse.rest.mappers.UserMapper.toAuthenticatedUserDto;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import synapse.model.common.exceptions.InstanceNotFoundException;
-import synapse.model.entities.Users;
+import synapse.model.entities.User;
 import synapse.model.services.UserService;
 import synapse.model.services.exceptions.IncorrectLoginException;
 import synapse.rest.security.JwtGenerator;
@@ -40,7 +40,7 @@ public class SessionController {
 	 */
 	@PostMapping
 	public AuthenticatedUserDto login(@Validated @RequestBody LoginParamsDto params) throws IncorrectLoginException {
-		Users user = userService.login(params.getUserName(), params.getPassword());
+		User user = userService.login(params.getUserName(), params.getPassword());
 		return toAuthenticatedUserDto(generateServiceToken(user), user);
 	}
 
@@ -51,11 +51,11 @@ public class SessionController {
 	@PostMapping("/refresh")
 	public AuthenticatedUserDto refreshToken(@RequestAttribute Long userId,
 			@RequestAttribute String serviceToken) throws InstanceNotFoundException {
-		Users user = userService.loginFromId(userId);
+		User user = userService.loginFromId(userId);
 		return toAuthenticatedUserDto(serviceToken, user);
 	}
 
-	private String generateServiceToken(Users user) {
+	private String generateServiceToken(User user) {
 		JwtInfo jwtInfo = new JwtInfo(user.getId(), user.getUserName());
 		return jwtGenerator.generate(jwtInfo);
 	}

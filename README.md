@@ -155,6 +155,7 @@ CREATE DATABASE synapse_test OWNER synapse;
 
 ```bash
 export API_KEY_LLAMA="meter_clave_aqui"
+$env:JWT_SIGN_KEY = "synapseSecretKeyForJwtHS512TokenGeneration2026MustBeAtLeast64BytesLongForSecurity!!"
 ```
 
 ### 4. Arranque aplicación (backend + frontend)

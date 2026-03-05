@@ -66,7 +66,7 @@ Sistema de notificaciones push vía WebSocket con persistencia en `localStorage`
 |---|---|
 | **Backend** | Java 17, Spring Boot 3.3.4, Spring Security, Spring Data JPA, Hibernate |
 | **Frontend** | React 18, React Router DOM 6, react-markdown |
-| **Base de datos** | PostgreSQL 17 (producción), H2 (tests) |
+| **Base de datos** | PostgreSQL 17 (producción) |
 | **IA / LLM** | Llama 3.3 70B Versatile vía [Groq API](https://groq.com/) |
 | **Autenticación** | JWT (jjwt 0.11.5), sesiones stateless |
 | **Scraping** | Jsoup 1.17.2 |

@@ -93,10 +93,10 @@
 
 			<properties>
 				<!-- Data source properties -->
-				<dataSource.url>jdbc:postgresql://localhost:5432/synapse</dataSource.url>
-				<testDataSource.url>jdbc:postgresql://localhost:5432/synapse_test</testDataSource.url>
-				<dataSource.user>synapse</dataSource.user>
-				<dataSource.password>1234</dataSource.password>
+				<dataSource.url>${env.DB_URL:jdbc:postgresql://localhost:5432/synapse}</dataSource.url>
+				<testDataSource.url>${env.DB_URL_TEST:jdbc:postgresql://localhost:5432/synapse_test}</testDataSource.url>
+				<dataSource.user>${env.DB_USERNAME:synapse}</dataSource.user>
+				<dataSource.password>${env.DB_PASSWORD:CHANGE_ME_IN_PRODUCTION}</dataSource.password>
 			</properties>
 
 			<dependencies>

@@ -70,10 +70,11 @@ public class SecurityConfig {
                 .requestMatchers(antMatcher(HttpMethod.POST, "/api/sessions/refresh")).permitAll()
                 .requestMatchers(antMatcher(HttpMethod.POST, "/api/users")).permitAll()
                 .requestMatchers(antMatcher("/api/image/getImage/{imageName}")).permitAll()
-                .requestMatchers(antMatcher("/ws/**")).permitAll()
-                // Brain: media is public (embedded), rest requires auth
-                .requestMatchers(antMatcher("/api/brains/media/**")).permitAll()
-                .requestMatchers(antMatcher("/actuator/**")).permitAll()
+                // WebSocket requires authentication (JWT token in query string or header)
+                .requestMatchers(antMatcher("/ws/**")).authenticated()
+                // Brain: media access requires authentication to verify ownership
+                .requestMatchers(antMatcher("/api/brains/media/**")).authenticated()
+                .requestMatchers(antMatcher("/actuator/**")).denyAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

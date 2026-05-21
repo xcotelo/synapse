@@ -8,7 +8,9 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/synapse}
     driver-class-name: org.postgresql.Driver
     username: ${DB_USERNAME:synapse}
-    password: ${DB_PASSWORD:1234}
+    password: ${DB_PASSWORD:}
+    # NOTE: DB_PASSWORD MUST be set as environment variable in production
+    # NEVER commit production secrets to version control
 
   jpa:
     open-in-view: false

@@ -7,3 +7,30 @@
 .project
 .settings
 target
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# IDE and OS
+*.log
+*.swp
+*.swo
+*~
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+*.jar
+
+# Database
+*.db
+*.sqlite
+
+# User data 
+/uploads/
+/digital-brain-notes/

@@ -1,0 +1,53 @@
+# ============================================================================
+# Synapse - Development and DevOps Requirements (Python)
+# For CI/CD, database management, and development tools
+# ============================================================================
+
+# Database Management
+psycopg2-binary==2.9.9          # PostgreSQL adapter
+sqlalchemy==2.0.23              # ORM for Python scripts
+
+# Environment Management
+python-dotenv==1.0.0            # Load .env files
+
+# Testing and Quality
+pytest==7.4.3                   # Testing framework
+pytest-cov==4.1.0               # Coverage plugin
+
+# Code Quality
+black==23.12.0                  # Code formatter
+flake8==6.1.0                   # Linter
+pylint==3.0.2                   # Advanced linter
+
+# Security Scanning
+bandit==1.7.5                   # Security issue scanner
+safety==2.3.5                   # Check for known vulnerabilities
+
+# Utilities
+click==8.1.7                    # CLI framework
+requests==2.31.0                # HTTP client
+
+# Docker and Container Tools (Optional)
+# Uncomment if using Python-based Docker helpers
+# docker==6.1.3                 # Docker SDK for Python
+# docker-compose==1.29.2        # Docker Compose SDK
+
+# Documentation (Optional)
+# sphinx==7.2.6                 # Documentation generator
+# sphinx-rtd-theme==2.0.0       # ReadTheDocs theme
+
+# ============================================================================
+# Installation:
+#
+# Create virtual environment:
+#   python3 -m venv venv
+#   source venv/bin/activate  # On Windows: venv\Scripts\activate
+#
+# Install dependencies:
+#   pip install -r requirements.txt
+#
+# Run security checks:
+#   bandit -r backend/src/main/java/synapse/ || true
+#   safety check
+#
+# ============================================================================
